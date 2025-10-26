@@ -43,7 +43,7 @@
         }
         /* Asegura que el contenedor principal ocupe toda la altura */
         .main-container {
-            /* CORRECCIÓN: Usar 100dvh (altura de viewport dinámica) en lugar de 100vh */
+            /* Usar 100dvh (altura de viewport dinámica) en lugar de 100vh */
             height: 100dvh; /* Ocupa toda la altura de la vista visible */
             display: flex;
             flex-direction: column;
@@ -84,7 +84,7 @@
 
         <!-- 
             Esta es la mesa de juego, siempre visible 
-            CORRECCIÓN: Añadido 'max-h-full' para evitar que se desborde en vertical
+            Añadido 'max-h-full' para evitar que se desborde en vertical
         -->
         <div class="relative aspect-[2/1] w-full max-h-full bg-yellow-900 border-8 border-yellow-800 rounded-lg shadow-2xl overflow-hidden">
             <canvas id="poolTable"></canvas>
@@ -449,7 +449,7 @@
                 let t = (PLAYABLE_RECT.bottom - startPos.y) / dir.y;
                 if (t > 0 && t < tMin) { tMin = t; hitType = 'bottom'; }
             } else if (dir.y < 0) {
-                let t = (PLAYABLE_RECT.top - startPos.y) / dir.y;
+                let t = (PLAYABLE_RECT.top - startPos.x) / dir.y;
                 if (t > 0 && t < tMin) { tMin = t; hitType = 'top'; }
             }
             return { t: tMin, hitType: hitType };
@@ -679,6 +679,43 @@
             ctx.restore();
         }
 
+        // --- NUEVA FUNCIÓN: BARRA DE FUERZA ---
+        function drawPowerBar() {
+            // 1. Calcular potencia (0.0 a 1.0)
+            const pullDist = Math.hypot(pullEndPos.x - pullStartPos.x, pullEndPos.y - pullStartPos.y);
+            const maxPull = TABLE_WIDTH * 0.2; // Coincide con el pullBack del taco
+            const power = Math.min(pullDist / maxPull, 1.0);
+
+            // 2. Definir dimensiones de la barra (en la banda derecha)
+            const barTotalHeight = PLAYABLE_RECT.height * 0.7; // 70% de la altura jugable
+            const barTotalY = PLAYABLE_RECT.top + (PLAYABLE_RECT.height * 0.15); // Centrada
+            const barWidth = CUSHION_SIZE * 0.3; // Ancho de la barra
+            const barX = TABLE_WIDTH - CUSHION_SIZE + (CUSHION_SIZE * 0.35); // Posicionada en la madera
+
+            // 3. Dibujar el fondo (vacío)
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+            ctx.fillRect(barX, barTotalY, barWidth, barTotalHeight);
+
+            // 4. Calcular la parte llena
+            const fillHeight = barTotalHeight * power;
+            const fillY = barTotalY + barTotalHeight - fillHeight; // Se llena de abajo hacia arriba
+
+            // 5. Crear gradiente de color
+            const powerGradient = ctx.createLinearGradient(0, barTotalY + barTotalHeight, 0, barTotalY);
+            powerGradient.addColorStop(0, '#00FF00'); // Verde (bajo)
+            powerGradient.addColorStop(0.5, '#FFFF00'); // Amarillo (medio)
+            powerGradient.addColorStop(1, '#FF0000'); // Rojo (alto)
+
+            // 6. Dibujar la parte llena
+            ctx.fillStyle = powerGradient;
+            ctx.fillRect(barX, fillY, barWidth, fillHeight);
+
+            // 7. Dibujar un borde
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(barX, barTotalY, barWidth, barTotalHeight);
+        }
+
 
         // --- 7. MOTOR DE FÍSICA (SIMULACIÓN) ---
 
@@ -837,6 +874,13 @@
                 drawPoolCue(); 
             }
             
+            // --- MODIFICACIÓN: Llamar a la barra de fuerza ---
+            // Solo se dibuja si estamos 'pulling' Y si el botón de reset está oculto
+            // (lo que significa que estamos en modo móvil horizontal)
+            if (gameState === 'pulling' && resetButton && resetButton.offsetParent === null) {
+                drawPowerBar();
+            }
+            
             if (gameState === 'aiming') {
                 drawGhostBall(); 
             }
@@ -905,7 +949,7 @@
 
             if (!draggingBall && gameState === 'aiming' && cueBall.active) {
                 gameState = 'pulling';
-                pullStartPos = { x: pos.x, y: pos.y }; 
+                pullStartPos = { x: pos.x, y: pos.y }; // Corregido: pos.s -> pos.x
                 pullEndPos = { x: pos.x, y: pos.y };
                 if (event.type === 'touchstart') event.preventDefault(); 
             }
@@ -972,7 +1016,7 @@
 
             } else if (draggingBall) {
                 let ballToMove;
-                if (draggingBall === 'cue') ballToMove = cueBall; // Corregido: draggingG -> draggingBall
+                if (draggingBall === 'cue') ballToMove = cueBall;
                 else ballToMove = blackBall;
 
                 ballToMove.x = clamp(mousePos.x, PLAYABLE_RECT.left + BALL_RADIUS, PLAYABLE_RECT.right - BALL_RADIUS);
@@ -996,7 +1040,7 @@
         function updateSpin(pos) {
             if (!canvasSpin) return; // Salir si el canvas de spin no existe
             const dx = pos.x - spinBallControl.x;
-            const dy = pos.y - spinBallControl.y;
+            const dy = pos.y - spinBallControl.y; // Corregido: pos.s -> pos.y
             const dist = Math.hypot(dx, dy);
             
             const maxDist = spinBallControl.radius * 0.8; 
@@ -1012,7 +1056,7 @@
             drawSpinControl();
         }
 
-        // --- NUEVA FUNCIÓN: Pantalla Completa ---
+        // --- FUNCIÓN: Pantalla Completa ---
         function toggleFullScreen() {
             const elem = document.documentElement; // Usar el elemento raíz HTML
             
