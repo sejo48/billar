@@ -68,11 +68,11 @@
             - Teléfono horizontal: "landscape:hidden" (oculto)
             - PC/Tablet: "md:flex" (visible, anula el landscape:hidden)
         -->
-        <div class="flex landscape:hidden md:flex justify-between items-start mb-2 px-4 md:px-0 w-full">
+        <div id="ui-header" class="flex landscape:hidden md:flex justify-between items-start mb-2 px-4 md:px-0 w-full">
             <div>
                 <h1 class="text-3xl font-bold text-left mb-2">Simulador de Billar</h1>
                 <p class="text-left text-gray-300 mb-4">
-                    Apunta con el ratón. Clica y arrastra hacia atrás para disparar.
+                    Apunta con el ratón. Usa la barra de fuerza para disparar.
                 </p>
             </div>
             
@@ -100,7 +100,7 @@
         <!-- 
             Lógica de visualización para orientación (igual que el bloque superior).
         -->
-        <div class="flex landscape:hidden md:flex text-center mt-4 flex-col items-center px-4 md:px-0">
+        <div id="ui-footer" class="flex landscape:hidden md:flex text-center mt-4 flex-col items-center px-4 md:px-0">
             <button id="resetButton" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition duration-200 shadow-lg mb-4">
                 Reiniciar Posiciones
             </button>
@@ -117,6 +117,7 @@
         const ctx = canvas.getContext('2d');
         const resetButton = document.getElementById('resetButton');
         const fullscreenButton = document.getElementById('fullscreen-btn');
+        const uiHeader = document.getElementById('ui-header');
         
         const canvasSpin = document.getElementById('spinControlCanvas');
         const ctxSpin = canvasSpin.getContext('2d');
@@ -138,10 +139,11 @@
         let draggingBall = null; 
         let isSettingSpin = false; 
         
-        let gameState = 'aiming'; // 'aiming', 'pulling', 'simulating'
-        let pullStartPos = null;  
-        let pullEndPos = null;    
+        // --- NUEVOS ESTADOS DE JUEGO ---
+        let gameState = 'aiming'; // 'aiming', 'pullingPower', 'simulating'
         let aimDir = { x: 1, y: 0 }; 
+        let currentPower = 0; // Nivel de fuerza actual (0.0 a 1.0)
+        let isPowerBarActive = false; // Flag para saber si se está usando la barra
 
         let spinEffect = { x: 0, y: 0 }; 
         let spinBallControl = { x: 0, y: 0, radius: 0 };
@@ -154,11 +156,12 @@
         let POCKET_RADIUS;
         let POCKETS = [];
         let PLAYABLE_RECT = {}; 
+        let POWER_BAR_RECT = {}; // Área 'caliente' para la barra de fuerza
         
         const FRICTION = 0.985; 
         const MIN_SPEED = 0.05; 
         const SPIN_FACTOR_CUSHION = 0.4; 
-        const POWER_MULTIPLIER = 0.2; 
+        const MAX_POWER = 30; // Velocidad máxima del golpe
 
         // --- 4. SONIDOS (Tone.js) ---
         let soundsReady = false;
@@ -211,17 +214,13 @@
         function setupCanvas() {
             const container = canvas.parentElement;
             
-            // Forzar al contenedor a respetar el max-h-full
-            // Esto ajustará el ancho si el alto es la limitación
             const containerRatio = container.clientWidth / container.clientHeight;
             const tableRatio = 2 / 1;
 
             if (containerRatio > tableRatio) {
-                // El contenedor es más ANCHO que la mesa, el ALTO es la limitación
                 canvas.height = container.clientHeight;
                 canvas.width = container.clientHeight * tableRatio;
             } else {
-                // El contenedor es más ALTO que la mesa, el ANCHO es la limitación
                 canvas.width = container.clientWidth;
                 canvas.height = container.clientWidth / tableRatio;
             }
@@ -251,6 +250,19 @@
                 { x: PLAYABLE_RECT.right, y: PLAYABLE_RECT.bottom } 
             ];
 
+            // --- NUEVO: Definir el área "caliente" de la barra de fuerza ---
+            const barTotalHeight = PLAYABLE_RECT.height * 0.7;
+            const barTotalY = PLAYABLE_RECT.top + (PLAYABLE_RECT.height * 0.15);
+            const barWidth = CUSHION_SIZE * 0.3;
+            const barX = TABLE_WIDTH - CUSHION_SIZE + (CUSHION_SIZE * 0.35);
+            POWER_BAR_RECT = {
+                x: barX - CUSHION_SIZE, // Hacer el área más ancha para tocar fácil
+                y: barTotalY,
+                width: CUSHION_SIZE * 2, // Ancho generoso
+                height: barTotalHeight
+            };
+            // --- FIN NUEVO ---
+
             if (!draggingBall && gameState !== 'simulating') {
                 resetBalls();
             }
@@ -258,6 +270,8 @@
 
         function resetBalls() {
             gameState = 'aiming'; 
+            currentPower = 0;
+            isPowerBarActive = false;
             
             cueBall.x = PLAYABLE_RECT.left + PLAYABLE_RECT.width * 0.25;
             cueBall.y = PLAYABLE_RECT.top + PLAYABLE_RECT.height / 2;
@@ -270,10 +284,11 @@
             balls = [cueBall, blackBall]; 
 
             spinEffect.x = 0; spinEffect.y = 0;
-            spinIndicator.x = spinBallControl.x;
-            spinIndicator.y = spinBallControl.y;
-            
-            if(ctxSpin) drawSpinControl(); // Asegurarse que ctxSpin exista
+            if(spinBallControl.x) { // Asegurarse que esté inicializado
+                spinIndicator.x = spinBallControl.x;
+                spinIndicator.y = spinBallControl.y;
+                if(ctxSpin) drawSpinControl(); 
+            }
         }
 
         // --- 5. FUNCIONES DE DIBUJO ---
@@ -481,13 +496,15 @@
         }
 
         function drawFullTrajectory() {
+            // --- CORRECCIÓN: Mostrar líneas también al cargar fuerza ---
             if (gameState === 'simulating' || !cueBall.active) return; 
 
             let startPos = { x: cueBall.x, y: cueBall.y };
             let dir = aimDir;
             
             const mag = Math.hypot(mousePos.x - startPos.x, mousePos.y - startPos.y);
-            if (mag < BALL_RADIUS) return; 
+            // Si el mouse está sobre la bola, no dibujar (para evitar división por cero)
+            if (mag < BALL_RADIUS && gameState === 'aiming') return; 
 
             const wallHit = findWallCollision(startPos, dir);
             const ballHit = blackBall.active ? findBallCollision(startPos, dir, blackBall) : { t: Infinity };
@@ -599,11 +616,9 @@
             
             const angle = Math.atan2(aimDir.y, aimDir.x);
             
+            // --- MODIFICACIÓN: El taco ya no se retrae ---
             let pullBack = 0; 
-            if (gameState === 'pulling') {
-                const pullDist = Math.hypot(pullEndPos.x - pullStartPos.x, pullEndPos.y - pullStartPos.y);
-                pullBack = Math.min(pullDist, TABLE_WIDTH * 0.2); 
-            }
+            // La lógica de 'pulling' (jalar) se ha eliminado.
 
             ctx.save();
             ctx.translate(cueBall.x, cueBall.y);
@@ -655,7 +670,7 @@
 
         function drawGhostBall() {
             if (gameState !== 'aiming' || !mousePos.x) return;
-            if (gameState === 'pulling') return;
+            if (gameState === 'pullingPower') return; // No dibujar si está usando la barra
 
             ctx.save();
             ctx.beginPath();
@@ -679,41 +694,41 @@
             ctx.restore();
         }
 
-        // --- NUEVA FUNCIÓN: BARRA DE FUERZA ---
+        // --- BARRA DE FUERZA MODIFICADA ---
         function drawPowerBar() {
-            // 1. Calcular potencia (0.0 a 1.0)
-            const pullDist = Math.hypot(pullEndPos.x - pullStartPos.x, pullEndPos.y - pullStartPos.y);
-            const maxPull = TABLE_WIDTH * 0.2; // Coincide con el pullBack del taco
-            const power = Math.min(pullDist / maxPull, 1.0);
+            // 1. Usar el 'currentPower' global (0.0 a 1.0)
+            const power = currentPower; 
 
-            // 2. Definir dimensiones de la barra (en la banda derecha)
-            const barTotalHeight = PLAYABLE_RECT.height * 0.7; // 70% de la altura jugable
-            const barTotalY = PLAYABLE_RECT.top + (PLAYABLE_RECT.height * 0.15); // Centrada
-            const barWidth = CUSHION_SIZE * 0.3; // Ancho de la barra
-            const barX = TABLE_WIDTH - CUSHION_SIZE + (CUSHION_SIZE * 0.35); // Posicionada en la madera
+            // 2. Definir dimensiones de la barra (usando el RECT global)
+            const bar = POWER_BAR_RECT;
 
             // 3. Dibujar el fondo (vacío)
             ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
-            ctx.fillRect(barX, barTotalY, barWidth, barTotalHeight);
+            ctx.fillRect(bar.x, bar.y, bar.width, bar.height);
 
             // 4. Calcular la parte llena
-            const fillHeight = barTotalHeight * power;
-            const fillY = barTotalY + barTotalHeight - fillHeight; // Se llena de abajo hacia arriba
+            const fillHeight = bar.height * power;
+            const fillY = bar.y + bar.height - fillHeight; // Se llena de abajo hacia arriba
 
             // 5. Crear gradiente de color
-            const powerGradient = ctx.createLinearGradient(0, barTotalY + barTotalHeight, 0, barTotalY);
+            const powerGradient = ctx.createLinearGradient(0, bar.y + bar.height, 0, bar.y);
             powerGradient.addColorStop(0, '#00FF00'); // Verde (bajo)
             powerGradient.addColorStop(0.5, '#FFFF00'); // Amarillo (medio)
             powerGradient.addColorStop(1, '#FF0000'); // Rojo (alto)
 
             // 6. Dibujar la parte llena
             ctx.fillStyle = powerGradient;
-            ctx.fillRect(barX, fillY, barWidth, fillHeight);
+            ctx.fillRect(bar.x, fillY, bar.width, fillHeight);
 
-            // 7. Dibujar un borde
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-            ctx.lineWidth = 1;
-            ctx.strokeRect(barX, barTotalY, barWidth, barTotalHeight);
+            // 7. Dibujar un borde (más visible si se está usando)
+            if (isPowerBarActive) {
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+                ctx.lineWidth = 3;
+            } else {
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.lineWidth = 1;
+            }
+            ctx.strokeRect(bar.x, bar.y, bar.width, bar.height);
         }
 
 
@@ -869,16 +884,14 @@
 
             drawTable();
 
-            if (gameState === 'aiming' || gameState === 'pulling') { 
+            // Dibujar la barra de fuerza (solo si la UI está oculta, o sea, en móvil)
+            if (uiHeader && uiHeader.offsetParent === null) {
+                drawPowerBar();
+            }
+
+            if (gameState === 'aiming' || gameState === 'pullingPower') { 
                 drawFullTrajectory(); 
                 drawPoolCue(); 
-            }
-            
-            // --- MODIFICACIÓN: Llamar a la barra de fuerza ---
-            // Solo se dibuja si estamos 'pulling' Y si el botón de reset está oculto
-            // (lo que significa que estamos en modo móvil horizontal)
-            if (gameState === 'pulling' && resetButton && resetButton.offsetParent === null) {
-                drawPowerBar();
             }
             
             if (gameState === 'aiming') {
@@ -930,6 +943,7 @@
             return Math.max(min, Math.min(value, max));
         }
 
+        // --- LÓGICA DE INICIO DE ARRASTRE MODIFICADA ---
         function handleDragStart(event) {
             startAudioContext(); 
             
@@ -937,6 +951,21 @@
             
             const pos = getMousePosInCanvas(event);
 
+            // Comprobar si se toca la barra de fuerza (solo si la UI está oculta)
+            if (uiHeader && uiHeader.offsetParent === null) {
+                if (pos.x >= POWER_BAR_RECT.x && pos.x <= POWER_BAR_RECT.x + POWER_BAR_RECT.width &&
+                    pos.y >= POWER_BAR_RECT.y && pos.y <= POWER_BAR_RECT.y + POWER_BAR_RECT.height) {
+                    
+                    isPowerBarActive = true;
+                    gameState = 'pullingPower';
+                    // Actualizar la fuerza inmediatamente al tocar
+                    updatePowerBar(pos.y); 
+                    if (event.type === 'touchstart') event.preventDefault();
+                    return; // No hacer nada más
+                }
+            }
+
+            // Comprobar si se arrastra una bola
             const distCue = Math.hypot(pos.x - cueBall.x, pos.y - cueBall.y);
             const distBlack = Math.hypot(pos.x - blackBall.x, pos.y - blackBall.y);
             const grabRadius = BALL_RADIUS * 1.5;
@@ -946,74 +975,54 @@
             } else if (gameState === 'aiming' && blackBall.active && distBlack < grabRadius) {
                 draggingBall = 'black';
             }
-
-            if (!draggingBall && gameState === 'aiming' && cueBall.active) {
-                gameState = 'pulling';
-                pullStartPos = { x: pos.x, y: pos.y }; // Corregido: pos.s -> pos.x
-                pullEndPos = { x: pos.x, y: pos.y };
-                if (event.type === 'touchstart') event.preventDefault(); 
-            }
             
             if (draggingBall && event.type === 'touchstart') {
                 event.preventDefault();
             }
         }
 
+        // --- LÓGICA DE FIN DE ARRASTRE MODIFICADA ---
         function handleDragEnd(event) {
-            if (gameState === 'pulling') {
+            // Si estaba usando la barra de fuerza, disparar
+            if (isPowerBarActive) {
                 gameState = 'simulating';
+                isPowerBarActive = false;
                 
-                const power = Math.hypot(pullEndPos.x - pullStartPos.x, pullEndPos.y - pullStartPos.y);
+                const finalSpeed = currentPower * MAX_POWER;
                 
                 if (soundsReady) {
-                    const powerNormalized = Math.min(power / (TABLE_WIDTH * 0.2), 1);
-                    cueHitSound.triggerAttackRelease("C3", "8n", Tone.now(), powerNormalized);
+                    cueHitSound.triggerAttackRelease("C3", "8n", Tone.now(), currentPower);
                 }
                 
-                cueBall.vx = aimDir.x * power * POWER_MULTIPLIER;
-                cueBall.vy = aimDir.y * power * POWER_MULTIPLIER;
+                cueBall.vx = aimDir.x * finalSpeed;
+                cueBall.vy = aimDir.y * finalSpeed;
                 
-                pullStartPos = null;
-                pullEndPos = null;
+                currentPower = 0; // Resetear la barra
 
             } else if (draggingBall) {
                 draggingBall = null;
             }
         }
 
+        // --- NUEVA FUNCIÓN: Actualizar barra de fuerza ---
+        function updatePowerBar(yPos) {
+            // Convertir la posición Y en un valor de 0.0 a 1.0
+            const relativeY = yPos - POWER_BAR_RECT.y;
+            // Invertir (arriba es 1.0, abajo es 0.0)
+            const power = 1.0 - (relativeY / POWER_BAR_RECT.height);
+            currentPower = clamp(power, 0.0, 1.0);
+        }
+
+        // --- LÓGICA DE MOVER RATÓN/DEDO MODIFICADA ---
         function handleDragMove(event) {
             mousePos = getMousePosInCanvas(event);
 
-            // CORRECCIÓN: Permitir apuntar y jalar al mismo tiempo en móvil
-            if (event.type === 'touchmove' && (gameState === 'pulling' || gameState === 'aiming')) {
-                if(gameState === 'aiming' && cueBall.active) {
-                    // Si solo está apuntando (no ha empezado a jalar)
-                    const dx = mousePos.x - cueBall.x;
-                    const dy = mousePos.y - cueBall.y;
-                    const mag = Math.hypot(dx, dy);
-                    if (mag > 0.1) { 
-                        aimDir.x = dx / mag;
-                        aimDir.y = dy / mag;
-                    }
-                } else if (gameState === 'pulling') {
-                    // Si está jalando
-                    pullEndPos = { x: mousePos.x, y: mousePos.y };
-                    // Actualizar también la dirección
-                    const dx = mousePos.x - cueBall.x;
-                    const dy = mousePos.y - cueBall.y;
-                    const mag = Math.hypot(dx, dy);
-                    if (mag > 0.1) { 
-                        aimDir.x = dx / mag;
-                        aimDir.y = dy / mag;
-                    }
-                }
-                event.preventDefault();
-
-            } else if (gameState === 'pulling') {
-                // Ratón: solo actualiza la fuerza
-                pullEndPos = { x: mousePos.x, y: mousePos.y }; 
-                event.preventDefault();
-
+            // Si está usando la barra de fuerza
+            if (isPowerBarActive) {
+                updatePowerBar(mousePos.y);
+                if (event.type === 'touchmove') event.preventDefault();
+            
+            // Si está arrastrando una bola
             } else if (draggingBall) {
                 let ballToMove;
                 if (draggingBall === 'cue') ballToMove = cueBall;
@@ -1025,8 +1034,9 @@
                 if (event.type === 'touchmove') {
                     event.preventDefault();
                 }
+            
+            // Si solo está apuntando
             } else if (gameState === 'aiming' && cueBall.active) {
-                // Ratón: solo actualiza la dirección
                 const dx = mousePos.x - cueBall.x;
                 const dy = mousePos.y - cueBall.y;
                 const mag = Math.hypot(dx, dy);
@@ -1034,13 +1044,14 @@
                     aimDir.x = dx / mag;
                     aimDir.y = dy / mag;
                 }
+                if (event.type === 'touchmove') event.preventDefault();
             }
         }
 
         function updateSpin(pos) {
             if (!canvasSpin) return; // Salir si el canvas de spin no existe
             const dx = pos.x - spinBallControl.x;
-            const dy = pos.y - spinBallControl.y; // Corregido: pos.s -> pos.y
+            const dy = pos.y - spinBallControl.y;
             const dist = Math.hypot(dx, dy);
             
             const maxDist = spinBallControl.radius * 0.8; 
@@ -1058,10 +1069,9 @@
 
         // --- FUNCIÓN: Pantalla Completa ---
         function toggleFullScreen() {
-            const elem = document.documentElement; // Usar el elemento raíz HTML
+            const elem = document.documentElement; 
             
             if (!document.fullscreenElement && !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
-                // Entrar en pantalla completa
                 if (elem.requestFullscreen) {
                     elem.requestFullscreen();
                 } else if (elem.mozRequestFullScreen) { /* Firefox */
@@ -1072,7 +1082,6 @@
                     elem.msRequestFullscreen();
                 }
             } else {
-                // Salir de pantalla completa
                 if (document.exitFullscreen) {
                     document.exitFullscreen();
                 } else if (document.mozCancelFullScreen) { /* Firefox */
