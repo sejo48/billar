@@ -360,7 +360,7 @@
             ctx.font = `bold ${BALL_RADIUS * 0.9}px Arial`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillText('8', blackBall.x, blackBall.y + 1);
+            ctx.fillText('8', blackBall.x, blackBall.y + 1); // <-- Stray 'A' removed before this line
         }
 
         function drawSpinControl() {
@@ -382,7 +382,7 @@
             const highlightX = spinBallControl.x - spinBallControl.radius * 0.3;
             const highlightY = spinBallControl.y - spinBallControl.radius * 0.3;
             const gradient = ctxSpin.createRadialGradient(highlightX, highlightY, spinBallControl.radius * 0.1, spinBallControl.x, spinBallControl.y, spinBallControl.radius);
-t         gradient.addColorStop(0, '#FFFFFF');
+            gradient.addColorStop(0, '#FFFFFF'); 
             gradient.addColorStop(0.8, '#e0e0e0');
             gradient.addColorStop(1, '#bbbbbb');
             ctxSpin.fillStyle = gradient;
@@ -643,7 +643,7 @@ t         gradient.addColorStop(0, '#FFFFFF');
             // Virola
             ctx.beginPath();
             ctx.rect(cueStartX, -cueTipWidth, BALL_RADIUS * 0.3, cueTipWidth * 2);
-G           ctx.fillStyle = '#ffffff'; 
+            ctx.fillStyle = '#ffffff'; 
             ctx.fill();
             
             // Punta
@@ -788,7 +788,7 @@ G           ctx.fillStyle = '#ffffff'; 
                 if (dist < collisionDist) {
                     
                     if (soundsReady) {
-static                   const hitVelocity = Math.min(Math.hypot(cueBall.vx, cueBall.vy) / 15, 1);
+                        const hitVelocity = Math.min(Math.hypot(cueBall.vx, cueBall.vy) / 15, 1);
                         ballCollisionSound.triggerAttackRelease("G4", "16n", Tone.now(), hitVelocity);
                     }
 
@@ -831,7 +831,6 @@ static                   const hitVelocity = Math.min(Math.hypot(cueBal
             }
 
             // Comprobar si el juego debe volver a modo "apuntar"
-section_G
             if (!ballsStillMoving) {
                 gameState = 'aiming';
             }
