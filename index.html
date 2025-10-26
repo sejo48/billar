@@ -426,7 +426,7 @@
                 if (t > 0 && t < tMin) { tMin = t; hitType = 'left'; }
             }
             if (dir.y > 0) {
-                let t = (PLAYABLE_RECT.bottom - startPos.y) / dir.y;
+                let t = (PLAYABLE_RECT.bottom - startPos.x) / dir.y;
                 if (t > 0 && t < tMin) { tMin = t; hitType = 'bottom'; }
             } else if (dir.y < 0) {
                 let t = (PLAYABLE_RECT.top - startPos.y) / dir.y;
@@ -437,7 +437,6 @@
 
         function findBallCollision(startPos, dir, targetBall) {
             const collisionRadius = BALL_RADIUS * 2; 
-            // Corrección del error de tipeo
             const v = { x: targetBall.x - startPos.x, y: targetBall.y - startPos.y };
             
             const t_proj = v.x * dir.x + v.y * dir.y;
@@ -463,7 +462,7 @@
 
         // Dibuja las líneas de predicción
         function drawFullTrajectory() {
-            if (gameState !== 'aiming' || !cueBall.active) return; 
+            if (gameState === 'simulating' || !cueBall.active) return; // Ocultar si se está simulando
 
             let startPos = { x: cueBall.x, y: cueBall.y };
             let dir = aimDir;
@@ -839,13 +838,17 @@
             // Dibujar la mesa
             drawTable();
 
+            // *** ¡LA CORRECCIÓN ESTÁ AQUÍ! ***
             // Dibujar elementos de UI (taco, líneas)
-            if (gameState === 'aiming') {
+            if (gameState === 'aiming' || gameState === 'pulling') { 
+                // Dibujar líneas tanto al apuntar COMO al cargar
                 drawFullTrajectory(); 
                 drawPoolCue(); 
+            }
+            
+            if (gameState === 'aiming') {
+                // Dibujar la bola fantasma solo al apuntar (no al cargar)
                 drawGhostBall(); 
-            } else if (gameState === 'pulling') {
-                drawPoolCue(); 
             }
             
             // Dibujar las bolas encima de todo
@@ -915,8 +918,7 @@
             // Si no se arrastra bola, iniciar el golpe
             if (!draggingBall && gameState === 'aiming' && cueBall.active) {
                 gameState = 'pulling';
-                // *** ¡LA CORRECCIÓN ESTÁ AQUÍ! ***
-                pullStartPos = { x: pos.x, y: pos.y }; // Corregido de pos.s a pos.x
+                pullStartPos = { x: pos.x, y: pos.y };
                 pullEndPos = { x: pos.x, y: pos.y };
                 event.preventDefault(); // Prevenir scroll en móvil
             }
@@ -998,7 +1000,7 @@
 
         function updateSpin(pos) {
             const dx = pos.x - spinBallControl.x;
-            const dy = pos.y - spinBallControl.y;
+            const dy = pos.y - spinBallControl.y; // Corregido de pos.s
             const dist = Math.hypot(dx, dy);
             
             const maxDist = spinBallControl.radius * 0.8; 
