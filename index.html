@@ -12,9 +12,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&display=swap" rel="stylesheet">
     <style>
         /* Estilo para la fuente Inter */
-        body {
+        html, body {
             font-family: 'Inter', sans-serif;
             overflow: hidden; /* Prevenir scroll en la página */
+            height: 100%;
         }
         /* Asegura que el canvas tenga un fondo, en caso de que tailwind no cargue */
         canvas {
@@ -26,6 +27,28 @@
         .elegant-script {
             font-family: 'Dancing Script', cursive;
         }
+        /* Oculta el botón de fullscreen en PC (donde no es tan necesario) */
+        #fullscreen-btn {
+            display: none;
+        }
+        /* Muestra el botón de fullscreen solo en pantallas táctiles (móviles/tablets) */
+        @media (pointer: coarse) {
+            #fullscreen-btn {
+                display: block;
+            }
+        }
+        /* Oculta el botón de fullscreen cuando YA estamos en modo fullscreen */
+        :fullscreen #fullscreen-btn {
+            display: none;
+        }
+        /* Asegura que el contenedor principal ocupe toda la altura */
+        .main-container {
+            height: 100vh; /* Ocupa toda la altura de la vista */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
     </style>
 </head>
 <!-- 
@@ -36,7 +59,7 @@
 -->
 <body class="bg-gray-900 text-gray-100 flex flex-col items-center p-4 landscape:p-0 md:p-4 md:justify-center min-h-screen">
 
-    <div class="w-full max-w-5xl">
+    <div class="w-full max-w-5xl main-container">
         
         <!-- 
             Lógica de visualización para orientación.
@@ -44,7 +67,7 @@
             - Teléfono horizontal: "landscape:hidden" (oculto)
             - PC/Tablet: "md:flex" (visible, anula el landscape:hidden)
         -->
-        <div class="flex landscape:hidden md:flex justify-between items-start mb-2 px-4 md:px-0">
+        <div class="flex landscape:hidden md:flex justify-between items-start mb-2 px-4 md:px-0 w-full">
             <div>
                 <h1 class="text-3xl font-bold text-left mb-2">Simulador de Billar</h1>
                 <p class="text-left text-gray-300 mb-4">
@@ -52,15 +75,22 @@
                 </p>
             </div>
             
-            <div class="flex flex-col items-center p-2 rounded-lg bg-gray-800 shadow-lg border border-gray-700">
+            <div class="flex-shrink-0 flex flex-col items-center p-2 rounded-lg bg-gray-800 shadow-lg border border-gray-700">
                 <canvas id="spinControlCanvas"></canvas>
                 <span class="text-sm text-gray-400 mt-1">Control de Efecto</span>
             </div>
         </div>
 
         <!-- Esta es la mesa de juego, siempre visible -->
-        <div class="aspect-[2/1] w-full bg-yellow-900 border-8 border-yellow-800 rounded-lg shadow-2xl overflow-hidden">
+        <div class="relative aspect-[2/1] w-full bg-yellow-900 border-8 border-yellow-800 rounded-lg shadow-2xl overflow-hidden">
             <canvas id="poolTable"></canvas>
+            
+            <!-- NUEVO: Botón de Pantalla Completa -->
+            <button id="fullscreen-btn" class="absolute bottom-2 right-2 p-2 rounded-full bg-gray-900 bg-opacity-50 text-white hover:bg-opacity-75 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-arrows-fullscreen" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M5.828 10.172a.5.5 0 0 0-.707 0l-4 4a.5.5 0 0 0 0 .707l4 4a.5.5 0 0 0 .707-.707L2.707 11H7.5a.5.5 0 0 0 0-1H2.707l3.121-3.121a.5.5 0 0 0 0-.707zM10.172 5.828a.5.5 0 0 0 0 .707l3.121 3.121H8.5a.5.5 0 0 0 0 1H13.293l-3.121 3.121a.5.5 0 0 0 .707.707l4-4a.5.5 0 0 0 0-.707l-4-4a.5.5 0 0 0-.707 0zM.5 1a.5.5 0 0 0 0 1h4.793L1.146 6.146a.5.5 0 0 0 .708.708L6 2.707V7.5a.5.5 0 0 0 1 0V1H.5zM10 8.5a.5.5 0 0 0-1 0v4.793l-4.146-4.147a.5.5 0 0 0-.708.708L8.293 14H3.5a.5.5 0 0 0 0 1h5.5V8.5z"/>
+                </svg>
+            </button>
         </div>
 
         <!-- 
@@ -82,6 +112,7 @@
         const canvas = document.getElementById('poolTable');
         const ctx = canvas.getContext('2d');
         const resetButton = document.getElementById('resetButton');
+        const fullscreenButton = document.getElementById('fullscreen-btn');
         
         const canvasSpin = document.getElementById('spinControlCanvas');
         const ctxSpin = canvasSpin.getContext('2d');
@@ -129,21 +160,15 @@
         let soundsReady = false;
         let cueHitSound, ballCollisionSound, cushionHitSound, pocketSound;
 
-        /**
-         * initSounds()
-         * Configura los sintetizadores de Tone.js para los efectos de sonido.
-         */
         function initSounds() {
             if (soundsReady) return;
             
-            // Sonido del golpe del taco
             cueHitSound = new Tone.MembraneSynth({
                 pitchDecay: 0.01,
                 octaves: 2,
                 envelope: { attack: 0.001, decay: 0.2, sustain: 0.01, release: 0.1 }
             }).toDestination();
 
-            // Sonido de colisión de bolas
             ballCollisionSound = new Tone.MembraneSynth({
                 pitchDecay: 0.01,
                 octaves: 5,
@@ -151,7 +176,6 @@
             }).toDestination();
             ballCollisionSound.volume.value = -6;
 
-            // Sonido de golpe en banda
             cushionHitSound = new Tone.MembraneSynth({
                 pitchDecay: 0.01,
                 octaves: 1,
@@ -159,7 +183,6 @@
             }).toDestination();
             cushionHitSound.volume.value = -12;
 
-            // Sonido de bola en buchaca
             pocketSound = new Tone.NoiseSynth({
                 noise: { type: 'brown' },
                 envelope: { attack: 0.005, decay: 0.2, sustain: 0.01, release: 0.1 }
@@ -169,15 +192,11 @@
             soundsReady = true;
         }
 
-        /**
-         * startAudioContext()
-         * Inicia el contexto de audio de Tone.js, requerido por los navegadores.
-         */
         async function startAudioContext() {
             if (Tone.context.state !== 'running') {
                 await Tone.start();
             }
-            initSounds(); // Inicia los sintetizadores
+            initSounds(); 
         }
 
 
@@ -206,14 +225,13 @@
                 bottom: TABLE_HEIGHT - CUSHION_SIZE
             };
             
-            // Corrección: Posicionar buchacas en el borde exacto del área jugable
             POCKETS = [
-                { x: PLAYABLE_RECT.left, y: PLAYABLE_RECT.top }, // Esquina sup-izq
-                { x: TABLE_WIDTH / 2, y: PLAYABLE_RECT.top },   // Centro sup
-                { x: PLAYABLE_RECT.right, y: PLAYABLE_RECT.top }, // Esquina sup-der
-                { x: PLAYABLE_RECT.left, y: PLAYABLE_RECT.bottom },// Esquina inf-izq
-                { x: TABLE_WIDTH / 2, y: PLAYABLE_RECT.bottom }, // Centro inf
-                { x: PLAYABLE_RECT.right, y: PLAYABLE_RECT.bottom } // Esquina inf-der
+                { x: PLAYABLE_RECT.left, y: PLAYABLE_RECT.top }, 
+                { x: TABLE_WIDTH / 2, y: PLAYABLE_RECT.top },   
+                { x: PLAYABLE_RECT.right, y: PLAYABLE_RECT.top }, 
+                { x: PLAYABLE_RECT.left, y: PLAYABLE_RECT.bottom },
+                { x: TABLE_WIDTH / 2, y: PLAYABLE_RECT.bottom }, 
+                { x: PLAYABLE_RECT.right, y: PLAYABLE_RECT.bottom } 
             ];
 
             if (!draggingBall && gameState !== 'simulating') {
@@ -221,10 +239,6 @@
             }
         }
 
-        /**
-         * resetBalls()
-         * Coloca ambas bolas en sus posiciones iniciales.
-         */
         function resetBalls() {
             gameState = 'aiming'; 
             
@@ -250,7 +264,6 @@
         function drawTable() {
             ctx.clearRect(0, 0, TABLE_WIDTH, TABLE_HEIGHT);
 
-            // 1. Madera
             const woodGradient = ctx.createLinearGradient(0, 0, 0, TABLE_HEIGHT);
             woodGradient.addColorStop(0, '#6b2112'); 
             woodGradient.addColorStop(0.5, '#a1331d'); 
@@ -258,7 +271,6 @@
             ctx.fillStyle = woodGradient; 
             ctx.fillRect(0, 0, TABLE_WIDTH, TABLE_HEIGHT);
 
-            // 2. Diamantes
             const diamondRadius = CUSHION_SIZE * 0.18; 
             const playableWidth = PLAYABLE_RECT.width;
             const playableHeight = PLAYABLE_RECT.height;
@@ -295,11 +307,9 @@
                 drawDiamond(rightRailX, y);
             }
 
-            // 3. Fieltro verde
             ctx.fillStyle = '#059669'; 
             ctx.fillRect(PLAYABLE_RECT.left, PLAYABLE_RECT.top, PLAYABLE_RECT.width, PLAYABLE_RECT.height);
             
-            // 4. Sombra interior
             ctx.save();
             ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
             ctx.shadowBlur = 8;
@@ -310,7 +320,6 @@
             ctx.fillRect(PLAYABLE_RECT.left - 10, PLAYABLE_RECT.top - 10, PLAYABLE_RECT.width + 20, PLAYABLE_RECT.height + 20);
             ctx.restore();
 
-            // 5. Buchacas
             POCKETS.forEach(pocket => {
                 const pocketGradient = ctx.createRadialGradient(pocket.x, pocket.y, POCKET_RADIUS * 0.5, pocket.x, pocket.y, POCKET_RADIUS);
                 pocketGradient.addColorStop(0, '#111111'); 
@@ -323,7 +332,6 @@
         }
 
         function drawBall(ball, color) {
-            // Sombra en la mesa
             ctx.save();
             ctx.beginPath();
             ctx.arc(ball.x + 2, ball.y + 3, BALL_RADIUS, 0, Math.PI * 2);
@@ -334,7 +342,6 @@
             ctx.fill();
             ctx.restore();
 
-            // Bola 3D
             ctx.beginPath();
             const highlightX = ball.x - BALL_RADIUS * 0.3;
             const highlightY = ball.y - BALL_RADIUS * 0.3;
@@ -358,7 +365,6 @@
         function drawBlackBall() {
             drawBall(blackBall, '#000000');
 
-            // Círculo blanco
             ctx.beginPath();
             ctx.arc(blackBall.x, blackBall.y, BALL_RADIUS * 0.6, 0, Math.PI * 2);
             ctx.fillStyle = '#FFFFFF';
@@ -368,7 +374,6 @@
             ctx.fill();
             ctx.shadowColor = 'transparent'; 
 
-            // Número 8
             ctx.fillStyle = '#000000';
             ctx.font = `bold ${BALL_RADIUS * 0.9}px Arial`;
             ctx.textAlign = 'center';
@@ -379,7 +384,6 @@
         function drawSpinControl() {
             ctxSpin.clearRect(0, 0, canvasSpin.width, canvasSpin.height);
             
-            // Sombra
             ctxSpin.save();
             ctxSpin.beginPath();
             ctxSpin.arc(spinBallControl.x + 2, spinBallControl.y + 3, spinBallControl.radius, 0, Math.PI * 2);
@@ -390,7 +394,6 @@
             ctxSpin.fill();
             ctxSpin.restore();
 
-            // Bola
             ctxSpin.beginPath();
             const highlightX = spinBallControl.x - spinBallControl.radius * 0.3;
             const highlightY = spinBallControl.y - spinBallControl.radius * 0.3;
@@ -402,7 +405,6 @@
             ctxSpin.arc(spinBallControl.x, spinBallControl.y, spinBallControl.radius, 0, Math.PI * 2);
             ctxSpin.fill();
 
-            // Indicador de efecto
             ctxSpin.beginPath();
             ctxSpin.arc(spinIndicator.x, spinIndicator.y, spinBallControl.radius * 0.15, 0, Math.PI * 2);
             ctxSpin.fillStyle = 'rgba(255, 0, 0, 0.8)';
@@ -426,7 +428,7 @@
                 if (t > 0 && t < tMin) { tMin = t; hitType = 'left'; }
             }
             if (dir.y > 0) {
-                let t = (PLAYABLE_RECT.bottom - startPos.x) / dir.y;
+                let t = (PLAYABLE_RECT.bottom - startPos.y) / dir.y;
                 if (t > 0 && t < tMin) { tMin = t; hitType = 'bottom'; }
             } else if (dir.y < 0) {
                 let t = (PLAYABLE_RECT.top - startPos.y) / dir.y;
@@ -460,9 +462,8 @@
             return { t: t_hit };
         }
 
-        // Dibuja las líneas de predicción
         function drawFullTrajectory() {
-            if (gameState === 'simulating' || !cueBall.active) return; // Ocultar si se está simulando
+            if (gameState === 'simulating' || !cueBall.active) return; 
 
             let startPos = { x: cueBall.x, y: cueBall.y };
             let dir = aimDir;
@@ -474,7 +475,6 @@
             const ballHit = blackBall.active ? findBallCollision(startPos, dir, blackBall) : { t: Infinity };
 
             if (ballHit.t < wallHit.t) {
-                // Predicción de golpe a bola 8
                 const cueHitPoint = {
                     x: startPos.x + dir.x * ballHit.t,
                     y: startPos.y + dir.y * ballHit.t
@@ -495,9 +495,8 @@
                 blackBallDir.x /= blackMag;
                 blackBallDir.y /= blackMag;
 
-                drawPath(blackBall, blackBallDir, 'rgba(255, 255, 0, 0.7)', 4, {x: 0, y: 0}); // Línea bola 8
+                drawPath(blackBall, blackBallDir, 'rgba(255, 255, 0, 0.7)', 4, {x: 0, y: 0}); 
 
-                // Predicción de bola blanca post-golpe
                 let stunDir = { x: -blackBallDir.y, y: blackBallDir.x };
                 if (dir.x * stunDir.x + dir.y * stunDir.y < 0) {
                     stunDir.x *= -1;
@@ -520,18 +519,16 @@
                 if (cueAfterMag > 0.01) {
                     cueAfterHitDir.x /= cueAfterMag;
                     cueAfterHitDir.y /= cueAfterMag;
-                    drawPath(cueHitPoint, cueAfterHitDir, 'rgba(255, 165, 0, 0.7)', 4, spinEffect); // Línea naranja (efecto)
+                    drawPath(cueHitPoint, cueAfterHitDir, 'rgba(255, 165, 0, 0.7)', 4, spinEffect); 
                 }
                 
             } else {
-                // Predicción de golpe a banda
                 drawPath(startPos, dir, 'rgba(255, 255, 255, 0.7)', 4, spinEffect); 
             }
 
             ctx.setLineDash([]); 
         }
         
-        // Dibuja una línea de rebote simple
         function drawPath(startPos, dir, color, maxBounces = 6, spin = {x: 0, y: 0}) {
             let currentPos = { ...startPos };
             let currentDir = { ...dir };
@@ -551,7 +548,6 @@
                 };
                 ctx.lineTo(hitPoint.x, hitPoint.y);
 
-                // Comprobar si cae en buchaca
                 let isPocketed = false;
                 for (const pocket of POCKETS) {
                     if (Math.hypot(hitPoint.x - pocket.x, hitPoint.y - pocket.y) < POCKET_RADIUS) {
@@ -561,7 +557,6 @@
                 }
                 if (isPocketed) break;
 
-                // Aplicar rebote y efecto
                 currentPos = hitPoint;
                 if (wallHit.hitType === 'left' || wallHit.hitType === 'right') {
                     currentDir.x = -currentDir.x;
@@ -572,7 +567,6 @@
                     currentDir.x += spin.x * (currentDir.y > 0 ? 1 : -1) * SPIN_FACTOR_CUSHION;
                 }
 
-                // Normalizar vector
                 const mag = Math.hypot(currentDir.x, currentDir.y);
                 if (mag > 0) {
                     currentDir.x /= mag;
@@ -582,7 +576,6 @@
             ctx.stroke();
         }
 
-        // Dibuja el taco de billar
         function drawPoolCue() {
             if (!cueBall.active) return;
             
@@ -607,7 +600,6 @@
             ctx.shadowBlur = 10;
             ctx.shadowOffsetY = 5;
             
-            // Mango
             const gripLength = cueLength * 0.4;
             ctx.beginPath();
             ctx.moveTo(cueStartX - cueLength, -cueButtWidth);
@@ -618,7 +610,6 @@
             ctx.fillStyle = '#3a2e28'; 
             ctx.fill();
 
-            // Parte delantera
             ctx.beginPath();
             ctx.moveTo(cueStartX - cueLength + gripLength, -cueButtWidth * 0.8);
             ctx.lineTo(cueStartX, -cueTipWidth);
@@ -631,13 +622,11 @@
             ctx.fillStyle = woodGradient;
             ctx.fill();
             
-            // Virola
             ctx.beginPath();
             ctx.rect(cueStartX, -cueTipWidth, BALL_RADIUS * 0.3, cueTipWidth * 2);
             ctx.fillStyle = '#ffffff'; 
             ctx.fill();
             
-            // Punta
             ctx.beginPath();
             ctx.rect(cueStartX + BALL_RADIUS * 0.3, -cueTipWidth, BALL_RADIUS * 0.1, cueTipWidth * 2);
             ctx.fillStyle = '#4a2c2c'; 
@@ -646,7 +635,6 @@
             ctx.restore(); 
         }
 
-        // Dibuja la "bola fantasma" que sigue al cursor
         function drawGhostBall() {
             if (gameState !== 'aiming' || !mousePos.x) return;
             if (gameState === 'pulling') return;
@@ -681,7 +669,6 @@
 
             let ballsStillMoving = false;
 
-            // 1. Mover bolas y aplicar fricción
             for (const ball of balls) {
                 if (!ball.active) continue;
 
@@ -698,13 +685,11 @@
                 }
             }
 
-            // 2. Colisiones con bandas y troneras
             for (const ball of balls) {
                 if (!ball.active || (ball.vx === 0 && ball.vy === 0)) continue;
 
                 let isPocketed = false;
                 for (const pocket of POCKETS) {
-                    // Detección de caída (Aumentado el radio de detección)
                     if (Math.hypot(ball.x - pocket.x, ball.y - pocket.y) < POCKET_RADIUS) { 
                         ball.active = false;
                         ball.vx = 0;
@@ -715,7 +700,6 @@
                             pocketSound.triggerAttackRelease("16n");
                         }
                         
-                        // Respawn
                         setTimeout(() => {
                             if (ball === cueBall) {
                                 ball.x = PLAYABLE_RECT.left + PLAYABLE_RECT.width * 0.25;
@@ -732,7 +716,6 @@
                 
                 if (!isPocketed) {
                     let hit = false;
-                    // Rebote en bandas
                     if (ball.x + BALL_RADIUS > PLAYABLE_RECT.right) {
                         ball.x = PLAYABLE_RECT.right - BALL_RADIUS;
                         ball.vx = -ball.vx;
@@ -763,13 +746,12 @@
                             cushionHitSound.triggerAttackRelease("C2", "16n", Tone.now(), hitVelocity);
                         }
                         if (ball === cueBall) {
-                            spinEffect.y = 0; // El efecto vertical se pierde al tocar banda
+                            spinEffect.y = 0; 
                         }
                     }
                 }
             }
             
-            // 3. Colisiones entre bolas
             if (cueBall.active && blackBall.active) {
                 const dx = blackBall.x - cueBall.x;
                 const dy = blackBall.y - cueBall.y;
@@ -783,7 +765,6 @@
                         ballCollisionSound.triggerAttackRelease("G4", "16n", Tone.now(), hitVelocity);
                     }
 
-                    // Física de colisión 2D
                     const nx = dx / dist; 
                     const ny = dy / dist; 
                     const tx = -ny; 
@@ -797,7 +778,6 @@
                     const v1n_new = v2n;
                     const v2n_new = v1n;
 
-                    // Aplicar efecto (seguida/retroceso)
                     const stunAmount = 1 - Math.abs(spinEffect.y);
                     const followAmount = spinEffect.y < 0 ? -spinEffect.y : 0; 
                     const drawAmount = spinEffect.y > 0 ? spinEffect.y : 0; 
@@ -810,18 +790,16 @@
                     blackBall.vx = v2n_new * nx + v2t * tx;
                     blackBall.vy = v2n_new * ny + v2t * ty;
                     
-                    // Separar bolas para evitar solapamiento
                     const overlap = collisionDist - dist;
                     cueBall.x -= overlap * nx * 0.5;
                     cueBall.y -= overlap * ny * 0.5;
                     blackBall.x += overlap * nx * 0.5;
                     blackBall.y += overlap * ny * 0.5;
 
-                    spinEffect.y = 0; // El efecto vertical se transfiere
+                    spinEffect.y = 0; 
                 }
             }
 
-            // Comprobar si el juego debe volver a modo "apuntar"
             if (!ballsStillMoving) {
                 gameState = 'aiming';
             }
@@ -830,28 +808,22 @@
         // --- 8. BUCLE PRINCIPAL DE ANIMACIÓN ---
 
         function gameLoop() {
-            // Actualizar física si las bolas se mueven
             if (gameState === 'simulating') {
                 updatePhysics();
             }
 
-            // Dibujar la mesa
             drawTable();
 
-            // *** ¡LA CORRECCIÓN ESTÁ AQUÍ! ***
-            // Dibujar elementos de UI (taco, líneas)
+            // CORRECCIÓN: Dibujar líneas de trayectoria también en estado 'pulling'
             if (gameState === 'aiming' || gameState === 'pulling') { 
-                // Dibujar líneas tanto al apuntar COMO al cargar
                 drawFullTrajectory(); 
                 drawPoolCue(); 
             }
             
             if (gameState === 'aiming') {
-                // Dibujar la bola fantasma solo al apuntar (no al cargar)
                 drawGhostBall(); 
             }
             
-            // Dibujar las bolas encima de todo
             if (cueBall.active) drawBall(cueBall, '#FFFFFF'); 
             if (blackBall.active) drawBlackBall(); 
             
@@ -897,14 +869,12 @@
         }
 
         function handleDragStart(event) {
-            // Iniciar audio en el primer clic
             startAudioContext(); 
             
             if (gameState === 'simulating') return;
             
             const pos = getMousePosInCanvas(event);
 
-            // Comprobar si se arrastra una bola (solo en modo 'aiming')
             const distCue = Math.hypot(pos.x - cueBall.x, pos.y - cueBall.y);
             const distBlack = Math.hypot(pos.x - blackBall.x, pos.y - blackBall.y);
             const grabRadius = BALL_RADIUS * 1.5;
@@ -915,12 +885,11 @@
                 draggingBall = 'black';
             }
 
-            // Si no se arrastra bola, iniciar el golpe
             if (!draggingBall && gameState === 'aiming' && cueBall.active) {
                 gameState = 'pulling';
-                pullStartPos = { x: pos.x, y: pos.y };
+                pullStartPos = { x: pos.x, y: pos.y }; 
                 pullEndPos = { x: pos.x, y: pos.y };
-                event.preventDefault(); // Prevenir scroll en móvil
+                event.preventDefault(); 
             }
             
             if (draggingBall && event.type === 'touchstart') {
@@ -929,7 +898,6 @@
         }
 
         function handleDragEnd(event) {
-            // Si estábamos cargando un golpe, disparar
             if (gameState === 'pulling') {
                 gameState = 'simulating';
                 
@@ -947,7 +915,6 @@
                 pullEndPos = null;
 
             } else if (draggingBall) {
-                // Si estábamos arrastrando una bola, soltarla
                 draggingBall = null;
             }
         }
@@ -955,29 +922,39 @@
         function handleDragMove(event) {
             mousePos = getMousePosInCanvas(event);
 
-            // Corrección para apuntar y disparar en móvil
-            if (event.type === 'touchmove' && gameState === 'pulling') {
-                // Actualiza la dirección Y la fuerza
-                pullEndPos = { x: mousePos.x, y: mousePos.y };
-
-                const dx = mousePos.x - cueBall.x;
-                const dy = mousePos.y - cueBall.y;
-                const mag = Math.hypot(dx, dy);
-                if (mag > 0.1) { 
-                    aimDir.x = dx / mag;
-                    aimDir.y = dy / mag;
+            // CORRECCIÓN: Permitir apuntar y jalar al mismo tiempo en móvil
+            if (event.type === 'touchmove' && (gameState === 'pulling' || gameState === 'aiming')) {
+                if(gameState === 'aiming' && cueBall.active) {
+                    // Si solo está apuntando (no ha empezado a jalar)
+                    const dx = mousePos.x - cueBall.x;
+                    const dy = mousePos.y - cueBall.y;
+                    const mag = Math.hypot(dx, dy);
+                    if (mag > 0.1) { 
+                        aimDir.x = dx / mag;
+                        aimDir.y = dy / mag;
+                    }
+                } else if (gameState === 'pulling') {
+                    // Si está jalando
+                    pullEndPos = { x: mousePos.x, y: mousePos.y };
+                    // Actualizar también la dirección
+                    const dx = mousePos.x - cueBall.x;
+                    const dy = mousePos.y - cueBall.y;
+                    const mag = Math.hypot(dx, dy);
+                    if (mag > 0.1) { 
+                        aimDir.x = dx / mag;
+                        aimDir.y = dy / mag;
+                    }
                 }
                 event.preventDefault();
 
             } else if (gameState === 'pulling') {
-                // Actualizar la posición final del "pull" (para ratón)
+                // Ratón: solo actualiza la fuerza
                 pullEndPos = { x: mousePos.x, y: mousePos.y }; 
                 event.preventDefault();
 
             } else if (draggingBall) {
-                // Mover la bola que está siendo arrastrada
                 let ballToMove;
-                if (draggingBall === 'cue') ballToMove = cueBall;
+                if (draggingG === 'cue') ballToMove = cueBall;
                 else ballToMove = blackBall;
 
                 ballToMove.x = clamp(mousePos.x, PLAYABLE_RECT.left + BALL_RADIUS, PLAYABLE_RECT.right - BALL_RADIUS);
@@ -987,7 +964,7 @@
                     event.preventDefault();
                 }
             } else if (gameState === 'aiming' && cueBall.active) {
-                // Actualizar la dirección de apuntado
+                // Ratón: solo actualiza la dirección
                 const dx = mousePos.x - cueBall.x;
                 const dy = mousePos.y - cueBall.y;
                 const mag = Math.hypot(dx, dy);
@@ -1000,7 +977,7 @@
 
         function updateSpin(pos) {
             const dx = pos.x - spinBallControl.x;
-            const dy = pos.y - spinBallControl.y; // Corregido de pos.s
+            const dy = pos.y - spinBallControl.y;
             const dist = Math.hypot(dx, dy);
             
             const maxDist = spinBallControl.radius * 0.8; 
@@ -1016,18 +993,44 @@
             drawSpinControl();
         }
 
-        // Asignación de eventos al canvas principal
+        // --- NUEVA FUNCIÓN: Pantalla Completa ---
+        function toggleFullScreen() {
+            const elem = document.documentElement; // Usar el elemento raíz HTML
+            
+            if (!document.fullscreenElement && !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
+                // Entrar en pantalla completa
+                if (elem.requestFullscreen) {
+                    elem.requestFullscreen();
+                } else if (elem.mozRequestFullScreen) { /* Firefox */
+                    elem.mozRequestFullScreen();
+                } else if (elem.webkitRequestFullscreen) { /* Chrome, Safari & Opera */
+                    elem.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+                } else if (elem.msRequestFullscreen) { /* IE/Edge */
+                    elem.msRequestFullscreen();
+                }
+            } else {
+                // Salir de pantalla completa
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.mozCancelFullScreen) { /* Firefox */
+                    document.mozCancelFullScreen();
+                } else if (document.webkitExitFullscreen) { /* Chrome, Safari & Opera */
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) { /* IE/Edge */
+                    document.msExitFullscreen();
+                }
+            }
+        }
+
+        // --- ASIGNACIÓN DE EVENTOS ---
         canvas.addEventListener('mousedown', handleDragStart);
-        window.addEventListener('mouseup', handleDragEnd); // Usar window para 'soltar' en cualquier parte
+        window.addEventListener('mouseup', handleDragEnd); 
         canvas.addEventListener('mousemove', handleDragMove);
-        // Prevenir que el 'mouseout' cancele el golpe si se sale del canvas
-        // canvas.addEventListener('mouseout', handleDragEnd); 
 
         canvas.addEventListener('touchstart', handleDragStart, { passive: false });
         window.addEventListener('touchend', handleDragEnd); 
         canvas.addEventListener('touchmove', handleDragMove, { passive: false });
 
-        // Asignación de eventos al canvas de efecto
         canvasSpin.addEventListener('mousedown', handleSpinStart);
         canvasSpin.addEventListener('mouseup', handleSpinEnd);
         canvasSpin.addEventListener('mousemove', handleSpinMove);
@@ -1039,7 +1042,6 @@
         
         function handleSpinStart(event) {
             startAudioContext(); 
-            
             if (event.type === 'touchstart') event.preventDefault();
             isSettingSpin = true;
             updateSpin(getMousePosInSpinCanvas(event));
@@ -1055,14 +1057,23 @@
             updateSpin(getMousePosInSpinCanvas(event));
         }
         
-        // Botón de reinicio (si existe)
         if(resetButton) {
             resetButton.addEventListener('click', resetBalls);
         }
         
-        // Redimensionar
+        // NUEVO: Evento para el botón de pantalla completa
+        if(fullscreenButton) {
+            fullscreenButton.addEventListener('click', toggleFullScreen);
+            // Usar 'touchstart' para respuesta más rápida en móviles
+            fullscreenButton.addEventListener('touchstart', (e) => {
+                e.preventDefault(); // Evitar "click fantasma"
+                toggleFullScreen();
+            });
+        }
+        
         window.addEventListener('resize', setupCanvas);
 
+        // Ajustar el canvas de spin una vez
         function setupSpinControl() {
             canvasSpin.width = 100;
             canvasSpin.height = 100;
@@ -1074,7 +1085,7 @@
         // --- 10. INICIO DE LA APLICACIÓN ---
         setupSpinControl(); 
         setupCanvas(); 
-        mousePos = { x: canvas.width / 2, y: canvas.height / 2}; // Inicializa mousePos
+        mousePos = { x: canvas.width / 2, y: canvas.height / 2}; 
         gameLoop();    
         drawSpinControl(); 
     
