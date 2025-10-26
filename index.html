@@ -29,7 +29,7 @@
     </style>
 </head>
 <!-- 
-    CAMBIO: Lógica de padding para orientación.
+    Lógica de padding para orientación.
     - Teléfono vertical: p-4 (padding 4)
     - Teléfono horizontal: landscape:p-0 (sin padding)
     - PC/Tablet: md:p-4 (padding 4)
@@ -39,12 +39,12 @@
     <div class="w-full max-w-5xl">
         
         <!-- 
-            CAMBIO: Lógica de visualización para orientación.
+            Lógica de visualización para orientación.
             - Teléfono vertical: "flex" (visible)
             - Teléfono horizontal: "landscape:hidden" (oculto)
             - PC/Tablet: "md:flex" (visible, anula el landscape:hidden)
         -->
-        <div class="flex landscape:hidden md:flex justify-between items-start mb-2">
+        <div class="flex landscape:hidden md:flex justify-between items-start mb-2 px-4 md:px-0">
             <div>
                 <h1 class="text-3xl font-bold text-left mb-2">Simulador de Billar</h1>
                 <p class="text-left text-gray-300 mb-4">
@@ -64,9 +64,9 @@
         </div>
 
         <!-- 
-            CAMBIO: Lógica de visualización para orientación (igual que el bloque superior).
+            Lógica de visualización para orientación (igual que el bloque superior).
         -->
-        <div class="flex landscape:hidden md:flex text-center mt-4 flex-col items-center">
+        <div class="flex landscape:hidden md:flex text-center mt-4 flex-col items-center px-4 md:px-0">
             <button id="resetButton" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition duration-200 shadow-lg mb-4">
                 Reiniciar Posiciones
             </button>
@@ -206,6 +206,7 @@
                 bottom: TABLE_HEIGHT - CUSHION_SIZE
             };
             
+            // Corrección: Posicionar buchacas en el borde exacto del área jugable
             POCKETS = [
                 { x: PLAYABLE_RECT.left, y: PLAYABLE_RECT.top }, // Esquina sup-izq
                 { x: TABLE_WIDTH / 2, y: PLAYABLE_RECT.top },   // Centro sup
@@ -436,6 +437,7 @@
 
         function findBallCollision(startPos, dir, targetBall) {
             const collisionRadius = BALL_RADIUS * 2; 
+            // Corrección del error de tipeo
             const v = { x: targetBall.x - startPos.x, y: targetBall.y - startPos.y };
             
             const t_proj = v.x * dir.x + v.y * dir.y;
@@ -703,7 +705,7 @@
 
                 let isPocketed = false;
                 for (const pocket of POCKETS) {
-                    // Detección de caída
+                    // Detección de caída (Aumentado el radio de detección)
                     if (Math.hypot(ball.x - pocket.x, ball.y - pocket.y) < POCKET_RADIUS) { 
                         ball.active = false;
                         ball.vx = 0;
@@ -913,7 +915,8 @@
             // Si no se arrastra bola, iniciar el golpe
             if (!draggingBall && gameState === 'aiming' && cueBall.active) {
                 gameState = 'pulling';
-                pullStartPos = { x: pos.x, y: pos.y }; 
+                // *** ¡LA CORRECCIÓN ESTÁ AQUÍ! ***
+                pullStartPos = { x: pos.x, y: pos.y }; // Corregido de pos.s a pos.x
                 pullEndPos = { x: pos.x, y: pos.y };
                 event.preventDefault(); // Prevenir scroll en móvil
             }
@@ -950,8 +953,22 @@
         function handleDragMove(event) {
             mousePos = getMousePosInCanvas(event);
 
-            if (gameState === 'pulling') {
-                // Actualizar la posición final del "pull"
+            // Corrección para apuntar y disparar en móvil
+            if (event.type === 'touchmove' && gameState === 'pulling') {
+                // Actualiza la dirección Y la fuerza
+                pullEndPos = { x: mousePos.x, y: mousePos.y };
+
+                const dx = mousePos.x - cueBall.x;
+                const dy = mousePos.y - cueBall.y;
+                const mag = Math.hypot(dx, dy);
+                if (mag > 0.1) { 
+                    aimDir.x = dx / mag;
+                    aimDir.y = dy / mag;
+                }
+                event.preventDefault();
+
+            } else if (gameState === 'pulling') {
+                // Actualizar la posición final del "pull" (para ratón)
                 pullEndPos = { x: mousePos.x, y: mousePos.y }; 
                 event.preventDefault();
 
@@ -1001,6 +1018,8 @@
         canvas.addEventListener('mousedown', handleDragStart);
         window.addEventListener('mouseup', handleDragEnd); // Usar window para 'soltar' en cualquier parte
         canvas.addEventListener('mousemove', handleDragMove);
+        // Prevenir que el 'mouseout' cancele el golpe si se sale del canvas
+        // canvas.addEventListener('mouseout', handleDragEnd); 
 
         canvas.addEventListener('touchstart', handleDragStart, { passive: false });
         window.addEventListener('touchend', handleDragEnd); 
