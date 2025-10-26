@@ -43,7 +43,8 @@
         }
         /* Asegura que el contenedor principal ocupe toda la altura */
         .main-container {
-            height: 100vh; /* Ocupa toda la altura de la vista */
+            /* CORRECCIÓN: Usar 100dvh (altura de viewport dinámica) en lugar de 100vh */
+            height: 100dvh; /* Ocupa toda la altura de la vista visible */
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -81,11 +82,14 @@
             </div>
         </div>
 
-        <!-- Esta es la mesa de juego, siempre visible -->
-        <div class="relative aspect-[2/1] w-full bg-yellow-900 border-8 border-yellow-800 rounded-lg shadow-2xl overflow-hidden">
+        <!-- 
+            Esta es la mesa de juego, siempre visible 
+            CORRECCIÓN: Añadido 'max-h-full' para evitar que se desborde en vertical
+        -->
+        <div class="relative aspect-[2/1] w-full max-h-full bg-yellow-900 border-8 border-yellow-800 rounded-lg shadow-2xl overflow-hidden">
             <canvas id="poolTable"></canvas>
             
-            <!-- NUEVO: Botón de Pantalla Completa -->
+            <!-- Botón de Pantalla Completa -->
             <button id="fullscreen-btn" class="absolute bottom-2 right-2 p-2 rounded-full bg-gray-900 bg-opacity-50 text-white hover:bg-opacity-75 transition">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-arrows-fullscreen" viewBox="0 0 16 16">
                     <path fill-rule="evenodd" d="M5.828 10.172a.5.5 0 0 0-.707 0l-4 4a.5.5 0 0 0 0 .707l4 4a.5.5 0 0 0 .707-.707L2.707 11H7.5a.5.5 0 0 0 0-1H2.707l3.121-3.121a.5.5 0 0 0 0-.707zM10.172 5.828a.5.5 0 0 0 0 .707l3.121 3.121H8.5a.5.5 0 0 0 0 1H13.293l-3.121 3.121a.5.5 0 0 0 .707.707l4-4a.5.5 0 0 0 0-.707l-4-4a.5.5 0 0 0-.707 0zM.5 1a.5.5 0 0 0 0 1h4.793L1.146 6.146a.5.5 0 0 0 .708.708L6 2.707V7.5a.5.5 0 0 0 1 0V1H.5zM10 8.5a.5.5 0 0 0-1 0v4.793l-4.146-4.147a.5.5 0 0 0-.708.708L8.293 14H3.5a.5.5 0 0 0 0 1h5.5V8.5z"/>
@@ -206,8 +210,21 @@
          */
         function setupCanvas() {
             const container = canvas.parentElement;
-            canvas.width = container.clientWidth;
-            canvas.height = container.clientHeight;
+            
+            // Forzar al contenedor a respetar el max-h-full
+            // Esto ajustará el ancho si el alto es la limitación
+            const containerRatio = container.clientWidth / container.clientHeight;
+            const tableRatio = 2 / 1;
+
+            if (containerRatio > tableRatio) {
+                // El contenedor es más ANCHO que la mesa, el ALTO es la limitación
+                canvas.height = container.clientHeight;
+                canvas.width = container.clientHeight * tableRatio;
+            } else {
+                // El contenedor es más ALTO que la mesa, el ANCHO es la limitación
+                canvas.width = container.clientWidth;
+                canvas.height = container.clientWidth / tableRatio;
+            }
 
             TABLE_WIDTH = canvas.width;
             TABLE_HEIGHT = canvas.height;
@@ -256,7 +273,7 @@
             spinIndicator.x = spinBallControl.x;
             spinIndicator.y = spinBallControl.y;
             
-            drawSpinControl();
+            if(ctxSpin) drawSpinControl(); // Asegurarse que ctxSpin exista
         }
 
         // --- 5. FUNCIONES DE DIBUJO ---
@@ -382,6 +399,7 @@
         }
 
         function drawSpinControl() {
+            if (!ctxSpin) return; // Salir si el canvas de spin no existe
             ctxSpin.clearRect(0, 0, canvasSpin.width, canvasSpin.height);
             
             ctxSpin.save();
@@ -814,7 +832,6 @@
 
             drawTable();
 
-            // CORRECCIÓN: Dibujar líneas de trayectoria también en estado 'pulling'
             if (gameState === 'aiming' || gameState === 'pulling') { 
                 drawFullTrajectory(); 
                 drawPoolCue(); 
@@ -849,6 +866,7 @@
         }
         
         function getMousePosInSpinCanvas(event) {
+            if (!canvasSpin) return { x: 0, y: 0 };
             const rect = canvasSpin.getBoundingClientRect();
             const scaleX = canvasSpin.width / rect.width;
             const scaleY = canvasSpin.height / rect.height;
@@ -889,7 +907,7 @@
                 gameState = 'pulling';
                 pullStartPos = { x: pos.x, y: pos.y }; 
                 pullEndPos = { x: pos.x, y: pos.y };
-                event.preventDefault(); 
+                if (event.type === 'touchstart') event.preventDefault(); 
             }
             
             if (draggingBall && event.type === 'touchstart') {
@@ -954,7 +972,7 @@
 
             } else if (draggingBall) {
                 let ballToMove;
-                if (draggingG === 'cue') ballToMove = cueBall;
+                if (draggingBall === 'cue') ballToMove = cueBall; // Corregido: draggingG -> draggingBall
                 else ballToMove = blackBall;
 
                 ballToMove.x = clamp(mousePos.x, PLAYABLE_RECT.left + BALL_RADIUS, PLAYABLE_RECT.right - BALL_RADIUS);
@@ -976,6 +994,7 @@
         }
 
         function updateSpin(pos) {
+            if (!canvasSpin) return; // Salir si el canvas de spin no existe
             const dx = pos.x - spinBallControl.x;
             const dy = pos.y - spinBallControl.y;
             const dist = Math.hypot(dx, dy);
@@ -1031,14 +1050,16 @@
         window.addEventListener('touchend', handleDragEnd); 
         canvas.addEventListener('touchmove', handleDragMove, { passive: false });
 
-        canvasSpin.addEventListener('mousedown', handleSpinStart);
-        canvasSpin.addEventListener('mouseup', handleSpinEnd);
-        canvasSpin.addEventListener('mousemove', handleSpinMove);
-        canvasSpin.addEventListener('mouseout', handleSpinEnd);
-        
-        canvasSpin.addEventListener('touchstart', handleSpinStart, { passive: false });
-        canvasSpin.addEventListener('touchend', handleSpinEnd);
-        canvasSpin.addEventListener('touchmove', handleSpinMove, { passive: false });
+        if(canvasSpin) {
+            canvasSpin.addEventListener('mousedown', handleSpinStart);
+            canvasSpin.addEventListener('mouseup', handleSpinEnd);
+            canvasSpin.addEventListener('mousemove', handleSpinMove);
+            canvasSpin.addEventListener('mouseout', handleSpinEnd);
+            
+            canvasSpin.addEventListener('touchstart', handleSpinStart, { passive: false });
+            canvasSpin.addEventListener('touchend', handleSpinEnd);
+            canvasSpin.addEventListener('touchmove', handleSpinMove, { passive: false });
+        }
         
         function handleSpinStart(event) {
             startAudioContext(); 
@@ -1061,20 +1082,18 @@
             resetButton.addEventListener('click', resetBalls);
         }
         
-        // NUEVO: Evento para el botón de pantalla completa
         if(fullscreenButton) {
             fullscreenButton.addEventListener('click', toggleFullScreen);
-            // Usar 'touchstart' para respuesta más rápida en móviles
             fullscreenButton.addEventListener('touchstart', (e) => {
-                e.preventDefault(); // Evitar "click fantasma"
+                e.preventDefault(); 
                 toggleFullScreen();
             });
         }
         
         window.addEventListener('resize', setupCanvas);
 
-        // Ajustar el canvas de spin una vez
         function setupSpinControl() {
+            if (!canvasSpin) return; // Salir si el canvas de spin no existe
             canvasSpin.width = 100;
             canvasSpin.height = 100;
             spinBallControl.radius = canvasSpin.width * 0.4; 
