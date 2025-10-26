@@ -28,13 +28,23 @@
         }
     </style>
 </head>
-<!-- CAMBIO: Clases de padding y justificación ajustadas para móviles -->
-<body class="bg-gray-900 text-gray-100 flex flex-col items-center p-0 md:p-4 md:justify-center min-h-screen">
+<!-- 
+    CAMBIO: Lógica de padding para orientación.
+    - Teléfono vertical: p-4 (padding 4)
+    - Teléfono horizontal: landscape:p-0 (sin padding)
+    - PC/Tablet: md:p-4 (padding 4)
+-->
+<body class="bg-gray-900 text-gray-100 flex flex-col items-center p-4 landscape:p-0 md:p-4 md:justify-center min-h-screen">
 
     <div class="w-full max-w-5xl">
         
-        <!-- CAMBIO: Este bloque (título, subtítulo y control de efecto) se oculta en móviles -->
-        <div class="hidden md:flex justify-between items-start mb-2">
+        <!-- 
+            CAMBIO: Lógica de visualización para orientación.
+            - Teléfono vertical: "flex" (visible)
+            - Teléfono horizontal: "landscape:hidden" (oculto)
+            - PC/Tablet: "md:flex" (visible, anula el landscape:hidden)
+        -->
+        <div class="flex landscape:hidden md:flex justify-between items-start mb-2">
             <div>
                 <h1 class="text-3xl font-bold text-left mb-2">Simulador de Billar</h1>
                 <p class="text-left text-gray-300 mb-4">
@@ -53,8 +63,10 @@
             <canvas id="poolTable"></canvas>
         </div>
 
-        <!-- CAMBIO: Este bloque (botón y créditos) se oculta en móviles -->
-        <div class="hidden md:flex text-center mt-4 flex-col items-center">
+        <!-- 
+            CAMBIO: Lógica de visualización para orientación (igual que el bloque superior).
+        -->
+        <div class="flex landscape:hidden md:flex text-center mt-4 flex-col items-center">
             <button id="resetButton" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition duration-200 shadow-lg mb-4">
                 Reiniciar Posiciones
             </button>
