@@ -34,13 +34,32 @@
         .elegant-script {
             font-family: 'Dancing Script', cursive;
         }
+
+        /* Estilos para Pantalla Completa */
+        body.in-fullscreen {
+            padding: 0; /* Sin padding en pantalla completa */
+        }
+        body.in-fullscreen #main-container {
+            padding: 0;
+            height: 100vh; /* Ocupar toda la altura */
+            max-width: 100vw; /* Ocupar todo el ancho */
+        }
+        body.in-fullscreen #header-block,
+        body.in-fullscreen #footer-block {
+            display: none; /* Ocultar header y footer */
+        }
+        body.in-fullscreen #table-wrapper {
+            height: 100%; /* Forzar la mesa a ocupar todo */
+            max-height: 100vh;
+            padding: 0;
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-100 flex flex-col items-center p-2 h-full">
 
-    <div class="w-full max-w-5xl flex flex-col items-center flex-grow min-h-0">
+    <div id="main-container" class="w-full max-w-5xl flex flex-col items-center flex-grow min-h-0">
 
-        <div class="flex flex-col md:flex-row justify-between items-center w-full px-2 py-2 gap-4 flex-shrink-0">
+        <div id="header-block" class="flex flex-col md:flex-row justify-between items-center w-full px-2 py-2 gap-4 flex-shrink-0">
             <div class="text-center md:text-left">
                 <h1 class="text-2xl md:text-3xl font-bold text-white">Simulador de Billar</h1>
                 <p class="text-sm md:text-base text-gray-400 mt-1">
@@ -54,18 +73,23 @@
             </div>
         </div>
 
-        <div class="flex-1 w-full flex items-center justify-center py-2 min-h-0">
+        <div id="table-wrapper" class="flex-1 w-full flex items-center justify-center py-2 min-h-0">
             <div class="aspect-[2/1] w-full max-w-full max-h-full bg-yellow-900 border-4 md:border-8 border-yellow-800 rounded-lg shadow-2xl overflow-hidden">
                 <canvas id="poolTable" class="w-full h-full"></canvas>
             </div>
         </div>
 
-        <div class="flex flex-col items-center text-center w-full px-2 py-2 flex-shrink-0">
-            <button id="resetButton" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition duration-200 shadow-lg mb-2" title="Reinicia las bolas a su posición inicial o restaura la posición del último tiro.">
-                Reiniciar / Restaurar
-            </button>
-
-            <p class="elegant-script text-lg md:text-xl text-gray-500">
+        <div id="footer-block" class="flex flex-col items-center text-center w-full px-2 py-2 flex-shrink-0">
+            <div class="flex flex-wrap justify-center gap-4">
+                <button id="resetButton" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition duration-200 shadow-lg" title="Reinicia las bolas a su posición inicial o restaura la posición del último tiro.">
+                    Reiniciar / Restaurar
+                </button>
+                <button id="fullscreenButton" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg transition duration-200 shadow-lg" title="Activar/Desactivar pantalla completa">
+                    Pantalla Completa
+                </button>
+            </div>
+            
+            <p class="elegant-script text-lg md:text-xl text-gray-500 mt-2">
                 Por Jorge Hernández
             </p>
         </div>
@@ -646,6 +670,64 @@
         function setupSpinControl() {
              const spinSize = 80; canvasSpin.width = spinSize; canvasSpin.height = spinSize; spinBallControl.radius = canvasSpin.width * 0.4; spinBallControl.x = canvasSpin.width / 2; spinBallControl.y = canvasSpin.height / 2; spinIndicator.x = spinBallControl.x; spinIndicator.y = spinBallControl.y;
         }
+
+        // --- 11. MANEJO DE PANTALLA COMPLETA ---
+        const fullscreenButton = document.getElementById('fullscreenButton');
+        const appContainer = document.documentElement; // Usar <html> para la solicitud
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement &&    // Standard
+                !document.mozFullScreenElement && // Firefox
+                !document.webkitFullscreenElement && // Chrome, Safari, Opera
+                !document.msFullscreenElement) {  // IE/Edge
+                
+                if (appContainer.requestFullscreen) {
+                    appContainer.requestFullscreen();
+                } else if (appContainer.mozRequestFullScreen) { /* Firefox */
+                    appContainer.mozRequestFullScreen();
+                } else if (appContainer.webkitRequestFullscreen) { /* Chrome, Safari, Opera */
+                    appContainer.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+                } else if (appContainer.msRequestFullscreen) { /* IE/Edge */
+                    appContainer.msRequestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.mozCancelFullScreen) { /* Firefox */
+                    document.mozCancelFullScreen();
+                } else if (document.webkitExitFullscreen) { /* Chrome, Safari, Opera */
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) { /* IE/Edge */
+                    document.msExitFullscreen();
+                }
+            }
+        }
+
+        function handleFullscreenChange() {
+            const isFullscreen = !!(document.fullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement || document.msFullscreenElement);
+            document.body.classList.toggle('in-fullscreen', isFullscreen);
+            
+            // Forzar un redibujo del canvas al cambiar de modo
+            // Damos un pequeño retardo para que el DOM se asiente
+            setTimeout(() => {
+                setupCanvas();
+                drawSpinControl(); // Redibujar también el control de spin por si acaso
+            }, 100); 
+        }
+
+        if (fullscreenButton) {
+            fullscreenButton.addEventListener('click', () => {
+                startAudioContext(); // Asegurar que el audio esté iniciado
+                toggleFullScreen();
+            });
+        }
+
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+        document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+        document.addEventListener('msfullscreenchange', handleFullscreenChange);
+
+
         // --- 10. INICIO DE LA APLICACIÓN ---
         document.addEventListener('DOMContentLoaded', () => {
             setupSpinControl();
@@ -657,5 +739,6 @@
     </script>
 </body>
 </html>
+
 
 
