@@ -110,12 +110,13 @@
         let POCKETS = [];
         let PLAYABLE_RECT = {};
 
-        // --- INICIO CALIBRACIÓN ---
-        const FRICTION = 0.98; // (Era 0.985) Fricción más alta, más realista
+        const FRICTION = 0.98; 
         const MIN_SPEED = 0.05;
+        // --- INICIO CALIBRACIÓN v3 ---
         const SPIN_FACTOR_CUSHION = 0.4; // (Era 0.4) Factor base para el efecto
-        const POWER_MULTIPLIER = 0.22; // (Era 0.2) Un poco más de potencia
-        // --- FIN CALIBRACIÓN ---
+        const POWER_MULTIPLIER = 0.22; 
+        const RESTITUTION = 0.9; // (Era 0.9) Rebote de la banda
+        // --- FIN CALIBRACIÓN v3 ---
 
         // --- 4. SONIDOS (Tone.js) ---
         let soundsReady = false;
@@ -335,7 +336,7 @@
                 if (cueAfterMag > 0.01 && BALL_RADIUS > 0) { cueAfterDir.x /= cueAfterMag; cueAfterDir.y /= cueAfterMag; const start = { x: cueHitPoint.x - normalDir.x * BALL_RADIUS, y: cueHitPoint.y - normalDir.y * BALL_RADIUS }; if (isFinite(start.x) && isFinite(start.y)) { drawPath(start, cueAfterDir, 'rgba(255, 165, 0, 0.6)', 3, spinEffect); } }
             } else if (wallHit.t !== Infinity && isFinite(wallHit.t)) {
                 let nextDir = { ...normalizedDir };
-                // --- INICIO CALIBRACIÓN: Lógica de predicción de efecto en banda ---
+                
                 if (wallHit.hitType === 'left' || wallHit.hitType === 'right') {
                     nextDir.x *= -1;
                     nextDir.y += spinEffect.x * SPIN_FACTOR_CUSHION * (wallHit.hitType === 'right' ? -1 : 1) * Math.sign(nextDir.y || 1);
@@ -344,19 +345,19 @@
                     nextDir.y *= -1;
                     nextDir.x += spinEffect.x * SPIN_FACTOR_CUSHION * (wallHit.hitType === 'bottom' ? 1 : -1) * Math.sign(nextDir.x || 1);
                 }
-                // --- FIN CALIBRACIÓN ---
+                
                 const nextMag = Math.hypot(nextDir.x, nextDir.y); if (nextMag > 0.01) { nextDir.x /= nextMag; nextDir.y /= nextMag; drawPath(firstHitPoint, nextDir, 'rgba(255, 255, 255, 0.6)', 3, spinEffect); }
             } ctx.setLineDash([]);
         }
 
-        // --- INICIO CALIBRACIÓN: Función `drawPath` modificada ---
+        
         function drawPath(startPos, dir, color, maxBounces = 3, spin = {x: 0, y: 0}) {
             if (!startPos || typeof startPos.x !== 'number' || typeof startPos.y !== 'number' || !isFinite(startPos.x) || !isFinite(startPos.y)) return;
             if (!dir || typeof dir.x !== 'number' || typeof dir.y !== 'number' || !isFinite(dir.x) || !isFinite(dir.y)) return; if (!POCKET_RADIUS || POCKET_RADIUS <= 0) return;
             
             let currentPos = { ...startPos }; 
             let currentDir = { ...dir };
-            let currentSpin = { ...spin }; // <-- Copia local mutable del efecto
+            let currentSpin = { ...spin }; 
 
             ctx.beginPath(); ctx.moveTo(currentPos.x, currentPos.y); ctx.strokeStyle = color; ctx.lineWidth = 1.5; ctx.setLineDash([4, 4]);
             
@@ -371,7 +372,7 @@
                 if (!isFinite(hitPoint.x) || !isFinite(hitPoint.y)) break; 
                 ctx.lineTo(hitPoint.x, hitPoint.y);
                 
-                if (ballHit.t <= wallHit.t) break; // Detener predicción si golpea otra bola
+                if (ballHit.t <= wallHit.t) break; 
                 
                 let isPocketed = false; 
                 for (const pocket of POCKETS) { 
@@ -379,11 +380,11 @@
                         isPocketed = true; break; 
                     } 
                 } 
-                if (isPocketed) break; // Detener predicción si cae en tronera
+                if (isPocketed) break; 
                 
                 currentPos = hitPoint;
                 
-                // Lógica de rebote y efecto (ahora usa currentSpin)
+                // --- INICIO CALIBRACIÓN v3: Lógica de predicción de efecto ---
                 if (wallHit.hitType === 'left' || wallHit.hitType === 'right') {
                     currentDir.x *= -1;
                     currentDir.y += currentSpin.x * SPIN_FACTOR_CUSHION * (wallHit.hitType === 'right' ? -1 : 1) * Math.sign(currentDir.y || 1);
@@ -393,7 +394,6 @@
                     currentDir.x += currentSpin.x * SPIN_FACTOR_CUSHION * (wallHit.hitType === 'bottom' ? 1 : -1) * Math.sign(currentDir.x || 1);
                 }
                 
-                // --- ¡AQUÍ ESTÁ EL ARREGLO! ---
                 // Degradar el efecto en la predicción, igual que en la física real
                 currentSpin.x *= 0.8; 
                 
@@ -402,19 +402,19 @@
                 if (mag > 0.01 && isFinite(mag)) { 
                     currentDir.x /= mag; currentDir.y /= mag; 
                 } else {
-                    break; // Salir si la dirección no es válida
+                    break; 
                 }
+                // --- FIN CALIBRACIÓN v3 ---
             } 
             ctx.stroke();
         }
-        // --- FIN CALIBRACIÓN ---
 
          function drawPoolCue() {
              if (!cueBall.active || typeof cueBall.x !== 'number' || typeof cueBall.y !== 'number' || !BALL_RADIUS || BALL_RADIUS <= 0 || !isFinite(BALL_RADIUS)) return;
              if (!TABLE_WIDTH || TABLE_WIDTH <=0 || !isFinite(TABLE_WIDTH)) return;
              const angle = Math.atan2(aimDir.y, aimDir.x);
              let pullBack = 0; if (gameState === 'pulling' && pullStartPos && pullEndPos) { const pullDist = Math.hypot(pullEndPos.x - pullStartPos.x, pullEndPos.y - pullStartPos.y);
-                 pullBack = Math.min(pullDist, (TABLE_WIDTH || 500) * 0.20); // (Era 0.15) Más rango de tiro
+                 pullBack = Math.min(pullDist, (TABLE_WIDTH || 500) * 0.20);
              }
              ctx.save(); ctx.translate(cueBall.x, cueBall.y); ctx.rotate(angle);
              const cueStartX = -BALL_RADIUS * 1.5 - pullBack; const cueLength = TABLE_WIDTH * 0.5; const cueTipWidth = BALL_RADIUS * 0.12; const cueButtWidth = BALL_RADIUS * 0.30;
@@ -440,37 +440,78 @@
             if (gameState !== 'simulating') return;
             let ballsStillMoving = false;
             for (const ball of balls) { if (!ball.active) continue; ball.vx *= FRICTION; ball.vy *= FRICTION; if (Math.hypot(ball.vx, ball.vy) < MIN_SPEED) { ball.vx = 0; ball.vy = 0; } else { ball.x += ball.vx; ball.y += ball.vy; ballsStillMoving = true; } }
+            
             for (const ball of balls) {
-                if (!ball.active || (ball.vx === 0 && ball.vy === 0)) continue; if (!BALL_RADIUS || BALL_RADIUS <= 0 || !POCKET_RADIUS || POCKET_RADIUS <= 0 || !PLAYABLE_RECT.left || !isFinite(BALL_RADIUS)) continue;
-                let isPocketed = false; for (const pocket of POCKETS) { if (typeof pocket.x !== 'number' || typeof pocket.y !== 'number' || !isFinite(pocket.x) || !isFinite(pocket.y)) continue; if (Math.hypot(ball.x - pocket.x, ball.y - pocket.y) < POCKET_RADIUS * 0.9) { ball.active = false; ball.vx = 0; ball.vy = 0; isPocketed = true; if (soundsReady) pocketSound.triggerAttackRelease("16n"); setTimeout(() => { requestAnimationFrame(() => { if (!PLAYABLE_RECT.width || PLAYABLE_RECT.width <= 0) return; if (ball === cueBall) { ball.x = PLAYABLE_RECT.left + PLAYABLE_RECT.width * 0.25; ball.y = PLAYABLE_RECT.top + PLAYABLE_RECT.height / 2; } else { ball.x = PLAYABLE_RECT.left + PLAYABLE_RECT.width * 0.7; ball.y = PLAYABLE_RECT.top + PLAYABLE_RECT.height / 2; } ball.active = true; }); }, 500); break; } }
+                if (!ball.active || (ball.vx === 0 && ball.vy === 0)) continue; 
+                if (!BALL_RADIUS || BALL_RADIUS <= 0 || !POCKET_RADIUS || POCKET_RADIUS <= 0 || !PLAYABLE_RECT.left || !isFinite(BALL_RADIUS)) continue;
+                
+                let isPocketed = false; 
+                for (const pocket of POCKETS) { 
+                    if (typeof pocket.x !== 'number' || typeof pocket.y !== 'number' || !isFinite(pocket.x) || !isFinite(pocket.y)) continue; 
+                    if (Math.hypot(ball.x - pocket.x, ball.y - pocket.y) < POCKET_RADIUS * 0.9) { 
+                        ball.active = false; ball.vx = 0; ball.vy = 0; isPocketed = true; 
+                        if (soundsReady) pocketSound.triggerAttackRelease("16n"); 
+                        setTimeout(() => { 
+                            requestAnimationFrame(() => { 
+                                if (!PLAYABLE_RECT.width || PLAYABLE_RECT.width <= 0) return; 
+                                if (ball === cueBall) { 
+                                    ball.x = PLAYABLE_RECT.left + PLAYABLE_RECT.width * 0.25; ball.y = PLAYABLE_RECT.top + PLAYABLE_RECT.height / 2; 
+                                } else { 
+                                    ball.x = PLAYABLE_RECT.left + PLAYABLE_RECT.width * 0.7; ball.y = PLAYABLE_RECT.top + PLAYABLE_RECT.height / 2; 
+                                } 
+                                ball.active = true; 
+                            }); 
+                        }, 500); 
+                        break; 
+                    } 
+                } 
+                
                 if (!isPocketed) {
-                    let hit = false; const restitution = 0.9; // (Era 0.8) Bandas más vivas
+                    let hit = false; 
                     if (!PLAYABLE_RECT.left || !isFinite(PLAYABLE_RECT.left) || typeof spinEffect.x !== 'number' || !isFinite(spinEffect.x)) continue;
                     
+                    // --- INICIO CALIBRACIÓN v3: Lógica de física de rebote ---
+                    const speed = Math.hypot(ball.vx, ball.vy); // 1. Obtener velocidad ANTES del golpe
+
                     if (ball.x + BALL_RADIUS > PLAYABLE_RECT.right && ball.vx > 0) { // Hit Right
-                        ball.x = PLAYABLE_RECT.right - BALL_RADIUS; ball.vx *= -restitution;
-                        if (ball === cueBall) ball.vy += spinEffect.x * SPIN_FACTOR_CUSHION * -Math.sign(ball.vy || 1); // Lógica de efecto
+                        ball.x = PLAYABLE_RECT.right - BALL_RADIUS; ball.vx *= -RESTITUTION;
+                        if (ball === cueBall) ball.vy += spinEffect.x * SPIN_FACTOR_CUSHION * -Math.sign(ball.vy || 1);
                         hit = true;
                     }
                     else if (ball.x - BALL_RADIUS < PLAYABLE_RECT.left && ball.vx < 0) { // Hit Left
-                        ball.x = PLAYABLE_RECT.left + BALL_RADIUS; ball.vx *= -restitution;
-                        if (ball === cueBall) ball.vy += spinEffect.x * SPIN_FACTOR_CUSHION * Math.sign(ball.vy || 1); // Lógica de efecto
+                        ball.x = PLAYABLE_RECT.left + BALL_RADIUS; ball.vx *= -RESTITUTION;
+                        if (ball === cueBall) ball.vy += spinEffect.x * SPIN_FACTOR_CUSHION * Math.sign(ball.vy || 1);
                         hit = true;
                     }
                     if (ball.y + BALL_RADIUS > PLAYABLE_RECT.bottom && ball.vy > 0) { // Hit Bottom
-                        ball.y = PLAYABLE_RECT.bottom - BALL_RADIUS; ball.vy *= -restitution;
-                        if (ball === cueBall) ball.vx += spinEffect.x * SPIN_FACTOR_CUSHION * Math.sign(ball.vx || 1); // Lógica de efecto
+                        ball.y = PLAYABLE_RECT.bottom - BALL_RADIUS; ball.vy *= -RESTITUTION;
+                        if (ball === cueBall) ball.vx += spinEffect.x * SPIN_FACTOR_CUSHION * Math.sign(ball.vx || 1);
                         hit = true;
                     }
                     else if (ball.y - BALL_RADIUS < PLAYABLE_RECT.top && ball.vy < 0) { // Hit Top
-                        ball.y = PLAYABLE_RECT.top + BALL_RADIUS; ball.vy *= -restitution;
-                        if (ball === cueBall) ball.vx += spinEffect.x * SPIN_FACTOR_CUSHION * -Math.sign(ball.vx || 1); // Lógica de efecto
+                        ball.y = PLAYABLE_RECT.top + BALL_RADIUS; ball.vy *= -RESTITUTION;
+                        if (ball === cueBall) ball.vx += spinEffect.x * SPIN_FACTOR_CUSHION * -Math.sign(ball.vx || 1);
                         hit = true;
                     }
 
-                    if (hit) { if (soundsReady) { const v = Math.min(Math.hypot(ball.vx, ball.vy) / 8, 1); cushionHitSound.triggerAttackRelease("C2", "16n", Tone.now(), v * 0.7); } if (ball === cueBall) { spinEffect.y *= 0.5; spinEffect.x *= 0.8; } }
+                    if (hit) { 
+                        if (ball === cueBall) {
+                            // 2. Re-normalizar la velocidad para conservar la energía (aplicando restitución)
+                            const newMag = Math.hypot(ball.vx, ball.vy);
+                            const newSpeed = speed * RESTITUTION; // 3. Calcular velocidad final
+                            if (newMag > 0.01 && isFinite(newMag) && isFinite(newSpeed)) {
+                                ball.vx = (ball.vx / newMag) * newSpeed;
+                                ball.vy = (ball.vy / newMag) * newSpeed;
+                            }
+                            spinEffect.y *= 0.5; 
+                            spinEffect.x *= 0.8; // Degradar efecto para el próximo golpe
+                        }
+                        if (soundsReady) { const v = Math.min(speed / 8, 1); cushionHitSound.triggerAttackRelease("C2", "16n", Tone.now(), v * 0.7); } 
+                    }
+                    // --- FIN CALIBRACIÓN v3 ---
                 }
             }
+            
             if (cueBall.active && blackBall.active && BALL_RADIUS > 0 && isFinite(BALL_RADIUS)) {
                 const dx = blackBall.x - cueBall.x; const dy = blackBall.y - cueBall.y; if (!isFinite(dx) || !isFinite(dy)) return; const dist = Math.hypot(dx, dy); const collisionDist = BALL_RADIUS * 2; if (!isFinite(dist) || dist <= 0) return;
                 if (dist < collisionDist) {
@@ -519,7 +560,7 @@
                 wasLastBlackBallActive = blackBall.active;
                 gameState = 'simulating';
                 const pullVecX = pullStartPos.x - pullEndPos.x, pullVecY = pullStartPos.y - pullEndPos.y;
-                const maxPull = (TABLE_WIDTH || 500) * 0.20; // (Era 0.15)
+                const maxPull = (TABLE_WIDTH || 500) * 0.20; 
                 let power = Math.min(Math.hypot(pullVecX, pullVecY), maxPull);
                  if (!isFinite(power)) power = 0;
                 if (power < 5) {
