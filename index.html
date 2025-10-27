@@ -675,32 +675,40 @@
         const fullscreenButton = document.getElementById('fullscreenButton');
         const appContainer = document.documentElement; // Usar <html> para la solicitud
 
-        function toggleFullScreen() {
-            if (!document.fullscreenElement &&    // Standard
-                !document.mozFullScreenElement && // Firefox
-                !document.webkitFullscreenElement && // Chrome, Safari, Opera
-                !document.msFullscreenElement) {  // IE/Edge
-                
-                if (appContainer.requestFullscreen) {
-                    appContainer.requestFullscreen();
-                } else if (appContainer.mozRequestFullScreen) { /* Firefox */
-                    appContainer.mozRequestFullScreen();
-                } else if (appContainer.webkitRequestFullscreen) { /* Chrome, Safari, Opera */
-                    appContainer.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
-                } else if (appContainer.msRequestFullscreen) { /* IE/Edge */
-                    appContainer.msRequestFullscreen();
+        async function toggleFullScreen() {
+            // --- INICIO DE LA CORRECCIÓN DE ERROR ---
+            // Envolver la lógica en un try...catch para manejar el error de permisos
+            try {
+                if (!document.fullscreenElement &&    // Standard
+                    !document.mozFullScreenElement && // Firefox
+                    !document.webkitFullscreenElement && // Chrome, Safari, Opera
+                    !document.msFullscreenElement) {  // IE/Edge
+                    
+                    if (appContainer.requestFullscreen) {
+                        await appContainer.requestFullscreen();
+                    } else if (appContainer.mozRequestFullScreen) { /* Firefox */
+                        await appContainer.mozRequestFullScreen();
+                    } else if (appContainer.webkitRequestFullscreen) { /* Chrome, Safari, Opera */
+                        await appContainer.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+                    } else if (appContainer.msRequestFullscreen) { /* IE/Edge */
+                        await appContainer.msRequestFullscreen();
+                    }
+                } else {
+                    if (document.exitFullscreen) {
+                        await document.exitFullscreen();
+                    } else if (document.mozCancelFullScreen) { /* Firefox */
+                        await document.mozCancelFullScreen();
+                    } else if (document.webkitExitFullscreen) { /* Chrome, Safari, Opera */
+                        await document.webkitExitFullscreen();
+                    } else if (document.msExitFullscreen) { /* IE/Edge */
+                        await document.msExitFullscreen();
+                    }
                 }
-            } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                } else if (document.mozCancelFullScreen) { /* Firefox */
-                    document.mozCancelFullScreen();
-                } else if (document.webkitExitFullscreen) { /* Chrome, Safari, Opera */
-                    document.webkitExitFullscreen();
-                } else if (document.msExitFullscreen) { /* IE/Edge */
-                    document.msExitFullscreen();
-                }
+            } catch (err) {
+                // Registrar una advertencia en lugar de fallar
+                console.warn("No se pudo activar/desactivar la pantalla completa. Es posible que los permisos del entorno (ej. iframe) lo impidan.", err);
             }
+            // --- FIN DE LA CORRECCIÓN DE ERROR ---
         }
 
         function handleFullscreenChange() {
@@ -716,9 +724,10 @@
         }
 
         if (fullscreenButton) {
-            fullscreenButton.addEventListener('click', () => {
-                startAudioContext(); // Asegurar que el audio esté iniciado
-                toggleFullScreen();
+            // Hacer el listener 'async' para que 'await' funcione
+            fullscreenButton.addEventListener('click', async () => {
+                await startAudioContext(); // Asegurar que el audio esté iniciado
+                await toggleFullScreen();
             });
         }
 
@@ -739,6 +748,4 @@
     </script>
 </body>
 </html>
-
-
 
