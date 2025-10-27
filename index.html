@@ -9,21 +9,20 @@
     <!-- Librería de Sonido (Tone.js) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
     
-    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Dancing+Script:wght@400;700&display=swap" rel="stylesheet">
     <style>
         /* Estilo para la fuente Inter */
-        body {
+        html, body {
+            height: 100%; /* Asegurar que html y body ocupen toda la altura */
+            margin: 0;
+            padding: 0;
             font-family: 'Inter', sans-serif;
-            /* CAMBIO: Permitir scroll vertical si el contenido excede en móviles */
-            overflow-y: auto;
-            overflow-x: hidden;
+            overflow: hidden; /* Prevenir scroll general */
         }
         /* Asegura que el canvas tenga un fondo, en caso de que tailwind no cargue */
         canvas {
             background-color: #059669; /* Verde billar */
             display: block; /* Evita espacios extra */
-            /* CAMBIO: Quitar cursor: none para que sea usable en escritorio */
-            /* cursor: none;  Oculta el cursor del ratón */
         }
         #poolTable {
             cursor: crosshair; /* Cursor para apuntar en la mesa */
@@ -37,40 +36,44 @@
         }
     </style>
 </head>
-<!-- CAMBIO: Padding ajustado y altura mínima para asegurar espacio -->
-<body class="bg-gray-900 text-gray-100 flex flex-col items-center p-2 min-h-screen">
+<!-- CAMBIO: Quitar min-h-screen, usar flex-col, h-full para ocupar toda la altura -->
+<body class="bg-gray-900 text-gray-100 flex flex-col items-center p-2 h-full">
 
-    <div class="w-full max-w-5xl flex flex-col items-center">
+    <!-- CAMBIO: Contenedor principal ahora flex-col y ocupa altura restante -->
+    <div class="w-full max-w-5xl flex flex-col items-center flex-grow">
         
-        <!-- CAMBIO: Visible en móvil, apilado verticalmente, centrado -->
-        <div class="flex flex-col md:flex-row justify-between items-center mb-2 w-full px-2">
-            <!-- CAMBIO: Centrar texto en móvil -->
-            <div class="text-center md:text-left mb-2 md:mb-0">
-                <h1 class="text-2xl md:text-3xl font-bold mb-1 md:mb-2">Simulador de Billar</h1>
-                <p class="text-sm md:text-base text-gray-300 mb-2 md:mb-4">
+        <!-- CAMBIO: Layout superior reorganizado con padding y gap -->
+        <div class="flex flex-col md:flex-row justify-between items-center w-full px-2 py-2 gap-4">
+            <!-- Título e Instrucciones -->
+            <div class="text-center md:text-left">
+                <h1 class="text-2xl md:text-3xl font-bold text-white">Simulador de Billar</h1>
+                <p class="text-sm md:text-base text-gray-400 mt-1">
                     Apunta. Toca y arrastra para disparar.
                 </p>
             </div>
             
-            <!-- CAMBIO: Margen inferior en móvil -->
-            <div class="flex flex-col items-center p-2 rounded-lg bg-gray-800 shadow-lg border border-gray-700 mb-2 md:mb-0">
+            <!-- Control de Efecto -->
+            <div class="flex flex-col items-center p-2 rounded-lg bg-gray-800 shadow-lg border border-gray-700">
                 <canvas id="spinControlCanvas"></canvas>
                 <span class="text-xs md:text-sm text-gray-400 mt-1">Control de Efecto</span>
             </div>
         </div>
 
-        <!-- Esta es la mesa de juego, siempre visible -->
-        <div class="aspect-[2/1] w-full bg-yellow-900 border-4 md:border-8 border-yellow-800 rounded-lg shadow-2xl overflow-hidden">
-            <canvas id="poolTable"></canvas>
+        <!-- CAMBIO: Contenedor de la mesa para que crezca y se centre verticalmente si hay espacio -->
+        <div class="flex-grow w-full flex items-center justify-center py-2">
+            <!-- Mesa de juego con aspect ratio y max-w/max-h para limitar tamaño -->
+            <div class="aspect-[2/1] w-full max-w-full max-h-full bg-yellow-900 border-4 md:border-8 border-yellow-800 rounded-lg shadow-2xl overflow-hidden">
+                <canvas id="poolTable" class="w-full h-full"></canvas> <!-- Clases w/h para que llene el div -->
+            </div>
         </div>
 
-        <!-- CAMBIO: Visible en móvil, apilado verticalmente, centrado -->
-        <div class="flex flex-col items-center text-center mt-4 w-full px-2">
-            <button id="resetButton" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition duration-200 shadow-lg mb-4">
+        <!-- CAMBIO: Controles inferiores con padding -->
+        <div class="flex flex-col items-center text-center w-full px-2 py-2">
+            <button id="resetButton" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition duration-200 shadow-lg mb-2">
                 Reiniciar
             </button>
             
-            <p class="elegant-script text-lg md:text-2xl text-gray-400">
+            <p class="elegant-script text-lg md:text-xl text-gray-500">
                 Por Jorge Hernández
             </p>
         </div>
@@ -174,7 +177,13 @@
          */
         async function startAudioContext() {
             if (Tone.context.state !== 'running') {
-                await Tone.start();
+                try {
+                    await Tone.start();
+                    console.log("Audio context started");
+                } catch (e) {
+                    console.error("Error starting audio context:", e);
+                    return; // No inicializar sonidos si falla
+                }
             }
             initSounds(); // Inicia los sintetizadores
         }
@@ -186,14 +195,23 @@
          */
         function setupCanvas() {
             const container = canvas.parentElement;
+            // Asegurarse de que el contenedor tenga dimensiones
+            if (container.clientWidth === 0 || container.clientHeight === 0) {
+                // Intentar de nuevo en el siguiente frame si el contenedor aún no tiene tamaño
+                requestAnimationFrame(setupCanvas);
+                return;
+            }
             canvas.width = container.clientWidth;
             canvas.height = container.clientHeight;
 
             TABLE_WIDTH = canvas.width;
             TABLE_HEIGHT = canvas.height;
 
+            // Recalcular constantes basadas en el tamaño actual
             CUSHION_SIZE = TABLE_WIDTH * 0.045; 
             BALL_RADIUS = TABLE_WIDTH * 0.015;
+            // Asegurar radio mínimo para bolas en pantallas muy pequeñas
+            BALL_RADIUS = Math.max(BALL_RADIUS, 5);
             POCKET_RADIUS = BALL_RADIUS * 1.8; 
 
             PLAYABLE_RECT = {
@@ -214,11 +232,33 @@
                 { x: PLAYABLE_RECT.right, y: PLAYABLE_RECT.bottom } // Esquina inf-der
             ];
 
-            // CAMBIO: Resetear bolas solo si no estamos en medio de una simulación o arrastre
-            if (gameState !== 'simulating' && !draggingBall) {
-                resetBalls();
+            // Reposicionar bolas solo si no están activas o si es el estado inicial
+            if (gameState === 'aiming' && !draggingBall) {
+                // Solo reposicionar si las bolas están cerca de su posición inicial (evita reposicionar después de un tiro)
+                const initialCueX = PLAYABLE_RECT.left + PLAYABLE_RECT.width * 0.25;
+                const initialCueY = PLAYABLE_RECT.top + PLAYABLE_RECT.height / 2;
+                const initialBlackX = PLAYABLE_RECT.left + PLAYABLE_RECT.width * 0.7;
+                const initialBlackY = PLAYABLE_RECT.top + PLAYABLE_RECT.height / 2;
+                
+                const distCueFromStart = Math.hypot(cueBall.x - initialCueX, cueBall.y - initialCueY);
+                const distBlackFromStart = Math.hypot(blackBall.x - initialBlackX, blackBall.y - initialBlackY);
+
+                // Si ambas bolas están muy cerca de su inicio (o es la primera carga), resetear
+                if ((cueBall.vx === 0 && cueBall.vy === 0 && blackBall.vx === 0 && blackBall.vy === 0) &&
+                	(distCueFromStart < BALL_RADIUS * 2 && distBlackFromStart < BALL_RADIUS * 2)) {
+                	resetBalls();
+                } else {
+                	// Si no, solo asegurarse de que las bolas estén dentro de los límites
+                	balls.forEach(ball => {
+                		if (ball.active) {
+                			ball.x = clamp(ball.x, PLAYABLE_RECT.left + BALL_RADIUS, PLAYABLE_RECT.right - BALL_RADIUS);
+                			ball.y = clamp(ball.y, PLAYABLE_RECT.top + BALL_RADIUS, PLAYABLE_RECT.bottom - BALL_RADIUS);
+                		}
+                	});
+                }
             }
         }
+
 
         /**
          * resetBalls()
@@ -226,6 +266,8 @@
          */
         function resetBalls() {
             gameState = 'aiming'; 
+            // Asegurar que PLAYABLE_RECT esté definido
+            if (!PLAYABLE_RECT.width) return;
             
             cueBall.x = PLAYABLE_RECT.left + PLAYABLE_RECT.width * 0.25;
             cueBall.y = PLAYABLE_RECT.top + PLAYABLE_RECT.height / 2;
@@ -261,6 +303,9 @@
             const diamondRadius = CUSHION_SIZE * 0.18; 
             const playableWidth = PLAYABLE_RECT.width;
             const playableHeight = PLAYABLE_RECT.height;
+            // Asegurarse de que playableWidth/Height sean válidos
+            if (!playableWidth || !playableHeight || playableWidth <= 0 || playableHeight <= 0) return;
+
             const segmentX = playableWidth / 8; 
             const segmentY = playableHeight / 4; 
             const topRailY = PLAYABLE_RECT.top / 2;
@@ -311,6 +356,8 @@
 
             // 5. Buchacas
             POCKETS.forEach(pocket => {
+                // Asegurarse de que pocket tenga coordenadas válidas
+                if (typeof pocket.x !== 'number' || typeof pocket.y !== 'number') return;
                 const pocketGradient = ctx.createRadialGradient(pocket.x, pocket.y, POCKET_RADIUS * 0.5, pocket.x, pocket.y, POCKET_RADIUS);
                 pocketGradient.addColorStop(0, '#111111'); 
                 pocketGradient.addColorStop(1, '#000000'); 
@@ -322,30 +369,33 @@
         }
 
         function drawBall(ball, color) {
+        	// Asegurarse de que ball tenga coordenadas válidas y radio > 0
+        	if (typeof ball.x !== 'number' || typeof ball.y !== 'number' || !BALL_RADIUS || BALL_RADIUS <= 0) return;
+
             // Sombra en la mesa
             ctx.save();
             ctx.beginPath();
-            ctx.arc(ball.x + 2, ball.y + 3, BALL_RADIUS, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
-            ctx.shadowColor = 'rgba(0, 0, 0, 0.25)';
-            ctx.shadowBlur = 5;
-            ctx.shadowOffsetY = 2;
+            ctx.arc(ball.x + BALL_RADIUS * 0.1, ball.y + BALL_RADIUS * 0.15, BALL_RADIUS, 0, Math.PI * 2); // Sombra ajustada
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+            ctx.shadowBlur = BALL_RADIUS * 0.3;
+            ctx.shadowOffsetY = BALL_RADIUS * 0.1;
             ctx.fill();
             ctx.restore();
 
             // Bola 3D
             ctx.beginPath();
             const highlightX = ball.x - BALL_RADIUS * 0.3;
-            const highlightY = ball.y - BALL_RADIUS * 0.3;
-            const gradient = ctx.createRadialGradient(highlightX, highlightY, BALL_RADIUS * 0.1, ball.x, ball.y, BALL_RADIUS);
+            const highlightY = ball.y - BALL_RADIUS * 0.4; // Brillo más arriba
+            const gradient = ctx.createRadialGradient(highlightX, highlightY, BALL_RADIUS * 0.05, ball.x, ball.y, BALL_RADIUS); // Brillo más pequeño
             
             if (color === '#FFFFFF') {
                 gradient.addColorStop(0, '#FFFFFF'); 
-                gradient.addColorStop(0.8, '#e0e0e0'); 
-                gradient.addColorStop(1, '#bbbbbb'); 
-            } else { 
-                gradient.addColorStop(0, '#555555'); 
-                gradient.addColorStop(0.8, '#1a1a1a'); 
+                gradient.addColorStop(0.7, '#f0f0f0'); // Transición más suave
+                gradient.addColorStop(1, '#cccccc'); // Sombra más clara
+            } else { // Bola negra
+                gradient.addColorStop(0, '#666666'); // Brillo más notable
+                gradient.addColorStop(0.7, '#2a2a2a'); 
                 gradient.addColorStop(1, '#000000'); 
             }
 
@@ -355,38 +405,39 @@
         }
 
         function drawBlackBall() {
+        	// Asegurarse de que blackBall tenga coordenadas válidas y radio > 0
+        	if (typeof blackBall.x !== 'number' || typeof blackBall.y !== 'number' || !BALL_RADIUS || BALL_RADIUS <= 0) return;
+
             drawBall(blackBall, '#000000');
 
-            // Círculo blanco
+            // Círculo blanco (más pequeño y definido)
+            const circleRadius = BALL_RADIUS * 0.5;
             ctx.beginPath();
-            ctx.arc(blackBall.x, blackBall.y, BALL_RADIUS * 0.6, 0, Math.PI * 2);
+            ctx.arc(blackBall.x, blackBall.y, circleRadius, 0, Math.PI * 2);
             ctx.fillStyle = '#FFFFFF';
-            ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
-            ctx.shadowBlur = 2;
-            ctx.shadowOffsetY = 1;
             ctx.fill();
-            ctx.shadowColor = 'transparent'; 
 
-            // Número 8
+            // Número 8 (ajustado al tamaño del círculo)
             ctx.fillStyle = '#000000';
-            ctx.font = `bold ${BALL_RADIUS * 0.9}px Arial`;
+            ctx.font = `bold ${circleRadius * 1.5}px Arial`; // Tamaño relativo al círculo
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillText('8', blackBall.x, blackBall.y + 1);
+            // Pequeño ajuste vertical para centrar mejor el 8
+            ctx.fillText('8', blackBall.x, blackBall.y + BALL_RADIUS * 0.05);
         }
 
         function drawSpinControl() {
-            // CAMBIO: Asegurarse que el canvas de spin tenga dimensiones antes de dibujar
-            if (canvasSpin.width === 0 || canvasSpin.height === 0) return;
+            // Asegurarse que el canvas de spin tenga dimensiones antes de dibujar
+            if (!canvasSpin || canvasSpin.width === 0 || canvasSpin.height === 0 || !spinBallControl.radius) return;
             ctxSpin.clearRect(0, 0, canvasSpin.width, canvasSpin.height);
             
             // Sombra
             ctxSpin.save();
             ctxSpin.beginPath();
-            ctxSpin.arc(spinBallControl.x + 1, spinBallControl.y + 2, spinBallControl.radius, 0, Math.PI * 2); // Sombra ajustada
+            ctxSpin.arc(spinBallControl.x + 1, spinBallControl.y + 2, spinBallControl.radius, 0, Math.PI * 2);
             ctxSpin.fillStyle = 'rgba(0, 0, 0, 0.2)';
             ctxSpin.shadowColor = 'rgba(0, 0, 0, 0.2)';
-            ctxSpin.shadowBlur = 3; // Blur ajustado
+            ctxSpin.shadowBlur = 3;
             ctxSpin.shadowOffsetY = 1;
             ctxSpin.fill();
             ctxSpin.restore();
@@ -394,107 +445,105 @@
             // Bola
             ctxSpin.beginPath();
             const highlightX = spinBallControl.x - spinBallControl.radius * 0.3;
-            const highlightY = spinBallControl.y - spinBallControl.radius * 0.3;
-            const gradient = ctxSpin.createRadialGradient(highlightX, highlightY, spinBallControl.radius * 0.1, spinBallControl.x, spinBallControl.y, spinBallControl.radius);
+            const highlightY = spinBallControl.y - spinBallControl.radius * 0.4; // Brillo más arriba
+            const gradient = ctxSpin.createRadialGradient(highlightX, highlightY, spinBallControl.radius * 0.05, spinBallControl.x, spinBallControl.y, spinBallControl.radius); // Brillo más pequeño
             gradient.addColorStop(0, '#FFFFFF');
-            gradient.addColorStop(0.8, '#e0e0e0');
-            gradient.addColorStop(1, '#bbbbbb');
+            gradient.addColorStop(0.7, '#f0f0f0');
+            gradient.addColorStop(1, '#cccccc');
             ctxSpin.fillStyle = gradient;
             ctxSpin.arc(spinBallControl.x, spinBallControl.y, spinBallControl.radius, 0, Math.PI * 2);
             ctxSpin.fill();
 
-            // Indicador de efecto
+            // Indicador de efecto (punto rojo más pequeño)
             ctxSpin.beginPath();
-            ctxSpin.arc(spinIndicator.x, spinIndicator.y, spinBallControl.radius * 0.15, 0, Math.PI * 2);
-            ctxSpin.fillStyle = 'rgba(255, 0, 0, 0.8)';
-            ctxSpin.strokeStyle = 'rgba(100, 0, 0, 0.8)';
-            ctxSpin.lineWidth = 1; // Grosor ajustado
+            ctxSpin.arc(spinIndicator.x, spinIndicator.y, spinBallControl.radius * 0.12, 0, Math.PI * 2);
+            ctxSpin.fillStyle = 'rgba(220, 38, 38, 0.9)'; // Rojo más intenso
+            ctxSpin.strokeStyle = 'rgba(127, 29, 29, 0.9)'; // Borde rojo oscuro
+            ctxSpin.lineWidth = 1;
             ctxSpin.fill();
             ctxSpin.stroke();
         }
 
-        // --- 6. LÓGICA DE TRAYECTORIA Y GOLPE ---
 
+        // --- 6. LÓGICA DE TRAYECTORIA Y GOLPE ---
+        // (Las funciones findWallCollision y findBallCollision permanecen igual)
         function findWallCollision(startPos, dir) {
             let tMin = Infinity;
             let hitType = null;
+            // Evitar cálculos si el radio no está definido
+            if (!BALL_RADIUS) return { t: Infinity, hitType: null };
             
-            if (dir.x > 0) {
-                let t = (PLAYABLE_RECT.right - BALL_RADIUS - startPos.x) / dir.x; // Ajuste por radio
+            if (dir.x > 0.001) { // Evitar división por ~cero
+                let t = (PLAYABLE_RECT.right - BALL_RADIUS - startPos.x) / dir.x;
                 if (t > 0 && t < tMin) { tMin = t; hitType = 'right'; }
-            } else if (dir.x < 0) {
-                let t = (PLAYABLE_RECT.left + BALL_RADIUS - startPos.x) / dir.x; // Ajuste por radio
+            } else if (dir.x < -0.001) {
+                let t = (PLAYABLE_RECT.left + BALL_RADIUS - startPos.x) / dir.x;
                 if (t > 0 && t < tMin) { tMin = t; hitType = 'left'; }
             }
-            if (dir.y > 0) {
-                let t = (PLAYABLE_RECT.bottom - BALL_RADIUS - startPos.y) / dir.y; // Ajuste por radio
+            if (dir.y > 0.001) {
+                let t = (PLAYABLE_RECT.bottom - BALL_RADIUS - startPos.y) / dir.y;
                 if (t > 0 && t < tMin) { tMin = t; hitType = 'bottom'; }
-            } else if (dir.y < 0) {
-                let t = (PLAYABLE_RECT.top + BALL_RADIUS - startPos.y) / dir.y; // Ajuste por radio
+            } else if (dir.y < -0.001) {
+                let t = (PLAYABLE_RECT.top + BALL_RADIUS - startPos.y) / dir.y;
                 if (t > 0 && t < tMin) { tMin = t; hitType = 'top'; }
             }
             return { t: tMin, hitType: hitType };
         }
 
         function findBallCollision(startPos, dir, targetBall) {
+        	// Evitar cálculos si el radio no está definido o targetBall no es válido
+        	if (!BALL_RADIUS || typeof targetBall?.x !== 'number' || typeof targetBall?.y !== 'number') return { t: Infinity };
+
             const collisionRadius = BALL_RADIUS * 2; 
             const v = { x: targetBall.x - startPos.x, y: targetBall.y - startPos.y };
             
-            const dirMagSq = dir.x * dir.x + dir.y * dir.y; // Magnitud al cuadrado de la dirección
-            // Evitar división por cero si la dirección es nula
+            const dirMagSq = dir.x * dir.x + dir.y * dir.y;
             if (dirMagSq < 0.0001) return { t: Infinity };
 
-            // Proyección de v sobre dir, normalizada por la magnitud de dir
-            const t_proj = (v.x * dir.x + v.y * dir.y) / dirMagSq;
-            if (t_proj <= 0) return { t: Infinity }; // La bola objetivo está detrás
+            const dotProd = v.x * dir.x + v.y * dir.y;
+            if (dotProd <= 0) return { t: Infinity }; // Target está detrás
 
-            const closestPoint = {
-                x: startPos.x + dir.x * t_proj,
-                y: startPos.y + dir.y * t_proj
-            };
+            const vMagSq = v.x * v.x + v.y * v.y;
+            // Punto más cercano en la línea de trayectoria al centro de targetBall
+            const t_closest = dotProd / dirMagSq;
             
-            // Distancia al cuadrado entre el centro de la bola objetivo y el punto más cercano en la trayectoria
-            const distSqr = (targetBall.x - closestPoint.x) ** 2 + (targetBall.y - closestPoint.y) ** 2;
-            const collisionRadiusSqr = collisionRadius ** 2;
+            // Distancia al cuadrado desde el centro de targetBall a la línea de trayectoria
+            const distSq_line_center = vMagSq - (dotProd * dotProd) / dirMagSq;
+            const collisionRadiusSqr = collisionRadius * collisionRadius;
 
-            // Si la distancia mínima es mayor que el radio de colisión, no hay choque
-            if (distSqr >= collisionRadiusSqr) return { t: Infinity };
+            if (distSq_line_center >= collisionRadiusSqr) return { t: Infinity }; // No hay intersección
 
-            // Distancia desde el punto más cercano hasta el punto de impacto a lo largo de la trayectoria
-            const thc = Math.sqrt(collisionRadiusSqr - distSqr);
+            const thc_sq = collisionRadiusSqr - distSq_line_center;
+            const thc = Math.sqrt(thc_sq);
             
-            // Tiempo hasta el impacto (distancia normalizada por la magnitud de dir)
-            const t_hit = t_proj - (thc / Math.sqrt(dirMagSq));
+            // Tiempo hasta el punto de impacto (puede haber dos soluciones, tomamos la más cercana)
+            const t_hit = t_closest - thc / Math.sqrt(dirMagSq);
 
-            if (t_hit < 0) return { t: Infinity }; // El impacto ocurrió en el pasado
+            if (t_hit < 0) return { t: Infinity }; // El impacto ocurrió "detrás" del punto inicial
 
-            return { t: t_hit * Math.sqrt(dirMagSq) }; // Devolver distancia real (t * magnitud)
+            return { t: t_hit * Math.sqrt(dirMagSq) }; // Devolvemos la distancia real
         }
 
-
-        // Dibuja las líneas de predicción
+        // Dibuja las líneas de predicción (lógica interna sin cambios significativos)
         function drawFullTrajectory() {
             if (gameState !== 'aiming' || !cueBall.active) return; 
 
             let startPos = { x: cueBall.x, y: cueBall.y };
             let dir = aimDir;
             
-            // Normalizar dirección solo para cálculos internos de trayectoria
             let normalizedDir = { ...dir };
             const magAim = Math.hypot(dir.x, dir.y);
-            if (magAim < 0.01) return; // No dibujar si no hay dirección clara
+            if (magAim < 0.01) return;
             normalizedDir.x /= magAim;
             normalizedDir.y /= magAim;
 
             const wallHit = findWallCollision(startPos, normalizedDir);
             const ballHit = blackBall.active ? findBallCollision(startPos, normalizedDir, blackBall) : { t: Infinity };
 
-            // Determinar el primer evento: colisión con bola o pared
             let firstHitTime = Math.min(wallHit.t, ballHit.t);
 
-            // Si no hay colisiones o están muy lejos, dibujar una línea larga
             if (firstHitTime === Infinity || firstHitTime > TABLE_WIDTH * 2) {
-                firstHitTime = TABLE_WIDTH * 2; // Limitar longitud
+                firstHitTime = TABLE_WIDTH * 2;
             }
 
             const firstHitPoint = {
@@ -502,171 +551,112 @@
                 y: startPos.y + normalizedDir.y * firstHitTime
             };
 
-            // Dibujar la primera parte de la trayectoria (blanca)
             ctx.beginPath();
             ctx.moveTo(startPos.x, startPos.y);
             ctx.lineTo(firstHitPoint.x, firstHitPoint.y);
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
-            ctx.lineWidth = 2;
-            ctx.setLineDash([5, 5]);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)'; // Más tenue
+            ctx.lineWidth = 1.5; // Más delgada
+            ctx.setLineDash([4, 4]); // Guiones más pequeños
             ctx.stroke();
             
-            // Si el primer golpe es a la bola negra
             if (ballHit.t <= wallHit.t && blackBall.active) {
-                const cueHitPoint = firstHitPoint; // Punto donde la blanca golpea la negra
+            	const cueHitPoint = firstHitPoint;
 
-                // Calcular trayectoria de la bola negra post-colisión
-                let blackBallDir = {
-                    x: blackBall.x - cueHitPoint.x,
-                    y: blackBall.y - cueHitPoint.y
-                };
-                const blackMag = Math.hypot(blackBallDir.x, blackBallDir.y);
-                // Normalizar si la magnitud es válida
-                if (blackMag > 0.01) {
-                    blackBallDir.x /= blackMag;
-                    blackBallDir.y /= blackMag;
-                    drawPath(blackBall, blackBallDir, 'rgba(255, 255, 0, 0.7)', 4, {x: 0, y: 0}); // Línea bola 8
-                }
+            	let blackBallDir = { x: blackBall.x - cueHitPoint.x, y: blackBall.y - cueHitPoint.y };
+            	const blackMag = Math.hypot(blackBallDir.x, blackBallDir.y);
+            	if (blackMag > 0.01) {
+            		blackBallDir.x /= blackMag;
+            		blackBallDir.y /= blackMag;
+            		drawPath(blackBall, blackBallDir, 'rgba(255, 255, 0, 0.6)', 3); // Bola 8
+            	}
 
-                // Calcular trayectoria de la bola blanca post-colisión (con efecto)
-                const normalDir = { ...blackBallDir }; // Dirección de la línea de choque
-                let tangentDir = { x: -normalDir.y, y: normalDir.x }; // Dirección tangencial
+            	const normalDir = { ...blackBallDir };
+            	let tangentDir = { x: -normalDir.y, y: normalDir.x };
+            	const check = normalizedDir.x * tangentDir.x + normalizedDir.y * tangentDir.y;
+            	if (check < 0) { tangentDir.x *= -1; tangentDir.y *= -1; }
 
-                // Asegurar dirección correcta de la tangente
-                const original_proj_tangent_check = normalizedDir.x * tangentDir.x + normalizedDir.y * tangentDir.y;
-                if (original_proj_tangent_check < 0) {
-                    tangentDir.x *= -1;
-                    tangentDir.y *= -1;
-                }
+            	const proj_n = normalizedDir.x * normalDir.x + normalizedDir.y * normalDir.y;
+            	const proj_t = normalizedDir.x * tangentDir.x + normalizedDir.y * tangentDir.y;
 
-                const proj_normal = normalizedDir.x * normalDir.x + normalizedDir.y * normalDir.y;
-                const proj_tangent = normalizedDir.x * tangentDir.x + normalizedDir.y * tangentDir.y;
+            	const stun = 1 - Math.abs(spinEffect.y);
+            	const follow = spinEffect.y < 0 ? -spinEffect.y : 0;
+            	const draw = spinEffect.y > 0 ? spinEffect.y : 0;
+            	const new_proj_n = proj_n * (follow - draw) + 0 * stun; // v2n is 0
+            	const new_proj_t = proj_t;
 
-                const stunAmount = 1 - Math.abs(spinEffect.y);
-                const followAmount = spinEffect.y < 0 ? -spinEffect.y : 0;
-                const drawAmount = spinEffect.y > 0 ? spinEffect.y : 0;
-                
-                const new_proj_normal = (proj_normal * followAmount) + (proj_normal * -drawAmount) + (0 * stunAmount);
-                const new_proj_tangent = proj_tangent;
-
-                let cueAfterHitDir = {
-                    x: (normalDir.x * new_proj_normal) + (tangentDir.x * new_proj_tangent),
-                    y: (normalDir.y * new_proj_normal) + (tangentDir.y * new_proj_tangent)
-                };
-                
-                const cueAfterMag = Math.hypot(cueAfterHitDir.x, cueAfterHitDir.y);
-                if (cueAfterMag > 0.01) {
-                    cueAfterHitDir.x /= cueAfterMag;
-                    cueAfterHitDir.y /= cueAfterMag;
-                    // CAMBIO: Usar el punto de contacto real (aproximado) como inicio de la trayectoria post-colisión
-                    const postCollisionStart = {
-                        x: cueHitPoint.x - normalDir.x * BALL_RADIUS, // Retroceder un radio desde el centro
-                        y: cueHitPoint.y - normalDir.y * BALL_RADIUS
-                    };
-                    drawPath(postCollisionStart, cueAfterHitDir, 'rgba(255, 165, 0, 0.7)', 4, spinEffect); // Línea naranja (efecto)
-                }
-            
-            } else if (wallHit.t !== Infinity) { // Si el primer golpe es a la banda
-                // Calcular trayectoria post-rebote
-                let nextDir = { ...normalizedDir };
-                if (wallHit.hitType === 'left' || wallHit.hitType === 'right') {
-                    nextDir.x = -nextDir.x;
-                    nextDir.y += spinEffect.x * (nextDir.x > 0 ? -1 : 1) * SPIN_FACTOR_CUSHION;
-                }
-                if (wallHit.hitType === 'top' || wallHit.hitType === 'bottom') {
-                    nextDir.y = -nextDir.y;
-                    nextDir.x += spinEffect.x * (nextDir.y > 0 ? 1 : -1) * SPIN_FACTOR_CUSHION;
-                }
-                
-                const nextMag = Math.hypot(nextDir.x, nextDir.y);
-                if (nextMag > 0.01) {
-                    nextDir.x /= nextMag;
-                    nextDir.y /= nextMag;
-                    drawPath(firstHitPoint, nextDir, 'rgba(255, 255, 255, 0.7)', 4, spinEffect); // Continuar trayectoria blanca
-                }
+            	let cueAfterDir = { x: normalDir.x * new_proj_n + tangentDir.x * new_proj_t, y: normalDir.y * new_proj_n + tangentDir.y * new_proj_t };
+            	const cueAfterMag = Math.hypot(cueAfterDir.x, cueAfterDir.y);
+            	if (cueAfterMag > 0.01) {
+            		cueAfterDir.x /= cueAfterMag; cueAfterDir.y /= cueAfterMag;
+            		const start = { x: cueHitPoint.x - normalDir.x * BALL_RADIUS, y: cueHitPoint.y - normalDir.y * BALL_RADIUS };
+            		drawPath(start, cueAfterDir, 'rgba(255, 165, 0, 0.6)', 3, spinEffect); // Efecto
+            	}
+            } else if (wallHit.t !== Infinity) {
+            	let nextDir = { ...normalizedDir };
+            	if (wallHit.hitType === 'left' || wallHit.hitType === 'right') { nextDir.x *= -1; nextDir.y += spinEffect.x * (nextDir.x > 0 ? -1 : 1) * SPIN_FACTOR_CUSHION; }
+            	if (wallHit.hitType === 'top' || wallHit.hitType === 'bottom') { nextDir.y *= -1; nextDir.x += spinEffect.x * (nextDir.y > 0 ? 1 : -1) * SPIN_FACTOR_CUSHION; }
+            	const nextMag = Math.hypot(nextDir.x, nextDir.y);
+            	if (nextMag > 0.01) { nextDir.x /= nextMag; nextDir.y /= nextMag; drawPath(firstHitPoint, nextDir, 'rgba(255, 255, 255, 0.6)', 3, spinEffect); } // Continuar blanca
             }
-
             ctx.setLineDash([]); 
         }
         
-        // Dibuja una línea de rebote simple
-        function drawPath(startPos, dir, color, maxBounces = 6, spin = {x: 0, y: 0}) {
+        // Dibuja una línea de rebote simple (lógica interna sin cambios significativos)
+        function drawPath(startPos, dir, color, maxBounces = 3, spin = {x: 0, y: 0}) { // Reducir rebotes
+        	if (!startPos || typeof startPos.x !== 'number' || typeof startPos.y !== 'number') return;
+        	if (!dir || typeof dir.x !== 'number' || typeof dir.y !== 'number') return;
+
             let currentPos = { ...startPos };
             let currentDir = { ...dir };
             
             ctx.beginPath();
             ctx.moveTo(currentPos.x, currentPos.y);
             ctx.strokeStyle = color;
-            ctx.lineWidth = 2;
-            ctx.setLineDash([5, 5]);
+            ctx.lineWidth = 1.5; // Más delgada
+            ctx.setLineDash([4, 4]); // Guiones más pequeños
 
             for (let i = 0; i < maxBounces; i++) { 
-                const wallHit = findWallCollision(currentPos, currentDir);
-                // CAMBIO: Considerar colisión con la bola negra también en el rebote
-                const ballHit = (color !== 'rgba(255, 255, 0, 0.7)' && blackBall.active) // No predecir colisión para la bola 8 misma
-                    ? findBallCollision(currentPos, currentDir, blackBall)
-                    : { t: Infinity };
+            	const wallHit = findWallCollision(currentPos, currentDir);
+            	const ballHit = (color !== 'rgba(255, 255, 0, 0.6)' && blackBall.active) ? findBallCollision(currentPos, currentDir, blackBall) : { t: Infinity };
+            	let hitTime = Math.min(wallHit.t, ballHit.t);
 
-                let hitTime = Math.min(wallHit.t, ballHit.t);
+            	if (hitTime === Infinity || hitTime < 0.1) break;
 
-                if (hitTime === Infinity || hitTime < 0.1) break; // Si no hay golpe o es muy corto
+            	const hitPoint = { x: currentPos.x + currentDir.x * hitTime, y: currentPos.y + currentDir.y * hitTime };
+            	ctx.lineTo(hitPoint.x, hitPoint.y);
 
-                const hitPoint = {
-                    x: currentPos.x + currentDir.x * hitTime,
-                    y: currentPos.y + currentDir.y * hitTime
-                };
-                ctx.lineTo(hitPoint.x, hitPoint.y);
+            	if (ballHit.t <= wallHit.t) break; // Detener si choca con bola
 
-                // Detener si choca con otra bola
-                if (ballHit.t <= wallHit.t) {
-                    break;
-                }
+            	let isPocketed = false;
+            	for (const pocket of POCKETS) {
+            		if (Math.hypot(hitPoint.x - pocket.x, hitPoint.y - pocket.y) < POCKET_RADIUS * 0.9) { isPocketed = true; break; }
+            	}
+            	if (isPocketed) break; // Detener si cae en buchaca
 
-                // Comprobar si cae en buchaca
-                let isPocketed = false;
-                for (const pocket of POCKETS) {
-                    // Usar una distancia ligeramente mayor que el radio para predecir caída
-                    if (Math.hypot(hitPoint.x - pocket.x, hitPoint.y - pocket.y) < POCKET_RADIUS * 0.9) {
-                        isPocketed = true;
-                        break;
-                    }
-                }
-                if (isPocketed) break;
+            	// Aplicar rebote (solo si golpeó pared)
+            	currentPos = hitPoint;
+            	if (wallHit.hitType === 'left' || wallHit.hitType === 'right') { currentDir.x *= -1; currentDir.y += spin.x * (currentDir.x > 0 ? -1 : 1) * SPIN_FACTOR_CUSHION; }
+            	if (wallHit.hitType === 'top' || wallHit.hitType === 'bottom') { currentDir.y *= -1; currentDir.x += spin.x * (currentDir.y > 0 ? 1 : -1) * SPIN_FACTOR_CUSHION; }
 
-                // Aplicar rebote y efecto (solo si golpeó la pared)
-                currentPos = hitPoint;
-                if (wallHit.hitType === 'left' || wallHit.hitType === 'right') {
-                    currentDir.x = -currentDir.x;
-                    currentDir.y += spin.x * (currentDir.x > 0 ? -1 : 1) * SPIN_FACTOR_CUSHION;
-                }
-                if (wallHit.hitType === 'top' || wallHit.hitType === 'bottom') {
-                    currentDir.y = -currentDir.y;
-                    currentDir.x += spin.x * (currentDir.y > 0 ? 1 : -1) * SPIN_FACTOR_CUSHION;
-                }
-
-                // Normalizar vector
-                const mag = Math.hypot(currentDir.x, currentDir.y);
-                if (mag > 0.01) {
-                    currentDir.x /= mag;
-                    currentDir.y /= mag;
-                } else {
-                    break; // Detener si la dirección se vuelve nula
-                }
+            	// Normalizar
+            	const mag = Math.hypot(currentDir.x, currentDir.y);
+            	if (mag > 0.01) { currentDir.x /= mag; currentDir.y /= mag; }
+            	else break;
             }
             ctx.stroke();
         }
 
 
-        // Dibuja el taco de billar
+        // Dibuja el taco de billar (lógica interna sin cambios significativos)
         function drawPoolCue() {
-            if (!cueBall.active) return;
-            
+        	// Asegurarse de que cueBall tenga coordenadas válidas y radio > 0
+        	if (!cueBall.active || typeof cueBall.x !== 'number' || typeof cueBall.y !== 'number' || !BALL_RADIUS || BALL_RADIUS <= 0) return;
+
             const angle = Math.atan2(aimDir.y, aimDir.x);
             
             let pullBack = 0; 
-            if (gameState === 'pulling' && pullStartPos && pullEndPos) { // Añadir chequeo de null
+            if (gameState === 'pulling' && pullStartPos && pullEndPos) {
                 const pullDist = Math.hypot(pullEndPos.x - pullStartPos.x, pullEndPos.y - pullStartPos.y);
-                // CAMBIO: Limitar pullBack máximo un poco más
                 pullBack = Math.min(pullDist, TABLE_WIDTH * 0.15); 
             }
 
@@ -674,94 +664,80 @@
             ctx.translate(cueBall.x, cueBall.y);
             ctx.rotate(angle);
 
-            // CAMBIO: Ajustar longitud y grosor del taco
             const cueStartX = -BALL_RADIUS * 1.5 - pullBack;
-            const cueLength = TABLE_WIDTH * 0.5; // Más largo
-            const cueTipWidth = BALL_RADIUS * 0.12; // Más delgado
-            const cueButtWidth = BALL_RADIUS * 0.30; // Más delgado
+            const cueLength = TABLE_WIDTH * 0.5;
+            const cueTipWidth = BALL_RADIUS * 0.12;
+            const cueButtWidth = BALL_RADIUS * 0.30;
 
-            ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
-            ctx.shadowBlur = 8; // Sombra más sutil
-            ctx.shadowOffsetY = 3;
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.3)'; // Sombra más suave
+            ctx.shadowBlur = 6;
+            ctx.shadowOffsetY = 2;
             
-            // Mango (más corto)
             const gripLength = cueLength * 0.3;
-            ctx.beginPath();
+            ctx.beginPath(); // Mango
             ctx.moveTo(cueStartX - cueLength, -cueButtWidth);
             ctx.lineTo(cueStartX - cueLength + gripLength, -cueButtWidth * 0.8);
             ctx.lineTo(cueStartX - cueLength + gripLength, cueButtWidth * 0.8);
             ctx.lineTo(cueStartX - cueLength, cueButtWidth);
             ctx.closePath();
-            ctx.fillStyle = '#2d221c'; // Más oscuro
+            ctx.fillStyle = '#2d221c';
             ctx.fill();
 
-            // Parte delantera
-            ctx.beginPath();
+            ctx.beginPath(); // Parte delantera
             ctx.moveTo(cueStartX - cueLength + gripLength, -cueButtWidth * 0.8);
             ctx.lineTo(cueStartX, -cueTipWidth);
             ctx.lineTo(cueStartX, cueTipWidth);
             ctx.lineTo(cueStartX - cueLength + gripLength, cueButtWidth * 0.8);
             ctx.closePath();
             const woodGradient = ctx.createLinearGradient(cueStartX - cueLength, 0, cueStartX, 0);
-            woodGradient.addColorStop(0, '#e8c99b'); // Colores ajustados
+            woodGradient.addColorStop(0, '#e8c99b');
             woodGradient.addColorStop(1, '#d1ae74');
             ctx.fillStyle = woodGradient;
             ctx.fill();
             
-            // Virola (más corta)
-            ctx.beginPath();
-            ctx.rect(cueStartX, -cueTipWidth, BALL_RADIUS * 0.2, cueTipWidth * 2);
-            ctx.fillStyle = '#f0f0f0'; // Ligeramente gris
-            ctx.fill();
+            ctx.fillStyle = '#f0f0f0'; // Virola
+            ctx.fillRect(cueStartX, -cueTipWidth, BALL_RADIUS * 0.2, cueTipWidth * 2);
             
-            // Punta (más corta)
-            ctx.beginPath();
-            ctx.rect(cueStartX + BALL_RADIUS * 0.2, -cueTipWidth, BALL_RADIUS * 0.1, cueTipWidth * 2);
-            ctx.fillStyle = '#5c3a3a'; // Color ajustado
-            ctx.fill();
+            ctx.fillStyle = '#5c3a3a'; // Punta
+            ctx.fillRect(cueStartX + BALL_RADIUS * 0.2, -cueTipWidth, BALL_RADIUS * 0.1, cueTipWidth * 2);
 
             ctx.restore(); 
         }
 
 
-        // Dibuja la "bola fantasma" que sigue al cursor
+        // Dibuja la "bola fantasma" que sigue al cursor (lógica interna sin cambios significativos)
         function drawGhostBall() {
-            // CAMBIO: No dibujar si estamos arrastrando o preparando el tiro
-            if (gameState !== 'aiming' || draggingBall || !mousePos.x) return;
+        	if (gameState !== 'aiming' || draggingBall || !mousePos?.x) return;
+        	if (!BALL_RADIUS || BALL_RADIUS <= 0) return;
 
             ctx.save();
-            ctx.globalAlpha = 0.5; // Más transparente
+            ctx.globalAlpha = 0.4; // Más transparente
             ctx.beginPath();
             ctx.arc(mousePos.x, mousePos.y, BALL_RADIUS, 0, Math.PI * 2);
             
             const gradient = ctx.createRadialGradient(
-                mousePos.x - BALL_RADIUS * 0.3, 
-                mousePos.y - BALL_RADIUS * 0.3, 
-                BALL_RADIUS * 0.1, 
-                mousePos.x, 
-                mousePos.y, 
-                BALL_RADIUS
+                mousePos.x - BALL_RADIUS * 0.3, mousePos.y - BALL_RADIUS * 0.4, BALL_RADIUS * 0.05, 
+                mousePos.x, mousePos.y, BALL_RADIUS
             );
-            gradient.addColorStop(0, 'rgba(255, 255, 255, 0.6)');
-            gradient.addColorStop(1, 'rgba(200, 200, 200, 0.4)');
+            gradient.addColorStop(0, 'rgba(255, 255, 255, 0.5)');
+            gradient.addColorStop(1, 'rgba(200, 200, 200, 0.3)');
 
             ctx.fillStyle = gradient;
             ctx.fill();
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)'; // Borde sutil
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
             ctx.lineWidth = 1;
             ctx.stroke();
             ctx.restore();
         }
 
-
         // --- 7. MOTOR DE FÍSICA (SIMULACIÓN) ---
-
+        // (La función updatePhysics permanece igual)
         function updatePhysics() {
             if (gameState !== 'simulating') return;
 
             let ballsStillMoving = false;
 
-            // 1. Mover bolas y aplicar fricción
+            // Mover bolas y aplicar fricción
             for (const ball of balls) {
                 if (!ball.active) continue;
 
@@ -769,432 +745,248 @@
                 ball.vy *= FRICTION;
 
                 if (Math.hypot(ball.vx, ball.vy) < MIN_SPEED) {
-                    ball.vx = 0;
-                    ball.vy = 0;
+                    ball.vx = 0; ball.vy = 0;
                 } else {
-                    ball.x += ball.vx;
-                    ball.y += ball.vy;
+                    ball.x += ball.vx; ball.y += ball.vy;
                     ballsStillMoving = true;
                 }
             }
 
-            // 2. Colisiones con bandas y troneras
+            // Colisiones con bandas y troneras
             for (const ball of balls) {
-                if (!ball.active || (ball.vx === 0 && ball.vy === 0)) continue;
+            	if (!ball.active || (ball.vx === 0 && ball.vy === 0)) continue;
+            	// Asegurar que el radio y rectángulos estén definidos
+            	if (!BALL_RADIUS || !POCKET_RADIUS || !PLAYABLE_RECT.left) continue;
 
-                let isPocketed = false;
-                for (const pocket of POCKETS) {
-                    // Detección de caída (más permisiva)
-                    if (Math.hypot(ball.x - pocket.x, ball.y - pocket.y) < POCKET_RADIUS * 0.9) { 
-                        ball.active = false;
-                        ball.vx = 0;
-                        ball.vy = 0;
-                        isPocketed = true;
-                        
-                        if (soundsReady) {
-                            pocketSound.triggerAttackRelease("16n");
-                        }
-                        
-                        // Respawn (más rápido)
-                        setTimeout(() => {
-                            // CAMBIO: Usar requestAnimationFrame para evitar solapamientos con el bucle principal
-                            requestAnimationFrame(() => {
-                                if (ball === cueBall) {
-                                    ball.x = PLAYABLE_RECT.left + PLAYABLE_RECT.width * 0.25;
-                                    ball.y = PLAYABLE_RECT.top + PLAYABLE_RECT.height / 2;
-                                } else {
-                                    ball.x = PLAYABLE_RECT.left + PLAYABLE_RECT.width * 0.7;
-                                    ball.y = PLAYABLE_RECT.top + PLAYABLE_RECT.height / 2;
-                                }
-                                ball.active = true;
-                            });
-                        }, 500); // Tiempo de respawn reducido
-                        break; 
-                    }
-                }
-                
-                if (!isPocketed) {
-                    let hit = false;
-                    const restitution = 0.8; // Coeficiente de restitución para rebotes menos energéticos
-                    // Rebote en bandas (considerando radio)
-                    if (ball.x + BALL_RADIUS > PLAYABLE_RECT.right && ball.vx > 0) {
-                        ball.x = PLAYABLE_RECT.right - BALL_RADIUS;
-                        ball.vx = -ball.vx * restitution;
-                        // Aplicar efecto lateral basado en velocidad Y
-                        if (ball === cueBall) ball.vy += spinEffect.x * Math.abs(ball.vx) * SPIN_FACTOR_CUSHION * -Math.sign(ball.vy || 1);
-                        hit = true;
-                    } else if (ball.x - BALL_RADIUS < PLAYABLE_RECT.left && ball.vx < 0) {
-                        ball.x = PLAYABLE_RECT.left + BALL_RADIUS;
-                        ball.vx = -ball.vx * restitution;
-                        if (ball === cueBall) ball.vy += spinEffect.x * Math.abs(ball.vx) * SPIN_FACTOR_CUSHION * Math.sign(ball.vy || 1);
-                        hit = true;
-                    }
-                    
-                    if (ball.y + BALL_RADIUS > PLAYABLE_RECT.bottom && ball.vy > 0) {
-                        ball.y = PLAYABLE_RECT.bottom - BALL_RADIUS;
-                        ball.vy = -ball.vy * restitution;
-                        // Aplicar efecto lateral basado en velocidad X
-                        if (ball === cueBall) ball.vx += spinEffect.x * Math.abs(ball.vy) * SPIN_FACTOR_CUSHION * Math.sign(ball.vx || 1);
-                        hit = true;
-                    } else if (ball.y - BALL_RADIUS < PLAYABLE_RECT.top && ball.vy < 0) {
-                        ball.y = PLAYABLE_RECT.top + BALL_RADIUS;
-                        ball.vy = -ball.vy * restitution;
-                        if (ball === cueBall) ball.vx += spinEffect.x * Math.abs(ball.vy) * SPIN_FACTOR_CUSHION * -Math.sign(ball.vx || 1);
-                        hit = true;
-                    }
-                    
-                    if (hit) {
-                        if (soundsReady) {
-                            const hitVelocity = Math.min(Math.hypot(ball.vx, ball.vy) / 8, 1); // Ajustar sensibilidad
-                            cushionHitSound.triggerAttackRelease("C2", "16n", Tone.now(), hitVelocity * 0.7); // Volumen reducido
-                        }
-                        if (ball === cueBall) {
-                            spinEffect.y *= 0.5; // El efecto vertical se reduce al tocar banda, no se elimina
-                            spinEffect.x *= 0.8; // También reducir efecto lateral ligeramente
-                        }
-                    }
-                }
-            }
-            
-            // 3. Colisiones entre bolas
-            if (cueBall.active && blackBall.active) {
-                const dx = blackBall.x - cueBall.x;
-                const dy = blackBall.y - cueBall.y;
-                const dist = Math.hypot(dx, dy);
-                const collisionDist = BALL_RADIUS * 2;
 
-                if (dist < collisionDist) {
-                    
-                    const totalVelocity = Math.hypot(cueBall.vx - blackBall.vx, cueBall.vy - blackBall.vy);
-                    if (soundsReady) {
-                        const hitVelocity = Math.min(totalVelocity / 12, 1); // Basado en velocidad relativa
-                        ballCollisionSound.triggerAttackRelease("G4", "16n", Tone.now(), hitVelocity);
-                    }
+            	let isPocketed = false;
+            	for (const pocket of POCKETS) {
+            		if (Math.hypot(ball.x - pocket.x, ball.y - pocket.y) < POCKET_RADIUS * 0.9) {
+            			ball.active = false; ball.vx = 0; ball.vy = 0;
+            			isPocketed = true;
+            			if (soundsReady) pocketSound.triggerAttackRelease("16n");
+            			setTimeout(() => {
+            				requestAnimationFrame(() => {
+            					if (ball === cueBall) { ball.x = PLAYABLE_RECT.left + PLAYABLE_RECT.width * 0.25; ball.y = PLAYABLE_RECT.top + PLAYABLE_RECT.height / 2; }
+            					else { ball.x = PLAYABLE_RECT.left + PLAYABLE_RECT.width * 0.7; ball.y = PLAYABLE_RECT.top + PLAYABLE_RECT.height / 2; }
+            					ball.active = true;
+            				});
+            			}, 500);
+            			break;
+            		}
+            	}
 
-                    // Física de colisión 2D elástica
-                    const nx = dx / dist; // Normal x
-                    const ny = dy / dist; // Normal y
-                    const tx = -ny;       // Tangente x
-                    const ty = nx;        // Tangente y
+            	if (!isPocketed) {
+            		let hit = false; const restitution = 0.8;
+            		if (ball.x + BALL_RADIUS > PLAYABLE_RECT.right && ball.vx > 0) { ball.x = PLAYABLE_RECT.right - BALL_RADIUS; ball.vx *= -restitution; if (ball === cueBall) ball.vy += spinEffect.x * Math.abs(ball.vx) * SPIN_FACTOR_CUSHION * -Math.sign(ball.vy || 1); hit = true; }
+            		else if (ball.x - BALL_RADIUS < PLAYABLE_RECT.left && ball.vx < 0) { ball.x = PLAYABLE_RECT.left + BALL_RADIUS; ball.vx *= -restitution; if (ball === cueBall) ball.vy += spinEffect.x * Math.abs(ball.vx) * SPIN_FACTOR_CUSHION * Math.sign(ball.vy || 1); hit = true; }
+            		if (ball.y + BALL_RADIUS > PLAYABLE_RECT.bottom && ball.vy > 0) { ball.y = PLAYABLE_RECT.bottom - BALL_RADIUS; ball.vy *= -restitution; if (ball === cueBall) ball.vx += spinEffect.x * Math.abs(ball.vy) * SPIN_FACTOR_CUSHION * Math.sign(ball.vx || 1); hit = true; }
+            		else if (ball.y - BALL_RADIUS < PLAYABLE_RECT.top && ball.vy < 0) { ball.y = PLAYABLE_RECT.top + BALL_RADIUS; ball.vy *= -restitution; if (ball === cueBall) ball.vx += spinEffect.x * Math.abs(ball.vy) * SPIN_FACTOR_CUSHION * -Math.sign(ball.vx || 1); hit = true; }
 
-                    // Proyectar velocidades en ejes normal y tangente
-                    const v1n = cueBall.vx * nx + cueBall.vy * ny;
-                    const v1t = cueBall.vx * tx + cueBall.vy * ty;
-                    const v2n = blackBall.vx * nx + blackBall.vy * ny;
-                    const v2t = blackBall.vx * tx + blackBall.vy * ty;
-
-                    // Las velocidades normales se intercambian (asumiendo masas iguales)
-                    const v1n_final = v2n;
-                    const v2n_final = v1n;
-
-                    // Aplicar efecto (seguida/retroceso/stun) a la bola blanca
-                    const stunAmount = 1 - Math.abs(spinEffect.y);
-                    const followAmount = spinEffect.y < 0 ? -spinEffect.y : 0; 
-                    const drawAmount = spinEffect.y > 0 ? spinEffect.y : 0; 
-                    
-                    // La velocidad tangencial (v1t) se mantiene
-                    // La velocidad normal (v1n) se modifica por el efecto
-                    // v1n_final_with_spin = (v1n * -drawAmount) + (v1n * followAmount) + (v1n_final * stunAmount)
-                    const v1n_final_with_spin = v1n * (followAmount - drawAmount) + v1n_final * stunAmount;
-
-                    // Convertir velocidades finales de vuelta a coordenadas x, y
-                    cueBall.vx = v1n_final_with_spin * nx + v1t * tx;
-                    cueBall.vy = v1n_final_with_spin * ny + v1t * ty;
-                    blackBall.vx = v2n_final * nx + v2t * tx;
-                    blackBall.vy = v2n_final * ny + v2t * ty;
-                    
-                    // Separar bolas para evitar solapamiento (con pequeño margen)
-                    const overlap = collisionDist - dist + 0.01;
-                    const separationFactor = 0.5; // Mover cada bola la mitad del solapamiento
-                    cueBall.x -= overlap * nx * separationFactor;
-                    cueBall.y -= overlap * ny * separationFactor;
-                    blackBall.x += overlap * nx * separationFactor;
-                    blackBall.y += overlap * ny * separationFactor;
-
-                    spinEffect.y = 0; // El efecto vertical se transfiere/anula en la colisión
-                }
+            		if (hit) {
+            			if (soundsReady) { const v = Math.min(Math.hypot(ball.vx, ball.vy) / 8, 1); cushionHitSound.triggerAttackRelease("C2", "16n", Tone.now(), v * 0.7); }
+            			if (ball === cueBall) { spinEffect.y *= 0.5; spinEffect.x *= 0.8; }
+            		}
+            	}
             }
 
+            // Colisiones entre bolas
+            if (cueBall.active && blackBall.active && BALL_RADIUS) {
+            	const dx = blackBall.x - cueBall.x; const dy = blackBall.y - cueBall.y;
+            	const dist = Math.hypot(dx, dy); const collisionDist = BALL_RADIUS * 2;
 
-            // Comprobar si el juego debe volver a modo "apuntar"
+            	if (dist < collisionDist) {
+            		const relVel = Math.hypot(cueBall.vx - blackBall.vx, cueBall.vy - blackBall.vy);
+            		if (soundsReady) { const v = Math.min(relVel / 12, 1); ballCollisionSound.triggerAttackRelease("G4", "16n", Tone.now(), v); }
+
+            		const nx = dx / dist, ny = dy / dist, tx = -ny, ty = nx;
+            		const v1n = cueBall.vx * nx + cueBall.vy * ny, v1t = cueBall.vx * tx + cueBall.vy * ty;
+            		const v2n = blackBall.vx * nx + blackBall.vy * ny, v2t = blackBall.vx * tx + blackBall.vy * ty;
+            		const v1n_f = v2n, v2n_f = v1n;
+
+            		const stun = 1 - Math.abs(spinEffect.y), follow = spinEffect.y < 0 ? -spinEffect.y : 0, draw = spinEffect.y > 0 ? spinEffect.y : 0;
+            		const v1n_f_spin = v1n * (follow - draw) + v1n_f * stun;
+
+            		cueBall.vx = v1n_f_spin * nx + v1t * tx; cueBall.vy = v1n_f_spin * ny + v1t * ty;
+            		blackBall.vx = v2n_f * nx + v2t * tx; blackBall.vy = v2n_f * ny + v2t * ty;
+
+            		const overlap = collisionDist - dist + 0.01; const sepFactor = 0.5;
+            		cueBall.x -= overlap * nx * sepFactor; cueBall.y -= overlap * ny * sepFactor;
+            		blackBall.x += overlap * nx * sepFactor; blackBall.y += overlap * ny * sepFactor;
+            		spinEffect.y = 0;
+            	}
+            }
+
+            // Volver a 'aiming'
             if (!ballsStillMoving && gameState === 'simulating') {
-                // Añadir un pequeño retraso antes de volver a 'aiming'
-                setTimeout(() => {
-                    // Volver a comprobar por si acaso empezó otra simulación
-                    const stillStopped = balls.every(b => !b.active || (b.vx === 0 && b.vy === 0));
-                    if (stillStopped && gameState === 'simulating') {
-                        gameState = 'aiming';
-                    }
-                }, 100); // 100ms de retraso
+            	setTimeout(() => {
+            		const stillStopped = balls.every(b => !b.active || (b.vx === 0 && b.vy === 0));
+            		if (stillStopped && gameState === 'simulating') gameState = 'aiming';
+            	}, 100);
             }
         }
-        
+
         // --- 8. BUCLE PRINCIPAL DE ANIMACIÓN ---
-
         function gameLoop() {
-            // Actualizar física si las bolas se mueven
-            if (gameState === 'simulating') {
-                updatePhysics();
-            }
-
-            // Dibujar la mesa
+        	// Asegurarse de que el canvas tenga dimensiones
+        	if (canvas.width === 0 || canvas.height === 0) {
+        		requestAnimationFrame(gameLoop); // Intentar de nuevo
+        		return;
+        	}
+            if (gameState === 'simulating') { updatePhysics(); }
             drawTable();
-
-            // Dibujar elementos de UI (taco, líneas, bola fantasma)
             if (gameState === 'aiming' || gameState === 'pulling') {
-                drawFullTrajectory(); 
-                drawPoolCue(); 
-              	drawGhostBall(); // Ahora se dibuja también durante 'pulling' para referencia
+            	drawFullTrajectory();
+            	drawPoolCue();
+            	drawGhostBall();
             }
-            
-  	        // Dibujar las bolas encima de todo
-  	      	if (cueBall.active) drawBall(cueBall, '#FFFFFF'); 
-  	      	if (blackBall.active) drawBlackBall(); 
-  	        
-    	    	requestAnimationFrame(gameLoop);
-  	    }
+            if (cueBall.active) drawBall(cueBall, '#FFFFFF');
+            if (blackBall.active) drawBlackBall();
+            requestAnimationFrame(gameLoop);
+        }
 
-  	    // --- 9. MANEJADORES DE EVENTOS ---
-
-  	    // Obtener posición relativa al canvas (funciona con ratón y touch)
-  	    function getPosInCanvas(event, targetCanvas) {
+        // --- 9. MANEJADORES DE EVENTOS ---
+        // (Las funciones getPosInCanvas, clamp, y los manejadores de eventos permanecen igual)
+        function getPosInCanvas(event, targetCanvas) {
+        	if (!targetCanvas) return null;
         	const rect = targetCanvas.getBoundingClientRect();
+        	// Si las dimensiones son 0, no se puede calcular
+        	if (rect.width === 0 || rect.height === 0 || targetCanvas.width === 0 || targetCanvas.height === 0) return null;
+
         	const scaleX = targetCanvas.width / rect.width;
         	const scaleY = targetCanvas.height / rect.height;
         	let clientX, clientY;
 
-        	if (event.touches && event.touches.length > 0) {
-          	  	clientX = event.touches[0].clientX;
-          	  	clientY = event.touches[0].clientY;
-        	} else {
-          	  	clientX = event.clientX;
-          	  	clientY = event.clientY;
-        	}
+        	if (event.touches && event.touches.length > 0) { clientX = event.touches[0].clientX; clientY = event.touches[0].clientY; }
+        	else { clientX = event.clientX; clientY = event.clientY; }
 
-        	// Asegurarse de que clientX y clientY sean números válidos
-        	if (typeof clientX !== 'number' || typeof clientY !== 'number') {
-            	console.error("Coordenadas de evento inválidas:", event);
-            	return null; // Devolver null si las coordenadas no son válidas
-        	}
+        	if (typeof clientX !== 'number' || typeof clientY !== 'number') { return null; }
 
-        	return {
-          	  	x: (clientX - rect.left) * scaleX,
-          	  	y: (clientY - rect.top) * scaleY
-        	};
+        	return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
     	}
-        
-    	function clamp(value, min, max) {
-        	return Math.max(min, Math.min(value, max));
-    	}
+    	function clamp(value, min, max) { return Math.max(min, Math.min(value, max)); }
 
-    	// Manejador unificado para inicio de toque/clic en el canvas principal
     	function handleTableInteractionStart(event) {
         	startAudioContext(); 
-            
         	if (gameState === 'simulating') return;
-            
-        	const pos = getPosInCanvas(event, canvas);
-        	if (!pos) return; // Salir si no se pudieron obtener coordenadas
+        	const pos = getPosInCanvas(event, canvas); if (!pos) return;
+        	mousePos = pos;
 
-        	mousePos = pos; // Actualizar siempre la posición del ratón/dedo
-
-        	// Comprobar si se intenta arrastrar una bola (solo en 'aiming')
+        	const grabRadius = (BALL_RADIUS || 10) * 2; // Usar valor por defecto si BALL_RADIUS no está listo
         	const distCue = Math.hypot(pos.x - cueBall.x, pos.y - cueBall.y);
   	    	const distBlack = Math.hypot(pos.x - blackBall.x, pos.y - blackBall.y);
-        	const grabRadius = BALL_RADIUS * 2; // Aumentar radio de agarre para touch
 
         	if (gameState === 'aiming') {
-          	if (cueBall.active && distCue < grabRadius) {
-            	  	draggingBall = cueBall;
-          	} else if (blackBall.active && distBlack < grabRadius) {
-  	      	  	draggingBall = blackBall;
-          	}
+        		if (cueBall.active && distCue < grabRadius) draggingBall = cueBall;
+        		else if (blackBall.active && distBlack < grabRadius) draggingBall = blackBall;
         	}
 
-        	// Si no se está arrastrando una bola y estamos apuntando, iniciar el tiro
         	if (!draggingBall && gameState === 'aiming' && cueBall.active) {
-          	  	// Actualizar dirección de apuntado una última vez antes de empezar a tirar
-          	  	const dx = pos.x - cueBall.x;
-          	  	const dy = pos.y - cueBall.y;
-          	  	const mag = Math.hypot(dx, dy);
-          	  	if (mag > 0.1) {
-          	  	  	aimDir.x = dx / mag;
-          	  	  	aimDir.y = dy / mag;
-          	  	}
-
-          	  	gameState = 'pulling';
-          	  	pullStartPos = { ...pos }; // Guardar la posición inicial del toque/clic
-          	  	pullEndPos = { ...pos };   // Inicializar la posición final igual
-          	  	if (event.cancelable) event.preventDefault(); // Prevenir scroll/zoom si es posible
-        	} else if (draggingBall && event.cancelable) {
-            // Si se está arrastrando una bola, prevenir scroll/zoom
-  	      	  	event.preventDefault();
-        	}
+        		const dx = pos.x - cueBall.x, dy = pos.y - cueBall.y, mag = Math.hypot(dx, dy);
+        		if (mag > 0.1) { aimDir.x = dx / mag; aimDir.y = dy / mag; }
+        		gameState = 'pulling'; pullStartPos = { ...pos }; pullEndPos = { ...pos };
+        		if (event.cancelable) event.preventDefault();
+        	} else if (draggingBall && event.cancelable) { event.preventDefault(); }
     	}
 
-    	// Manejador unificado para fin de toque/clic (global)
     	function handleGlobalInteractionEnd(event) {
-        	// Si estábamos cargando un golpe, disparar
         	if (gameState === 'pulling' && pullStartPos && pullEndPos) {
-          	  	gameState = 'simulating'; // Cambiar estado ANTES de calcular potencia
-          	    
-          	  	// Calcular potencia basada en la distancia entre inicio y fin del arrastre
-          	  	// El vector va desde pullEndPos (donde se soltó) hasta pullStartPos (donde empezó)
-          	  	const pullVecX = pullStartPos.x - pullEndPos.x;
-          	  	const pullVecY = pullStartPos.y - pullEndPos.y;
-          	  	let power = Math.hypot(pullVecX, pullVecY);
-          	  	// Limitar potencia máxima
-          	  	power = Math.min(power, TABLE_WIDTH * 0.15); // Corresponde al pullBack máximo
+        		gameState = 'simulating';
+        		const pullVecX = pullStartPos.x - pullEndPos.x, pullVecY = pullStartPos.y - pullEndPos.y;
+        		const maxPull = (TABLE_WIDTH || 500) * 0.15; // Usar valor por defecto si TABLE_WIDTH no está listo
+        		let power = Math.min(Math.hypot(pullVecX, pullVecY), maxPull);
 
-          	  	if (power < 5) { // Si el arrastre fue muy corto, cancelar el tiro
-          	    	gameState = 'aiming';
-          	  	  	pullStartPos = null;
-          	  	  	pullEndPos = null;
-          	  	  	return;
-          	  	}
-          	  	  
-          	  	if (soundsReady) {
-          	  	  	const powerNormalized = power / (TABLE_WIDTH * 0.15); // Normalizar con el límite
-  	      	  	  	cueHitSound.triggerAttackRelease("C3", "8n", Tone.now(), powerNormalized * 0.8 + 0.2); // Asegurar volumen mínimo
-          	  	}
-          	  	  
-  	      	  	// La velocidad es en la dirección aimDir, con magnitud 'power'
-  	      	  	cueBall.vx = aimDir.x * power * POWER_MULTIPLIER;
-          	  	cueBall.vy = aimDir.y * power * POWER_MULTIPLIER;
-          	  	  
-          	  	// Limpiar posiciones de arrastre
-          	  	pullStartPos = null;
-          	  	pullEndPos = null;
-
-        	} else if (draggingBall) {
-  	      	  	// Si estábamos arrastrando una bola, soltarla
-          	  	draggingBall = null;
-        	}
+        		if (power < 5) { gameState = 'aiming'; } // Cancelar tiro corto
+        		else {
+        			if (soundsReady) { const pNorm = power / maxPull; cueHitSound.triggerAttackRelease("C3", "8n", Tone.now(), pNorm * 0.8 + 0.2); }
+        			cueBall.vx = aimDir.x * power * POWER_MULTIPLIER; cueBall.vy = aimDir.y * power * POWER_MULTIPLIER;
+        		}
+        		pullStartPos = null; pullEndPos = null;
+        	} else if (draggingBall) { draggingBall = null; }
+        	isSettingSpin = false; // Asegurarse de detener el ajuste de spin también
     	}
 
-    	// Manejador unificado para movimiento durante toque/clic en el canvas principal
     	function handleTableInteractionMove(event) {
-        	const pos = getPosInCanvas(event, canvas);
-        	if (!pos) return;
-
-        	mousePos = pos; // Actualizar siempre la posición
+        	const pos = getPosInCanvas(event, canvas); if (!pos) return;
+        	mousePos = pos;
+        	const currentBallRadius = BALL_RADIUS || 10; // Valor por defecto
 
         	if (gameState === 'pulling') {
-          	  	// Actualizar la posición final del "pull"
-          	  	pullEndPos = { ...pos }; 
-          	  	if (event.cancelable) event.preventDefault(); // Prevenir scroll/zoom
-
-        	} else if (draggingBall) {
-          	  	// Mover la bola que está siendo arrastrada, dentro de límites
-          	  	draggingBall.x = clamp(pos.x, PLAYABLE_RECT.left + BALL_RADIUS, PLAYABLE_RECT.right - BALL_RADIUS);
-  	      	  	draggingBall.y = clamp(pos.y, PLAYABLE_RECT.top + BALL_RADIUS, PLAYABLE_RECT.bottom - BALL_RADIUS);
-          	  	if (event.cancelable) event.preventDefault(); // Prevenir scroll/zoom
-
+        		pullEndPos = { ...pos };
+        		if (event.cancelable) event.preventDefault();
+        	} else if (draggingBall && PLAYABLE_RECT.left) { // Asegurar que PLAYABLE_RECT esté listo
+        		draggingBall.x = clamp(pos.x, PLAYABLE_RECT.left + currentBallRadius, PLAYABLE_RECT.right - currentBallRadius);
+  	      	draggingBall.y = clamp(pos.y, PLAYABLE_RECT.top + currentBallRadius, PLAYABLE_RECT.bottom - currentBallRadius);
+        		if (event.cancelable) event.preventDefault();
         	} else if (gameState === 'aiming' && cueBall.active) {
-  	      	  	// Actualizar la dirección de apuntado (si no se está arrastrando)
-          	  	const dx = pos.x - cueBall.x;
-          	  	const dy = pos.y - cueBall.y;
-          	  	const mag = Math.hypot(dx, dy);
-          	  	if (mag > 0.1) { 
-          	  	  	aimDir.x = dx / mag;
-            	  		aimDir.y = dy / mag;
-          	  	}
+  	      	const dx = pos.x - cueBall.x, dy = pos.y - cueBall.y, mag = Math.hypot(dx, dy);
+        		if (mag > 0.1) { aimDir.x = dx / mag; aimDir.y = dy / mag; }
         	}
   	  	}
 
-  	  	// Actualiza el efecto de spin basado en la posición
   	  	function updateSpin(pos) {
-  	    	if (!pos) return; // Salir si la posición no es válida
-  	    	const dx = pos.x - spinBallControl.x;
-        	const dy = pos.y - spinBallControl.y;
+  	    	if (!pos || !spinBallControl.radius) return;
+  	    	const dx = pos.x - spinBallControl.x, dy = pos.y - spinBallControl.y;
         	const dist = Math.hypot(dx, dy);
-            
         	const maxDist = spinBallControl.radius * 0.8; 
         	const clampedDist = Math.min(dist, maxDist);
-        	const angle = (dist > 0.1) ? Math.atan2(dy, dx) : 0; // Evitar NaN si está en el centro
-
+        	const angle = (dist > 0.1) ? Math.atan2(dy, dx) : 0;
         	spinIndicator.x = spinBallControl.x + Math.cos(angle) * clampedDist;
         	spinIndicator.y = spinBallControl.y + Math.sin(angle) * clampedDist;
-
-        	// Mapear la posición del indicador a valores de efecto [-1, 1]
         	spinEffect.x = (spinIndicator.x - spinBallControl.x) / maxDist;
   	    	spinEffect.y = (spinIndicator.y - spinBallControl.y) / maxDist;
-            
-        	drawSpinControl(); // Redibujar el control de efecto
+        	drawSpinControl();
     	}
 
     	// --- Asignación de Eventos ---
-
-    	// Eventos para el canvas principal (mesa)
-  	  	canvas.addEventListener('mousedown', handleTableInteractionStart);
+    	canvas.addEventListener('mousedown', handleTableInteractionStart);
     	canvas.addEventListener('mousemove', handleTableInteractionMove);
-    	// 'mouseup' se maneja globalmente
-
     	canvas.addEventListener('touchstart', handleTableInteractionStart, { passive: false });
     	canvas.addEventListener('touchmove', handleTableInteractionMove, { passive: false });
-    	// 'touchend' se maneja globalmente
-
-    	// Eventos globales para soltar el clic/dedo
     	window.addEventListener('mouseup', handleGlobalInteractionEnd);
     	window.addEventListener('touchend', handleGlobalInteractionEnd); 
 
-    	// Eventos para el canvas de efecto
-  	  	function handleSpinInteractionStart(event) {
+    	function handleSpinInteractionStart(event) {
         	startAudioContext(); 
-      	  	if (event.cancelable) event.preventDefault(); // Prevenir scroll/zoom
+      	  	if (event.cancelable) event.preventDefault();
         	isSettingSpin = true;
         	updateSpin(getPosInCanvas(event, canvasSpin));
     	}
-    	function handleSpinInteractionEnd(event) {
-  	    	isSettingSpin = false;
-    	}
+    	function handleSpinInteractionEnd() { isSettingSpin = false; }
   	  	function handleSpinInteractionMove(event) {
         	if (!isSettingSpin) return;
-        	if (event.cancelable) event.preventDefault(); // Prevenir scroll/zoom
+        	if (event.cancelable) event.preventDefault();
         	updateSpin(getPosInCanvas(event, canvasSpin));
     	}
-
   	  	canvasSpin.addEventListener('mousedown', handleSpinInteractionStart);
     	canvasSpin.addEventListener('mousemove', handleSpinInteractionMove);
     	canvasSpin.addEventListener('mouseup', handleSpinInteractionEnd);
-    	canvasSpin.addEventListener('mouseleave', handleSpinInteractionEnd); // Terminar si el ratón sale
-
+    	canvasSpin.addEventListener('mouseleave', handleSpinInteractionEnd);
     	canvasSpin.addEventListener('touchstart', handleSpinInteractionStart, { passive: false });
     	canvasSpin.addEventListener('touchmove', handleSpinInteractionMove, { passive: false });
   	  	canvasSpin.addEventListener('touchend', handleSpinInteractionEnd);
-    	canvasSpin.addEventListener('touchcancel', handleSpinInteractionEnd); // Terminar si se cancela el toque
+    	canvasSpin.addEventListener('touchcancel', handleSpinInteractionEnd);
 
-    	// Botón de reinicio
-  	  	if(resetButton) {
-        	resetButton.addEventListener('click', () => {
-            	startAudioContext(); // Asegurar que el audio esté listo
-            	resetBalls();
-        	});
-    	}
-        
-    	// Redimensionar
-    	window.addEventListener('resize', setupCanvas);
+    	if(resetButton) { resetButton.addEventListener('click', () => { startAudioContext(); resetBalls(); }); }
+    	window.addEventListener('resize', setupCanvas); // Reconfigurar canvas al redimensionar
 
-    	// Configura el tamaño y posición del control de efecto
     	function setupSpinControl() {
-        	// CAMBIO: Hacer el canvas de spin ligeramente más pequeño
-        	const spinSize = 80; // Tamaño en píxeles
-        	canvasSpin.width = spinSize;
-        	canvasSpin.height = spinSize;
+        	const spinSize = 80;
+        	canvasSpin.width = spinSize; canvasSpin.height = spinSize;
         	spinBallControl.radius = canvasSpin.width * 0.4; 
-        	spinBallControl.x = canvasSpin.width / 2;
-  	    	spinBallControl.y = canvasSpin.height / 2;
-  	  	// Inicializar la posición del indicador en el centro
-  	  	spinIndicator.x = spinBallControl.x;
-  	  	spinIndicator.y = spinBallControl.y;
+        	spinBallControl.x = canvasSpin.width / 2; spinBallControl.y = canvasSpin.height / 2;
+  	  	spinIndicator.x = spinBallControl.x; spinIndicator.y = spinBallControl.y;
     	}
 
     	// --- 10. INICIO DE LA APLICACIÓN ---
-    	setupSpinControl(); 
-    	setupCanvas(); 
-    	// No inicializar mousePos aquí, se establece en el primer movimiento/toque
-    	gameLoop();    
-    	drawSpinControl(); // Dibujar el control de efecto inicialmente
+    	// CAMBIO: Esperar a que el DOM esté listo para configurar tamaños
+    	document.addEventListener('DOMContentLoaded', () => {
+    		setupSpinControl(); 
+    		setupCanvas(); // Configurar tamaño inicial del canvas principal
+    		// Iniciar bucle de juego después de configurar tamaños
+    		gameLoop();    
+    		drawSpinControl(); // Dibujar control de efecto inicial
+    	});
     
     </script>
 
