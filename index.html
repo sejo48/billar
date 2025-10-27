@@ -348,40 +348,73 @@
                 const nextMag = Math.hypot(nextDir.x, nextDir.y); if (nextMag > 0.01) { nextDir.x /= nextMag; nextDir.y /= nextMag; drawPath(firstHitPoint, nextDir, 'rgba(255, 255, 255, 0.6)', 3, spinEffect); }
             } ctx.setLineDash([]);
         }
+
+        // --- INICIO CALIBRACIÓN: Función `drawPath` modificada ---
         function drawPath(startPos, dir, color, maxBounces = 3, spin = {x: 0, y: 0}) {
             if (!startPos || typeof startPos.x !== 'number' || typeof startPos.y !== 'number' || !isFinite(startPos.x) || !isFinite(startPos.y)) return;
             if (!dir || typeof dir.x !== 'number' || typeof dir.y !== 'number' || !isFinite(dir.x) || !isFinite(dir.y)) return; if (!POCKET_RADIUS || POCKET_RADIUS <= 0) return;
-            let currentPos = { ...startPos }; let currentDir = { ...dir };
+            
+            let currentPos = { ...startPos }; 
+            let currentDir = { ...dir };
+            let currentSpin = { ...spin }; // <-- Copia local mutable del efecto
+
             ctx.beginPath(); ctx.moveTo(currentPos.x, currentPos.y); ctx.strokeStyle = color; ctx.lineWidth = 1.5; ctx.setLineDash([4, 4]);
+            
             for (let i = 0; i < maxBounces; i++) {
-                const wallHit = findWallCollision(currentPos, currentDir); const ballHit = (color !== 'rgba(255, 255, 0, 0.6)' && blackBall.active) ? findBallCollision(currentPos, currentDir, blackBall) : { t: Infinity }; let hitTime = Math.min(wallHit.t, ballHit.t);
+                const wallHit = findWallCollision(currentPos, currentDir); 
+                const ballHit = (color !== 'rgba(255, 255, 0, 0.6)' && blackBall.active) ? findBallCollision(currentPos, currentDir, blackBall) : { t: Infinity }; 
+                let hitTime = Math.min(wallHit.t, ballHit.t);
+                
                 if (hitTime === Infinity || hitTime < 0.1 || !isFinite(hitTime)) break;
-                const hitPoint = { x: currentPos.x + currentDir.x * hitTime, y: currentPos.y + currentDir.y * hitTime }; if (!isFinite(hitPoint.x) || !isFinite(hitPoint.y)) break; ctx.lineTo(hitPoint.x, hitPoint.y);
-                if (ballHit.t <= wallHit.t) break;
-                let isPocketed = false; for (const pocket of POCKETS) { if (Math.hypot(hitPoint.x - pocket.x, hitPoint.y - pocket.y) < POCKET_RADIUS * 0.9) { isPocketed = true; break; } } if (isPocketed) break;
+                
+                const hitPoint = { x: currentPos.x + currentDir.x * hitTime, y: currentPos.y + currentDir.y * hitTime }; 
+                if (!isFinite(hitPoint.x) || !isFinite(hitPoint.y)) break; 
+                ctx.lineTo(hitPoint.x, hitPoint.y);
+                
+                if (ballHit.t <= wallHit.t) break; // Detener predicción si golpea otra bola
+                
+                let isPocketed = false; 
+                for (const pocket of POCKETS) { 
+                    if (Math.hypot(hitPoint.x - pocket.x, hitPoint.y - pocket.y) < POCKET_RADIUS * 0.9) { 
+                        isPocketed = true; break; 
+                    } 
+                } 
+                if (isPocketed) break; // Detener predicción si cae en tronera
+                
                 currentPos = hitPoint;
-                // --- INICIO CALIBRACIÓN: Lógica de predicción de efecto en banda ---
+                
+                // Lógica de rebote y efecto (ahora usa currentSpin)
                 if (wallHit.hitType === 'left' || wallHit.hitType === 'right') {
                     currentDir.x *= -1;
-                    currentDir.y += spin.x * SPIN_FACTOR_CUSHION * (wallHit.hitType === 'right' ? -1 : 1) * Math.sign(currentDir.y || 1);
+                    currentDir.y += currentSpin.x * SPIN_FACTOR_CUSHION * (wallHit.hitType === 'right' ? -1 : 1) * Math.sign(currentDir.y || 1);
                 }
                 if (wallHit.hitType === 'top' || wallHit.hitType === 'bottom') {
                     currentDir.y *= -1;
-                    currentDir.x += spin.x * SPIN_FACTOR_CUSHION * (wallHit.hitType === 'bottom' ? 1 : -1) * Math.sign(currentDir.x || 1);
+                    currentDir.x += currentSpin.x * SPIN_FACTOR_CUSHION * (wallHit.hitType === 'bottom' ? 1 : -1) * Math.sign(currentDir.x || 1);
                 }
-                // --- FIN CALIBRACIÓN ---
-                const mag = Math.hypot(currentDir.x, currentDir.y); if (mag > 0.01 && isFinite(mag)) { currentDir.x /= mag; currentDir.y /= mag; } else break;
-            } ctx.stroke();
+                
+                // --- ¡AQUÍ ESTÁ EL ARREGLO! ---
+                // Degradar el efecto en la predicción, igual que en la física real
+                currentSpin.x *= 0.8; 
+                
+                // Normalizar el vector de dirección para el siguiente rebote
+                const mag = Math.hypot(currentDir.x, currentDir.y); 
+                if (mag > 0.01 && isFinite(mag)) { 
+                    currentDir.x /= mag; currentDir.y /= mag; 
+                } else {
+                    break; // Salir si la dirección no es válida
+                }
+            } 
+            ctx.stroke();
         }
+        // --- FIN CALIBRACIÓN ---
 
          function drawPoolCue() {
              if (!cueBall.active || typeof cueBall.x !== 'number' || typeof cueBall.y !== 'number' || !BALL_RADIUS || BALL_RADIUS <= 0 || !isFinite(BALL_RADIUS)) return;
              if (!TABLE_WIDTH || TABLE_WIDTH <=0 || !isFinite(TABLE_WIDTH)) return;
              const angle = Math.atan2(aimDir.y, aimDir.x);
              let pullBack = 0; if (gameState === 'pulling' && pullStartPos && pullEndPos) { const pullDist = Math.hypot(pullEndPos.x - pullStartPos.x, pullEndPos.y - pullStartPos.y);
-                 // --- INICIO CALIBRACIÓN ---
                  pullBack = Math.min(pullDist, (TABLE_WIDTH || 500) * 0.20); // (Era 0.15) Más rango de tiro
-                 // --- FIN CALIBRACIÓN ---
              }
              ctx.save(); ctx.translate(cueBall.x, cueBall.y); ctx.rotate(angle);
              const cueStartX = -BALL_RADIUS * 1.5 - pullBack; const cueLength = TABLE_WIDTH * 0.5; const cueTipWidth = BALL_RADIUS * 0.12; const cueButtWidth = BALL_RADIUS * 0.30;
@@ -411,7 +444,6 @@
                 if (!ball.active || (ball.vx === 0 && ball.vy === 0)) continue; if (!BALL_RADIUS || BALL_RADIUS <= 0 || !POCKET_RADIUS || POCKET_RADIUS <= 0 || !PLAYABLE_RECT.left || !isFinite(BALL_RADIUS)) continue;
                 let isPocketed = false; for (const pocket of POCKETS) { if (typeof pocket.x !== 'number' || typeof pocket.y !== 'number' || !isFinite(pocket.x) || !isFinite(pocket.y)) continue; if (Math.hypot(ball.x - pocket.x, ball.y - pocket.y) < POCKET_RADIUS * 0.9) { ball.active = false; ball.vx = 0; ball.vy = 0; isPocketed = true; if (soundsReady) pocketSound.triggerAttackRelease("16n"); setTimeout(() => { requestAnimationFrame(() => { if (!PLAYABLE_RECT.width || PLAYABLE_RECT.width <= 0) return; if (ball === cueBall) { ball.x = PLAYABLE_RECT.left + PLAYABLE_RECT.width * 0.25; ball.y = PLAYABLE_RECT.top + PLAYABLE_RECT.height / 2; } else { ball.x = PLAYABLE_RECT.left + PLAYABLE_RECT.width * 0.7; ball.y = PLAYABLE_RECT.top + PLAYABLE_RECT.height / 2; } ball.active = true; }); }, 500); break; } }
                 if (!isPocketed) {
-                    // --- INICIO CALIBRACIÓN ---
                     let hit = false; const restitution = 0.9; // (Era 0.8) Bandas más vivas
                     if (!PLAYABLE_RECT.left || !isFinite(PLAYABLE_RECT.left) || typeof spinEffect.x !== 'number' || !isFinite(spinEffect.x)) continue;
                     
@@ -435,7 +467,6 @@
                         if (ball === cueBall) ball.vx += spinEffect.x * SPIN_FACTOR_CUSHION * -Math.sign(ball.vx || 1); // Lógica de efecto
                         hit = true;
                     }
-                    // --- FIN CALIBRACIÓN ---
 
                     if (hit) { if (soundsReady) { const v = Math.min(Math.hypot(ball.vx, ball.vy) / 8, 1); cushionHitSound.triggerAttackRelease("C2", "16n", Tone.now(), v * 0.7); } if (ball === cueBall) { spinEffect.y *= 0.5; spinEffect.x *= 0.8; } }
                 }
@@ -488,9 +519,7 @@
                 wasLastBlackBallActive = blackBall.active;
                 gameState = 'simulating';
                 const pullVecX = pullStartPos.x - pullEndPos.x, pullVecY = pullStartPos.y - pullEndPos.y;
-                 // --- INICIO CALIBRACIÓN ---
                 const maxPull = (TABLE_WIDTH || 500) * 0.20; // (Era 0.15)
-                 // --- FIN CALIBRACIÓN ---
                 let power = Math.min(Math.hypot(pullVecX, pullVecY), maxPull);
                  if (!isFinite(power)) power = 0;
                 if (power < 5) {
