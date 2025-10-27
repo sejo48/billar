@@ -470,45 +470,65 @@
                     let hit = false; 
                     if (!PLAYABLE_RECT.left || !isFinite(PLAYABLE_RECT.left) || typeof spinEffect.x !== 'number' || !isFinite(spinEffect.x)) continue;
                     
-                    // --- INICIO CALIBRACIÓN v3: Lógica de física de rebote ---
+                    // --- INICIO CALIBRACIÓN v4: Sincronización de Física de Rebote ---
                     const speed = Math.hypot(ball.vx, ball.vy); // 1. Obtener velocidad ANTES del golpe
+                    let dir_x = 0;
+                    let dir_y = 0;
+                    if (speed > 0.01) {
+                        dir_x = ball.vx / speed;
+                        dir_y = ball.vy / speed;
+                    }
+
+                    let hitType = null;
 
                     if (ball.x + BALL_RADIUS > PLAYABLE_RECT.right && ball.vx > 0) { // Hit Right
-                        ball.x = PLAYABLE_RECT.right - BALL_RADIUS; ball.vx *= -RESTITUTION;
-                        if (ball === cueBall) ball.vy += spinEffect.x * SPIN_FACTOR_CUSHION * -Math.sign(ball.vy || 1);
-                        hit = true;
+                        ball.x = PLAYABLE_RECT.right - BALL_RADIUS; 
+                        dir_x *= -1; // Aplicar rebote a la DIRECCIÓN
+                        if (ball === cueBall) dir_y += spinEffect.x * SPIN_FACTOR_CUSHION * -Math.sign(dir_y || 1); // Aplicar efecto a la DIRECCIÓN
+                        hit = true; hitType = 'right';
                     }
                     else if (ball.x - BALL_RADIUS < PLAYABLE_RECT.left && ball.vx < 0) { // Hit Left
-                        ball.x = PLAYABLE_RECT.left + BALL_RADIUS; ball.vx *= -RESTITUTION;
-                        if (ball === cueBall) ball.vy += spinEffect.x * SPIN_FACTOR_CUSHION * Math.sign(ball.vy || 1);
-                        hit = true;
+                        ball.x = PLAYABLE_RECT.left + BALL_RADIUS; 
+                        dir_x *= -1;
+                        if (ball === cueBall) dir_y += spinEffect.x * SPIN_FACTOR_CUSHION * Math.sign(dir_y || 1);
+                        hit = true; hitType = 'left';
                     }
                     if (ball.y + BALL_RADIUS > PLAYABLE_RECT.bottom && ball.vy > 0) { // Hit Bottom
-                        ball.y = PLAYABLE_RECT.bottom - BALL_RADIUS; ball.vy *= -RESTITUTION;
-                        if (ball === cueBall) ball.vx += spinEffect.x * SPIN_FACTOR_CUSHION * Math.sign(ball.vx || 1);
-                        hit = true;
+                        ball.y = PLAYABLE_RECT.bottom - BALL_RADIUS; 
+                        dir_y *= -1;
+                        if (ball === cueBall) dir_x += spinEffect.x * SPIN_FACTOR_CUSHION * Math.sign(dir_x || 1);
+                        hit = true; hitType = 'bottom';
                     }
                     else if (ball.y - BALL_RADIUS < PLAYABLE_RECT.top && ball.vy < 0) { // Hit Top
-                        ball.y = PLAYABLE_RECT.top + BALL_RADIUS; ball.vy *= -RESTITUTION;
-                        if (ball === cueBall) ball.vx += spinEffect.x * SPIN_FACTOR_CUSHION * -Math.sign(ball.vx || 1);
-                        hit = true;
+                        ball.y = PLAYABLE_RECT.top + BALL_RADIUS; 
+                        dir_y *= -1;
+                        if (ball === cueBall) dir_x += spinEffect.x * SPIN_FACTOR_CUSHION * -Math.sign(dir_x || 1);
+                        hit = true; hitType = 'top';
                     }
 
                     if (hit) { 
+                        const finalSpeed = speed * RESTITUTION; // 4. Calcular velocidad final
+                        
+                        // 2. Re-normalizar la dirección (esta es la lógica que coincide con drawPath)
+                        const newMag = Math.hypot(dir_x, dir_y);
+                        if (newMag > 0.01 && isFinite(newMag) && isFinite(finalSpeed)) {
+                            // 5. Aplicar velocidad final a la nueva dirección
+                            ball.vx = (dir_x / newMag) * finalSpeed;
+                            ball.vy = (dir_y / newMag) * finalSpeed;
+                        } else {
+                            // Fallback (raro, pero seguro)
+                            if (hitType === 'left' || hitType === 'right') ball.vx *= -RESTITUTION;
+                            if (hitType === 'top' || hitType === 'bottom') ball.vy *= -RESTITUTION;
+                        }
+
                         if (ball === cueBall) {
-                            // 2. Re-normalizar la velocidad para conservar la energía (aplicando restitución)
-                            const newMag = Math.hypot(ball.vx, ball.vy);
-                            const newSpeed = speed * RESTITUTION; // 3. Calcular velocidad final
-                            if (newMag > 0.01 && isFinite(newMag) && isFinite(newSpeed)) {
-                                ball.vx = (ball.vx / newMag) * newSpeed;
-                                ball.vy = (ball.vy / newMag) * newSpeed;
-                            }
-                            spinEffect.y *= 0.5; 
+                            spinEffect.y *= 0.5; // El efecto vertical se pierde (o reduce) con la banda
                             spinEffect.x *= 0.8; // Degradar efecto para el próximo golpe
                         }
+                        
                         if (soundsReady) { const v = Math.min(speed / 8, 1); cushionHitSound.triggerAttackRelease("C2", "16n", Tone.now(), v * 0.7); } 
                     }
-                    // --- FIN CALIBRACIÓN v3 ---
+                    // --- FIN CALIBRACIÓN v4 ---
                 }
             }
             
@@ -637,4 +657,5 @@
     </script>
 </body>
 </html>
+
 
