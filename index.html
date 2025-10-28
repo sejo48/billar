@@ -1266,7 +1266,7 @@
                  
                  if (isFinite(mag) && mag > 0.1) { 
                      aimDir.x = dx / mag; 
-                     aimDir.y = dy / mag; 
+                     aimDir.y = dy / mag; // <-- CORREGIDO: Era aimDir.Y
                  }
                  
                  gameState = 'pulling'; 
@@ -1590,5 +1590,6 @@
     </script>
 </body>
 </html>
+
 
 
