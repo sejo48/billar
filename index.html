@@ -134,13 +134,15 @@
         let POCKETS = [];
         let PLAYABLE_RECT = {};
 
-        const FRICTION = 0.98; 
+        // --- INICIO CALIBRACIÓN v5: Más Fuerza / Menos Fricción ---
+        const FRICTION = 0.99; // (Era 0.98) Menos fricción, la bola rueda más
         const MIN_SPEED = 0.05;
         // --- INICIO CALIBRACIÓN v3 ---
         const SPIN_FACTOR_CUSHION = 0.4; // (Era 0.4) Factor base para el efecto
         const POWER_MULTIPLIER = 0.22; 
-        const RESTITUTION = 0.9; // (Era 0.9) Rebote de la banda
+        const RESTITUTION = 0.95; // (Era 0.9) Rebote más vivo, pierde menos velocidad
         // --- FIN CALIBRACIÓN v3 ---
+        // --- FIN CALIBRACIÓN v5 ---
 
         // --- 4. SONIDOS (Tone.js) ---
         let soundsReady = false;
@@ -748,4 +750,5 @@
     </script>
 </body>
 </html>
+
 
