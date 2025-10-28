@@ -41,8 +41,8 @@
         }
         body.in-fullscreen #main-container {
             padding: 0;
-            height: 100vh; /* Ocupar toda la altura */
-            max-width: 100vw; /* Ocupar todo el ancho */
+            height: 100%; /* Usar 100% en lugar de 100vh para mejor compatibilidad móvil */
+            max-width: 100%; /* Usar 100% en lugar de 100vw */
         }
         body.in-fullscreen #header-block,
         body.in-fullscreen #footer-block {
@@ -50,7 +50,7 @@
         }
         body.in-fullscreen #table-wrapper {
             height: 100%; /* Forzar la mesa a ocupar todo */
-            max-height: 100vh;
+            max-height: 100%; /* Usar 100% en lugar de 100vh */
             padding: 0;
         }
     </style>
@@ -1542,11 +1542,11 @@
             document.body.classList.toggle('in-fullscreen', isFullscreen);
             
             // Forzar un redibujo del canvas al cambiar de modo
-            // Damos un pequeño retardo para que el DOM se asiente
+            // Damos un retardo MAYOR (300ms) para que el DOM del móvil se asiente
             setTimeout(() => {
                 setupCanvas();
                 drawSpinControl(); // Redibujar también el control de spin
-            }, 100); 
+            }, 300); // <-- AUMENTADO DE 100ms a 300ms
         }
 
         if (fullscreenButton) {
@@ -1590,4 +1590,5 @@
     </script>
 </body>
 </html>
+
 
