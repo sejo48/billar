@@ -363,7 +363,7 @@
             const diamondRadius = CUSHION_SIZE * 0.18; 
             const playableWidth = PLAYABLE_RECT.width; 
             const playableHeight = PLAYABLE_RECT.height;
-            const segmentX = playableWidth / 8; 
+            const segmentX = playableWidth / 8; // <--- ESTA LÍNEA ES CLAVE
             const segmentY = playableHeight / 4;
             const topRailY = PLAYABLE_RECT.top / 2; 
             const bottomRailY = PLAYABLE_RECT.bottom + CUSHION_SIZE / 2;
@@ -398,10 +398,13 @@
             
             // 3. Fieltro verde
             ctx.fillStyle = '#059669'; 
+            // --- INICIO DE LA CORRECCIÓN ---
             ctx.fillRect(PLAYABLE_RECT.left, PLAYABLE_RECT.top, PLAYABLE_RECT.width, PLAYABLE_RECT.height);
+            // --- FIN DE LA CORRECCIÓN ---
             
             // --- INICIO DE LA MODIFICACIÓN: Línea de Salida (Baulk Line) ---
-            const baulkLineX = PLAYABLE_RECT.left + PLAYABLE_RECT.width * 0.25;
+            // const baulkLineX = PLAYABLE_RECT.left + PLAYABLE_RECT.width * 0.25; // <-- Versión anterior (coincidía por casualidad)
+            const baulkLineX = PLAYABLE_RECT.left + (segmentX * 2); // <-- NUEVA VERSIÓN: Posición REGLAMENTARIA (Segundo Diamante)
             const headSpotY = PLAYABLE_RECT.top + PLAYABLE_RECT.height / 2;
 
             // Definir un estilo sutil para las marcas
@@ -1611,7 +1614,4 @@
     </script>
 </body>
 </html>
-
-
-
 
