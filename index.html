@@ -400,6 +400,27 @@
             ctx.fillStyle = '#059669'; 
             ctx.fillRect(PLAYABLE_RECT.left, PLAYABLE_RECT.top, PLAYABLE_RECT.width, PLAYABLE_RECT.height);
             
+            // --- INICIO DE LA MODIFICACIÓN: Línea de Salida (Baulk Line) ---
+            const baulkLineX = PLAYABLE_RECT.left + PLAYABLE_RECT.width * 0.25;
+            const headSpotY = PLAYABLE_RECT.top + PLAYABLE_RECT.height / 2;
+
+            // Definir un estilo sutil para las marcas
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)'; // Blanco muy sutil
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+            ctx.lineWidth = 1;
+            
+            // Dibujar la línea de salida
+            ctx.beginPath();
+            ctx.moveTo(baulkLineX, PLAYABLE_RECT.top);
+            ctx.lineTo(baulkLineX, PLAYABLE_RECT.bottom);
+            ctx.stroke();
+
+            // Dibujar el punto de salida (donde reposa la blanca)
+            ctx.beginPath();
+            ctx.arc(baulkLineX, headSpotY, (BALL_RADIUS || 5) * 0.2, 0, Math.PI * 2); // Un pequeño punto
+            ctx.fill();
+            // --- FIN DE LA MODIFICACIÓN ---
+            
             // 4. Sombra interior
             ctx.save(); 
             ctx.shadowColor = 'rgba(0, 0, 0, 0.5)'; 
@@ -1590,6 +1611,7 @@
     </script>
 </body>
 </html>
+
 
 
 
