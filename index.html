@@ -1146,6 +1146,7 @@
              } else if (draggingBall && event.cancelable) {
                  event.preventDefault();
              }
+        }
 
         function handleGlobalInteractionEnd(event) {
              // --- INICIO CAMBIO: Lógica "Lift-to-Lock" para móvil ---
@@ -1429,13 +1430,11 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             setupSpinControl();
-            setupCanvas(); 
+            // setupCanvas(); // <-- CORRECCIÓN: No llamar aquí. Causa race condition.
             gameLoop(); 
             drawSpinControl(); 
         });
     </script>
 </body>
 </html>
-
-
 
