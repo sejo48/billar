@@ -72,7 +72,7 @@
             padding: 0;
             height: 100%; 
             max-width: 100%;
-            flex-direction: row; /* Forzar fila en pantalla completa */
+            /* flex-direction: row; */ /* <-- CORRECCIÓN: Eliminada esta línea que rompía el responsive */
         }
         body.in-fullscreen #header-block,
         body.in-fullscreen #footer-credits { /* Ocultar header y créditos */
@@ -1356,4 +1356,5 @@
     </script>
 </body>
 </html>
+
 
