@@ -24,9 +24,14 @@
             background-color: #059669; /* Verde billar */
             display: block; /* Evita espacios extra */
         }
+        /* --- INICIO CAMBIO: Cursor dinámico --- */
         #poolTable {
             cursor: crosshair; /* Cursor para apuntar en la mesa */
         }
+        body.aim-locked #poolTable {
+            cursor: default; /* Cursor normal cuando la mira está bloqueada */
+        }
+        /* --- FIN CAMBIO --- */
         #spinControlCanvas {
             cursor: pointer; /* Cursor para el control de efecto */
         }
@@ -35,7 +40,7 @@
             font-family: 'Dancing Script', cursive;
         }
 
-        /* --- INICIO CAMBIO: Estilos para la barra de fuerza vertical --- */
+        /* Estilos para la barra de fuerza vertical */
         #powerBar {
             -webkit-appearance: slider-vertical; /* Chrome, Safari, Opera */
             writing-mode: bt-lr; /* Firefox */
@@ -43,7 +48,6 @@
             height: 150px;
             padding: 0 5px;
         }
-        /* Estilos para el "pulgar" (thumb) de la barra */
         #powerBar::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
@@ -62,7 +66,6 @@
             border-radius: 50%;
             border: 3px solid #f0f0f0;
         }
-        /* --- FIN CAMBIO --- */
 
         /* Estilos para Pantalla Completa */
         body.in-fullscreen {
@@ -72,14 +75,13 @@
             padding: 0;
             height: 100%; 
             max-width: 100%;
-            /* flex-direction: row; */ /* <-- CORRECCIÓN: Eliminada esta línea que rompía el responsive */
         }
         body.in-fullscreen #header-block,
-        body.in-fullscreen #footer-credits { /* Ocultar header y créditos */
+        body.in-fullscreen #footer-credits { 
             display: none;
         }
         body.in-fullscreen #main-content-wrapper {
-            height: 100%; /* Ocupar toda la altura */
+            height: 100%; 
         }
         body.in-fullscreen #table-wrapper {
             height: 100%; 
@@ -87,13 +89,17 @@
             padding: 0;
         }
         body.in-fullscreen #controls-wrapper {
-            display: flex; /* Asegurarse que los controles se vean en pantalla completa */
+            display: none;
+        }
+        @media (min-width: 768px) {
+            body.in-fullscreen #controls-wrapper {
+                display: flex; 
+            }
         }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-100 flex flex-col items-center p-2 h-full">
 
-    <!-- --- INICIO CAMBIO: Nueva Estructura (Mesa + Panel Derecho) --- -->
     <div id="main-container" class="w-full max-w-7xl flex flex-col md:flex-row items-start flex-grow min-h-0 gap-4">
 
         <!-- Contenedor Principal (Izquierda) -->
@@ -101,9 +107,11 @@
             <!-- BLOQUE SUPERIOR: Título, Instrucciones -->
             <div id="header-block" class="flex flex-col items-center w-full px-2 py-2 gap-2 flex-shrink-0 text-center">
                 <h1 class="text-2xl md:text-3xl font-bold text-white">Simulador de Billar</h1>
+                <!-- --- INICIO CAMBIO: Instrucciones actualizadas --- -->
                 <p class="text-sm md:text-base text-gray-400 mt-1">
-                    Apunta con el ratón. Usa los controles para disparar.
+                    Apunta con el ratón. <b>Haz clic en la mesa para bloquear la mira.</b> Usa los controles para disparar.
                 </p>
+                <!-- --- FIN CAMBIO --- -->
             </div>
 
             <!-- BLOQUE CENTRAL: Mesa de Billar -->
@@ -148,7 +156,6 @@
 
         </div>
     </div>
-    <!-- --- FIN CAMBIO --- -->
 
 
     <script>
@@ -158,10 +165,7 @@
         const resetButton = document.getElementById('resetButton');
         const canvasSpin = document.getElementById('spinControlCanvas');
         const ctxSpin = canvasSpin.getContext('2d');
-        
-        // --- INICIO CAMBIO: Nuevos Controles ---
         const powerBar = document.getElementById('powerBar');
-        // --- FIN CAMBIO ---
 
         // --- 2. ESTADO DE LA SIMULACIÓN ---
         let cueBall = { x: 0, y: 0, vx: 0, vy: 0, active: true };
@@ -173,9 +177,8 @@
         let draggingBall = null;
         let isSettingSpin = false;
 
-        // --- INICIO CAMBIO: Lógica de Estado Simplificada ---
-        let gameState = 'aiming'; // 'aiming', 'simulating' (ya no existe 'pulling')
-        // pullStartPos y pullEndPos ya no son necesarios
+        // --- INICIO CAMBIO: Nuevo estado 'aimLocked' ---
+        let gameState = 'aiming'; // 'aiming', 'aimLocked', 'simulating'
         // --- FIN CAMBIO ---
         let aimDir = { x: 1, y: 0 };
 
@@ -249,7 +252,7 @@
                  { x: PLAYABLE_RECT.left, y: PLAYABLE_RECT.top }, { x: TABLE_WIDTH / 2, y: PLAYABLE_RECT.top }, { x: PLAYABLE_RECT.right, y: PLAYABLE_RECT.top },
                  { x: PLAYABLE_RECT.left, y: PLAYABLE_RECT.bottom },{ x: TABLE_WIDTH / 2, y: PLAYABLE_RECT.bottom }, { x: PLAYABLE_RECT.right, y: PLAYABLE_RECT.bottom }
              ];
-             if (gameState === 'aiming' && !draggingBall) {
+             if ((gameState === 'aiming' || gameState === 'aimLocked') && !draggingBall) {
                  if (lastCueBallPos === null || lastBlackBallPos === null) { resetToStartPositions(); } 
                  else { 
                      balls.forEach(ball => { 
@@ -286,7 +289,6 @@
         }
 
         // --- 5. FUNCIONES DE DIBUJO ---
-        // --- INICIO CORRECCIÓN: Funciones restauradas ---
         function drawTable() {
              if (!TABLE_WIDTH || TABLE_WIDTH <= 0 || !isFinite(TABLE_WIDTH) || !isFinite(TABLE_HEIGHT)) { return; }
              if (!PLAYABLE_RECT.width || !PLAYABLE_RECT.height || PLAYABLE_RECT.width <= 0 || PLAYABLE_RECT.height <= 0) { return; }
@@ -305,7 +307,7 @@
              const diamondRadius = CUSHION_SIZE * 0.18; 
              const playableWidth = PLAYABLE_RECT.width; 
              const playableHeight = PLAYABLE_RECT.height;
-             const segmentX = playableWidth / 8; // <--- ESTA LÍNEA ES CLAVE
+             const segmentX = playableWidth / 8; 
              const segmentY = playableHeight / 4;
              const topRailY = PLAYABLE_RECT.top / 2; 
              const bottomRailY = PLAYABLE_RECT.bottom + CUSHION_SIZE / 2;
@@ -459,10 +461,8 @@
             ctxSpin.fill(); 
             ctxSpin.stroke();
         }
-        // --- FIN CORRECCIÓN ---
 
         // --- 6. LÓGICA DE TRAYECTORIA Y GOLPE ---
-        // --- INICIO CORRECCIÓN: Funciones restauradas ---
         function findWallCollision(startPos, dir) {
             let tMin = Infinity; 
             let hitType = null;
@@ -524,11 +524,12 @@
             
             return { t: t_hit * dirMag };
         }
-        // --- FIN CORRECCIÓN ---
 
 
         function drawFullTrajectory() {
-            if ((gameState !== 'aiming') || !cueBall.active) return;
+            // --- INICIO CAMBIO: Dibujar línea también si está bloqueado ---
+            if ((gameState !== 'aiming' && gameState !== 'aimLocked') || !cueBall.active) return;
+            // --- FIN CAMBIO ---
             if (!TABLE_WIDTH || TABLE_WIDTH <= 0) return;
 
             let startPos = { x: cueBall.x, y: cueBall.y }; 
@@ -541,9 +542,7 @@
             const wallHit = findWallCollision(startPos, normalizedDir); 
             const ballHit = blackBall.active ? findBallCollision(startPos, normalizedDir, blackBall) : { t: Infinity };
 
-            // --- INICIO CORRECCIÓN: Manejar wallHit indefinido (ahora redundante, pero seguro) ---
             let firstHitTime = Math.min(wallHit?.t ?? Infinity, ballHit?.t ?? Infinity);
-            // --- FIN CORRECCIÓN ---
 
             if (firstHitTime === Infinity || firstHitTime > TABLE_WIDTH * 2 || !isFinite(firstHitTime)) { 
                 firstHitTime = TABLE_WIDTH * 2;
@@ -554,8 +553,21 @@
                 y: startPos.y + normalizedDir.y * firstHitTime 
             };
             
-            ctx.beginPath(); ctx.moveTo(startPos.x, startPos.y); ctx.lineTo(firstHitPoint.x, firstHitPoint.y);
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)'; ctx.lineWidth = 1.5; ctx.setLineDash([4, 4]); ctx.stroke();
+            ctx.beginPath(); 
+            ctx.moveTo(startPos.x, startPos.y); 
+            ctx.lineTo(firstHitPoint.x, firstHitPoint.y);
+            
+            // --- INICIO CAMBIO: Estilo de Línea (Bloqueado) ---
+            if (gameState === 'aimLocked') {
+                ctx.strokeStyle = 'rgba(255, 255, 255, 1)'; // Sólido y brillante
+                ctx.setLineDash([]);
+            } else {
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)'; // Punteado
+                ctx.setLineDash([4, 4]);
+            }
+            ctx.lineWidth = 1.5; 
+            ctx.stroke();
+            // --- FIN CAMBIO ---
 
             if (ballHit.t <= wallHit.t && blackBall.active) {
                 const cueHitPoint = firstHitPoint;
@@ -565,7 +577,7 @@
                 if (blackMag > 0.01) { 
                     blackBallDir.x /= blackMag; 
                     blackBallDir.y /= blackMag; 
-                    drawPath(blackBall, blackBallDir, 'rgba(255, 255, 0, 0.6)', 3); 
+                    drawPath(blackBall, blackBallDir, 'rgba(255, 255, 0, 0.6)', 3); // Línea de la bola 8 (amarilla)
                 }
                 
                 const normalDir = { ...blackBallDir }; 
@@ -601,35 +613,36 @@
                         y: cueHitPoint.y - normalDir.y * BALL_RADIUS 
                     };
                     if (isFinite(start.x) && isFinite(start.y)) {
-                        drawPath(start, cueAfterDir, 'rgba(255, 165, 0, 0.6)', 3, { x: spinEffect.x, y: 0 }); 
+                        drawPath(start, cueAfterDir, 'rgba(255, 165, 0, 0.6)', 3, { x: spinEffect.x, y: 0 }); // Línea de efecto (naranja)
                     }
                 }
                 
             } else if (wallHit.t !== Infinity && isFinite(wallHit.t)) {
+                // ... (lógica de predicción de golpe a banda, ya se maneja en drawPath) ...
                 let nextDir = { ...normalizedDir };
+                let nextSpin = { ...spinEffect };
                 
                 if (wallHit.hitType === 'left' || wallHit.hitType === 'right') {
                     nextDir.x *= -1;
-                    nextDir.y += spinEffect.x * SPIN_FACTOR_CUSHION * (wallHit.hitType === 'right' ? -1 : 1) * Math.sign(nextDir.y || 1);
+                    nextDir.y += nextSpin.x * SPIN_FACTOR_CUSHION * (wallHit.hitType === 'right' ? -1 : 1) * Math.sign(nextDir.y || 1);
                 }
                 if (wallHit.hitType === 'top' || wallHit.hitType === 'bottom') {
                     nextDir.y *= -1;
-                    nextDir.x += spinEffect.x * SPIN_FACTOR_CUSHION * (wallHit.hitType === 'bottom' ? 1 : -1) * Math.sign(nextDir.x || 1);
+                    nextDir.x += nextSpin.x * SPIN_FACTOR_CUSHION * (wallHit.hitType === 'bottom' ? 1 : -1) * Math.sign(nextDir.x || 1);
                 }
+                
+                nextSpin.x *= 0.8; 
                 
                 const nextMag = Math.hypot(nextDir.x, nextDir.y); 
                 if (nextMag > 0.01) { 
                     nextDir.x /= nextMag; 
                     nextDir.y /= nextMag; 
-                    let nextSpin = { ...spinEffect };
-                    nextSpin.x *= 0.8; 
-                    drawPath(firstHitPoint, nextDir, 'rgba(255, 255, 255, 0.6)', 3, nextSpin); 
+                    drawPath(firstHitPoint, nextDir, 'rgba(255, 255, 255, 0.6)', 3, nextSpin); // Línea de rebote (blanca)
                 }
             } 
-            ctx.setLineDash([]);
+            ctx.setLineDash([]); // Asegurarse de resetear el dash
         }
 
-        // --- INICIO CORRECCIÓN: Funciones restauradas ---
         function drawPath(startPos, dir, color, maxBounces = 3, spin = {x: 0, y: 0}) {
             if (!startPos || typeof startPos.x !== 'number' || typeof startPos.y !== 'number' || !isFinite(startPos.x) || !isFinite(startPos.y)) return;
             if (!dir || typeof dir.x !== 'number' || typeof dir.y !== 'number' || !isFinite(dir.x) || !isFinite(dir.y)) return;
@@ -643,7 +656,18 @@
             ctx.moveTo(currentPos.x, currentPos.y); 
             ctx.strokeStyle = color; 
             ctx.lineWidth = 1.5; 
-            ctx.setLineDash([4, 4]);
+            
+            // --- INICIO CAMBIO: Estilo de Línea (Bloqueado) ---
+            if (gameState === 'aimLocked') {
+                ctx.setLineDash([]);
+                // Hacer el color más brillante si está bloqueado
+                if (color.includes('0.6')) { // Solo ajustar las líneas de predicción
+                     ctx.strokeStyle = color.replace('0.6', '1');
+                }
+            } else {
+                ctx.setLineDash([4, 4]);
+            }
+            // --- FIN CAMBIO ---
             
             for (let i = 0; i < maxBounces; i++) {
                 const wallHit = findWallCollision(currentPos, currentDir); 
@@ -695,7 +719,6 @@
             } 
             ctx.stroke();
         }
-        // --- FIN CORRECCIÓN ---
 
 
          function drawPoolCue() {
@@ -757,9 +780,8 @@
              ctx.restore();
          }
          
-        // --- INICIO CORRECCIÓN: Funciones restauradas ---
          function drawGhostBall() {
-             if (gameState !== 'aiming' || draggingBall || !mousePos?.x) return; 
+             if (gameState !== 'aiming' || draggingBall || !mousePos?.x) return; // No mostrar si la mira está bloqueada o arrastrando
              if (!BALL_RADIUS || BALL_RADIUS <= 0 || !isFinite(BALL_RADIUS)) return;
              
              ctx.save(); 
@@ -785,10 +807,8 @@
              ctx.stroke(); 
              ctx.restore();
          }
-        // --- FIN CORRECCIÓN ---
 
         // --- 7. MOTOR DE FÍSICA (SIMULACIÓN) ---
-        // --- INICIO CORRECCIÓN: Funciones restauradas ---
         function updatePhysics() {
             if (gameState !== 'simulating') return;
             
@@ -990,12 +1010,13 @@
             if (!ballsStillMoving && gameState === 'simulating') { 
                 setTimeout(() => { 
                     const stillStopped = balls.every(b => !b.active || (b.vx === 0 && b.vy === 0)); 
-                    if (stillStopped && gameState === 'simulating') 
-                        gameState = 'aiming'; 
+                    if (stillStopped && gameState === 'simulating') {
+                        gameState = 'aiming'; // Regresar a 'aiming' (desbloqueado)
+                        document.body.classList.remove('aim-locked'); // Quitar clase CSS
+                    }
                 }, 100); 
             }
         }
-        // --- FIN CORRECCIÓN ---
 
 
         // --- 8. BUCLE PRINCIPAL DE ANIMACIÓN ---
@@ -1012,11 +1033,13 @@
              
              drawTable();
              
-             if (gameState === 'aiming') {
+             // --- INICIO CAMBIO: Dibujar UI en 'aiming' y 'aimLocked' ---
+             if (gameState === 'aiming' || gameState === 'aimLocked') {
                  drawFullTrajectory(); 
                  drawPoolCue(); 
-                 drawGhostBall();
+                 drawGhostBall(); // La bola fantasma se oculta sola si gameState no es 'aiming'
              }
+             // --- FIN CAMBIO ---
              
              if (cueBall.active && isFinite(cueBall.x)) drawBall(cueBall, '#FFFFFF');
              if (blackBall.active && isFinite(blackBall.x)) drawBlackBall();
@@ -1025,7 +1048,6 @@
         }
 
         // --- 9. MANEJADORES DE EVENTOS ---
-        // --- INICIO CORRECCIÓN: Funciones restauradas ---
         function getPosInCanvas(event, targetCanvas) {
              if (!targetCanvas) return null; 
              const rect = targetCanvas.getBoundingClientRect(); 
@@ -1060,7 +1082,6 @@
         function clamp(value, min, max) { 
             return Math.max(min, Math.min(value, max)); 
         }
-        // --- FIN CORRECCIÓN ---
 
 
         function handleTableInteractionStart(event) {
@@ -1076,12 +1097,37 @@
              const distCue = Math.hypot(pos.x - cueBall.x, pos.y - cueBall.y); 
              const distBlack = Math.hypot(pos.x - blackBall.x, pos.y - blackBall.y);
 
+             // --- INICIO CAMBIO: Lógica de Bloqueo/Desbloqueo ---
              if (gameState === 'aiming') { 
                  if (cueBall.active && distCue < grabRadius) 
                      draggingBall = cueBall; 
                  else if (blackBall.active && distBlack < grabRadius) 
                      draggingBall = blackBall; 
+                 else {
+                     // Si no arrastramos bola, bloqueamos el tiro
+                     gameState = 'aimLocked';
+                     document.body.classList.add('aim-locked');
+                     // Y actualizamos la mira a esta posición
+                     if (!isFinite(cueBall.x) || !isFinite(cueBall.y)) return;
+                     const dx = pos.x - cueBall.x, dy = pos.y - cueBall.y, mag = Math.hypot(dx, dy);
+                     if (isFinite(mag) && mag > 0.1) { 
+                         aimDir.x = dx / mag; 
+                         aimDir.y = dy / mag; 
+                     }
+                 }
              } 
+             else if (gameState === 'aimLocked') {
+                 // Si ya está bloqueado, un clic desbloquea (si no arrastramos una bola)
+                 if (cueBall.active && distCue < grabRadius) 
+                     draggingBall = cueBall; 
+                 else if (blackBall.active && distBlack < grabRadius) 
+                     draggingBall = blackBall;
+                 else {
+                     gameState = 'aiming';
+                     document.body.classList.remove('aim-locked');
+                 }
+             } 
+             // --- FIN CAMBIO ---
              
              if (!draggingBall && event.cancelable) {
                  event.preventDefault();
@@ -1108,7 +1154,9 @@
                  draggingBall.y = clamp(pos.y, PLAYABLE_RECT.top + currentBallRadius, PLAYABLE_RECT.bottom - currentBallRadius); 
                  if (event.cancelable) event.preventDefault(); 
              
+             // --- INICIO CAMBIO: Solo apuntar si gameState es 'aiming' ---
              } else if (gameState === 'aiming' && cueBall.active) { 
+             // --- FIN CAMBIO ---
                  if (!isFinite(cueBall.x) || !isFinite(cueBall.y)) return;
                  const dx = pos.x - cueBall.x, dy = pos.y - cueBall.y, mag = Math.hypot(dx, dy);
                  if (isFinite(mag) && mag > 0.1) { 
@@ -1121,7 +1169,6 @@
              }
         }
 
-        // --- INICIO CORRECCIÓN: Funciones restauradas ---
         function updateSpin(pos) {
              if (!pos || !spinBallControl.radius || !isFinite(spinBallControl.radius) || spinBallControl.radius <= 0) return;
              if (!isFinite(pos.x) || !isFinite(pos.y)) return;
@@ -1158,7 +1205,6 @@
              
              drawSpinControl();
         }
-        // --- FIN CORRECCIÓN ---
 
 
         // --- 10. ASIGNACIÓN DE EVENTOS ---
@@ -1171,7 +1217,6 @@
         window.addEventListener('mouseup', handleGlobalInteractionEnd);
         window.addEventListener('touchend', handleGlobalInteractionEnd);
         
-        // --- INICIO CORRECCIÓN: Funciones restauradas ---
         function handleSpinInteractionStart(event) { 
             startAudioContext(); 
             if (event.cancelable) event.preventDefault(); 
@@ -1186,7 +1231,6 @@
             if (event.cancelable) event.preventDefault(); 
             updateSpin(getPosInCanvas(event, canvasSpin)); 
         }
-        // --- FIN CORRECCIÓN ---
         canvasSpin.addEventListener('mousedown', handleSpinInteractionStart);
         canvasSpin.addEventListener('mousemove', handleSpinInteractionMove);
         canvasSpin.addEventListener('mouseup', handleSpinInteractionEnd);
@@ -1196,7 +1240,6 @@
         canvasSpin.addEventListener('touchend', handleSpinInteractionEnd);
         canvasSpin.addEventListener('touchcancel', handleSpinInteractionEnd);
         
-        // --- INICIO CORRECCIÓN: Funciones restauradas ---
         if(resetButton) {
              resetButton.addEventListener('click', () => {
                  startAudioContext();
@@ -1228,17 +1271,19 @@
         } else { 
             window.addEventListener('resize', setupCanvas); 
         }
-        // --- FIN CORRECCIÓN ---
 
         
         function shootBall(powerPercent) {
-            if (gameState !== 'aiming' || !cueBall.active) return;
+            // --- INICIO CAMBIO: Permitir tiro desde 'aimLocked' ---
+            if ((gameState !== 'aiming' && gameState !== 'aimLocked') || !cueBall.active) return;
+            // --- FIN CAMBIO ---
             
             lastCueBallPos = { x: cueBall.x, y: cueBall.y };
             lastBlackBallPos = { x: blackBall.x, y: blackBall.y };
             wasLastBlackBallActive = blackBall.active;
 
             gameState = 'simulating';
+            document.body.classList.remove('aim-locked'); // Quitar clase CSS al disparar
             
             const maxPull = (TABLE_WIDTH || 500) * 0.20;
             let power = maxPull * (powerPercent / 100);
@@ -1261,7 +1306,9 @@
         }
 
         function handleShoot() {
-            if (gameState !== 'aiming') {
+            // --- INICIO CAMBIO: Permitir tiro desde 'aimLocked' ---
+            if (gameState !== 'aiming' && gameState !== 'aimLocked') {
+            // --- FIN CAMBIO ---
                 powerBar.value = 0; 
                 return;
             }
@@ -1279,7 +1326,6 @@
 
 
         // --- 11. MANEJO DE PANTALLA COMPLETA ---
-        // --- INICIO CORRECCIÓN: Funciones restauradas ---
         const fullscreenButton = document.getElementById('fullscreenButton');
         const appContainer = document.documentElement; 
         async function toggleFullScreen() {
@@ -1330,7 +1376,6 @@
                 await toggleFullScreen();
             });
         }
-        // --- FIN CORRECCIÓN ---
 
         document.addEventListener('fullscreenchange', handleFullscreenChange);
         document.addEventListener('mozfullscreenchange', handleFullscreenChange);
@@ -1356,5 +1401,4 @@
     </script>
 </body>
 </html>
-
 
