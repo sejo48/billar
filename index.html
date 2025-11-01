@@ -47,6 +47,7 @@
             width: 12px;
             height: 150px;
             padding: 0 5px;
+            transform: rotate(180deg); /* <-- NUEVO: Invertir la barra */
         }
         #powerBar::-webkit-slider-thumb {
             -webkit-appearance: none;
@@ -81,7 +82,7 @@
             display: none;
         }
         body.in-fullscreen #main-content-wrapper {
-            height: 100%; 
+            /* height: 100%; */ /* <-- CORRECCIÓN: Eliminada esta línea que causaba el problema */
         }
         body.in-fullscreen #table-wrapper {
             height: 100%; 
@@ -89,11 +90,11 @@
             padding: 0;
         }
         body.in-fullscreen #controls-wrapper {
-            display: none;
+            /* display: none; */ /* <-- CORRECCIÓN: Eliminada esta línea */
         }
         @media (min-width: 768px) {
             body.in-fullscreen #controls-wrapper {
-                display: flex; 
+                /* display: flex; */ /* <-- CORRECCIÓN: Eliminado todo el bloque @media */
             }
         }
     </style>
@@ -140,8 +141,10 @@
 
             <!-- Barra de Fuerza -->
             <div class="flex flex-col items-center gap-2">
-                <label for="powerBar" class="text-sm text-gray-400">Fuerza</label>
+                <!-- --- INICIO CAMBIO: Barra invertida (etiqueta movida) --- -->
                 <input type="range" id="powerBar" min="0" max="100" value="0" step="1" orient="vertical">
+                <label for="powerBar" class="text-sm text-gray-400">Fuerza</label>
+                <!-- --- FIN CAMBIO --- -->
             </div>
 
             <!-- Botones de Acción -->
@@ -166,6 +169,10 @@
         const canvasSpin = document.getElementById('spinControlCanvas');
         const ctxSpin = canvasSpin.getContext('2d');
         const powerBar = document.getElementById('powerBar');
+        
+        // --- INICIO CAMBIO: Detección Táctil ---
+        const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+        // --- FIN CAMBIO ---
 
         // --- 2. ESTADO DE LA SIMULACIÓN ---
         let cueBall = { x: 0, y: 0, vx: 0, vy: 0, active: true };
@@ -266,6 +273,7 @@
         }
         function resetToStartPositions() {
             gameState = 'aiming';
+            document.body.classList.remove('aim-locked'); // <-- Asegurar que se quite el bloqueo
             if (!PLAYABLE_RECT.width || PLAYABLE_RECT.width <= 0) { return; }
             cueBall.x = PLAYABLE_RECT.left + PLAYABLE_RECT.width * 0.25; cueBall.y = PLAYABLE_RECT.top + PLAYABLE_RECT.height / 2;
             cueBall.vx = 0; cueBall.vy = 0; cueBall.active = true;
@@ -279,6 +287,7 @@
         function restoreLastPositions() {
              if (!lastCueBallPos || !lastBlackBallPos) { resetToStartPositions(); return; }
              gameState = 'aiming';
+             document.body.classList.remove('aim-locked'); // <-- Asegurar que se quite el bloqueo
              cueBall.x = lastCueBallPos.x; cueBall.y = lastCueBallPos.y;
              cueBall.vx = 0; cueBall.vy = 0; cueBall.active = true;
              blackBall.x = lastBlackBallPos.x; blackBall.y = lastBlackBallPos.y;
@@ -1097,27 +1106,30 @@
              const distCue = Math.hypot(pos.x - cueBall.x, pos.y - cueBall.y); 
              const distBlack = Math.hypot(pos.x - blackBall.x, pos.y - blackBall.y);
 
-             // --- INICIO CAMBIO: Lógica de Bloqueo/Desbloqueo ---
+             // --- INICIO CAMBIO: Lógica de Bloqueo Diferenciada ---
              if (gameState === 'aiming') { 
                  if (cueBall.active && distCue < grabRadius) 
                      draggingBall = cueBall; 
                  else if (blackBall.active && distBlack < grabRadius) 
                      draggingBall = blackBall; 
                  else {
-                     // Si no arrastramos bola, bloqueamos el tiro
-                     gameState = 'aimLocked';
-                     document.body.classList.add('aim-locked');
-                     // Y actualizamos la mira a esta posición
-                     if (!isFinite(cueBall.x) || !isFinite(cueBall.y)) return;
-                     const dx = pos.x - cueBall.x, dy = pos.y - cueBall.y, mag = Math.hypot(dx, dy);
-                     if (isFinite(mag) && mag > 0.1) { 
-                         aimDir.x = dx / mag; 
-                         aimDir.y = dy / mag; 
+                     // Si NO es un dispositivo táctil, bloqueamos con clic
+                     if (!isTouchDevice) {
+                         gameState = 'aimLocked';
+                         document.body.classList.add('aim-locked');
+                         // Y actualizamos la mira a esta posición
+                         if (!isFinite(cueBall.x) || !isFinite(cueBall.y)) return;
+                         const dx = pos.x - cueBall.x, dy = pos.y - cueBall.y, mag = Math.hypot(dx, dy);
+                         if (isFinite(mag) && mag > 0.1) { 
+                             aimDir.x = dx / mag; 
+                             aimDir.y = dy / mag; 
+                         }
                      }
+                     // Si ES táctil, no hacemos nada aquí, el 'move' apunta
                  }
              } 
              else if (gameState === 'aimLocked') {
-                 // Si ya está bloqueado, un clic desbloquea (si no arrastramos una bola)
+                 // Si ya está bloqueado, un clic desbloquea (en CUALQUIER dispositivo)
                  if (cueBall.active && distCue < grabRadius) 
                      draggingBall = cueBall; 
                  else if (blackBall.active && distBlack < grabRadius) 
@@ -1134,9 +1146,17 @@
              } else if (draggingBall && event.cancelable) {
                  event.preventDefault();
              }
-        }
 
         function handleGlobalInteractionEnd(event) {
+             // --- INICIO CAMBIO: Lógica "Lift-to-Lock" para móvil ---
+             if (isTouchDevice && !draggingBall && gameState === 'aiming') {
+                 // Si es táctil, no estábamos arrastrando bola, y estábamos apuntando...
+                 // ...bloqueamos la mira al levantar el dedo.
+                 gameState = 'aimLocked';
+                 document.body.classList.add('aim-locked');
+             }
+             // --- FIN CAMBIO ---
+
              if (draggingBall) { 
                  draggingBall = null; 
              }
@@ -1154,19 +1174,34 @@
                  draggingBall.y = clamp(pos.y, PLAYABLE_RECT.top + currentBallRadius, PLAYABLE_RECT.bottom - currentBallRadius); 
                  if (event.cancelable) event.preventDefault(); 
              
-             // --- INICIO CAMBIO: Solo apuntar si gameState es 'aiming' ---
-             } else if (gameState === 'aiming' && cueBall.active) { 
-             // --- FIN CAMBIO ---
-                 if (!isFinite(cueBall.x) || !isFinite(cueBall.y)) return;
-                 const dx = pos.x - cueBall.x, dy = pos.y - cueBall.y, mag = Math.hypot(dx, dy);
-                 if (isFinite(mag) && mag > 0.1) { 
-                     aimDir.x = dx / mag; 
-                     aimDir.y = dy / mag; 
+             // --- INICIO CAMBIO: Lógica de Apuntado Diferenciada ---
+             } else if (cueBall.active) { 
+                 let canAim = false;
+                 if (isTouchDevice) {
+                     // En móvil, siempre apuntamos si estamos tocando la mesa y no arrastrando bola
+                     canAim = true;
+                     if (gameState === 'aimLocked') { // Si estaba bloqueado, el drag desbloquea
+                         gameState = 'aiming';
+                         document.body.classList.remove('aim-locked');
+                     }
+                 } else {
+                     // En PC, solo apuntamos si el estado es 'aiming' (no bloqueado)
+                     canAim = (gameState === 'aiming');
                  }
-                 if (event.type === 'touchmove' && event.cancelable) {
-                     event.preventDefault();
+
+                 if (canAim) {
+                     if (!isFinite(cueBall.x) || !isFinite(cueBall.y)) return;
+                     const dx = pos.x - cueBall.x, dy = pos.y - cueBall.y, mag = Math.hypot(dx, dy);
+                     if (isFinite(mag) && mag > 0.1) { 
+                         aimDir.x = dx / mag; 
+                         aimDir.y = dy / mag; 
+                     }
+                     if (event.type === 'touchmove' && event.cancelable) {
+                         event.preventDefault();
+                     }
                  }
              }
+             // --- FIN CAMBIO ---
         }
 
         function updateSpin(pos) {
@@ -1401,4 +1436,6 @@
     </script>
 </body>
 </html>
+
+
 
