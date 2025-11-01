@@ -60,7 +60,7 @@
     <div id="main-container" class="w-full max-w-5xl flex flex-col items-center flex-grow min-h-0">
 
         <!-- BLOQUE SUPERIOR: Título, Instrucciones, Control de Efecto -->
-        <div id="header-block" class="flex flex-col sm:flex-row justify-between items-center w-full px-2 py-2 gap-4 flex-shrink-0">
+        <div id="header-block" class="flex flex-col items-center w-full px-2 py-2 gap-4 flex-shrink-0 text-center">
             <!-- Título e Instrucciones -->
             <div class="text-center sm:text-left">
                 <h1 class="text-2xl md:text-3xl font-bold text-white">Simulador de Billar</h1>
@@ -69,11 +69,7 @@
                 </p>
             </div>
 
-            <!-- Control de Efecto -->
-            <div class="flex flex-col items-center p-2 rounded-lg bg-gray-800 shadow-lg border border-gray-700">
-                <canvas id="spinControlCanvas"></canvas>
-                <span class="text-xs md:text-sm text-gray-400 mt-1">Control de Efecto</span>
-            </div>
+            <!-- Control de Efecto (Eliminado de aquí) -->
         </div>
 
         <!-- BLOQUE CENTRAL: Mesa de Billar -->
@@ -84,7 +80,13 @@
         </div>
 
         <!-- BLOQUE INFERIOR: Botones y Créditos -->
-        <div id="footer-block" class="flex flex-col items-center text-center w-full px-2 py-2 flex-shrink-0">
+        <div id="footer-block" class="flex flex-col items-center text-center w-full px-2 py-2 flex-shrink-0 gap-4">
+            <!-- Control de Efecto (Movido aquí para móviles) -->
+            <div class="flex flex-col items-center p-2 rounded-lg bg-gray-800 shadow-lg border border-gray-700">
+                <canvas id="spinControlCanvas"></canvas>
+                <span class="text-xs md:text-sm text-gray-400 mt-1">Control de Efecto</span>
+            </div>
+
             <div class="flex flex-wrap justify-center gap-4">
                 <button id="resetButton" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition duration-200 shadow-lg" title="Reinicia las bolas a su posición inicial o restaura la posición del último tiro.">
                     Reiniciar / Restaurar
@@ -636,7 +638,11 @@
          * Dibuja la línea de predicción completa (blanca, amarilla, naranja).
          */
         function drawFullTrajectory() {
-            if (gameState !== 'aiming' || !cueBall.active) return;
+            // --- INICIO DE LA CORRECCIÓN: Pantalla Completa Móvil ---
+            // El error estaba aquí. Las líneas desaparecían al tocar (estado 'pulling')
+            // Antes: if (gameState !== 'aiming' || !cueBall.active) return;
+            if ((gameState !== 'aiming' && gameState !== 'pulling') || !cueBall.active) return;
+            // --- FIN DE LA CORRECCIÓN ---
             if (!TABLE_WIDTH || TABLE_WIDTH <= 0 || !isFinite(TABLE_WIDTH)) return;
 
             let startPos = { x: cueBall.x, y: cueBall.y }; 
@@ -1614,4 +1620,5 @@
     </script>
 </body>
 </html>
+
 
