@@ -149,12 +149,12 @@
         const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
 
         // Calibración
-        const FRICTION = 0.988;           // Fricción del paño (más realista que 0.99)
-        const MIN_SPEED = 0.04;           // Umbral para detenerse
-        const RAIL_RESTITUTION = 0.80;    // Rebote de las bandas (menos elástico)
-        const BALL_RESTITUTION = 0.92;    // Rebote entre bolas
-        const SPIN_FACTOR_CUSHION = 0.45; // Cuánto agarra el efecto en la banda
-        const POWER_MULTIPLIER = 0.24;    // Potencia del taco
+        const FRICTION = 0.988;           // Fricción
+        const MIN_SPEED = 0.04;           // Umbral stop
+        const RAIL_RESTITUTION = 0.80;    // Rebote banda
+        const BALL_RESTITUTION = 0.92;    // Rebote bola
+        const SPIN_FACTOR_CUSHION = 0.45; // Efecto banda
+        const POWER_MULTIPLIER = 0.15;    // Potencia REDUCIDA (antes 0.24) para mejor control en móvil
 
         // --- ESTADO ---
         let cueBall = { x: 0, y: 0, vx: 0, vy: 0, active: true };
@@ -310,8 +310,7 @@
             ctxSpin.fillStyle='rgba(220,38,38,0.9)'; ctxSpin.fill();
         }
 
-        // --- LÓGICA FÍSICA COMPARTIDA (PREDICCIÓN Y REAL) ---
-        // 1. Colisión Pared
+        // --- LÓGICA FÍSICA COMPARTIDA ---
         function getWallCollision(pos, dir) {
             let tMin = Infinity, type = null;
             if(dir.x > 0.001) { let t = (PLAYABLE_RECT.right - BALL_RADIUS - pos.x)/dir.x; if(t>0 && t<tMin) {tMin=t; type='right';} }
@@ -320,8 +319,6 @@
             else if(dir.y < -0.001) { let t = (PLAYABLE_RECT.top + BALL_RADIUS - pos.y)/dir.y; if(t>0 && t<tMin) {tMin=t; type='top';} }
             return {t:tMin, type:type};
         }
-        
-        // 2. Colisión Bola
         function getBallCollision(pos, dir, target) {
             const v = {x:target.x-pos.x, y:target.y-pos.y};
             const dot = v.x*dir.x + v.y*dir.y; if(dot<=0) return {t:Infinity};
@@ -342,7 +339,6 @@
             if(mag < 0.01) return;
             dir.x /= mag; dir.y /= mag;
             
-            // Simular primer segmento
             let wall = getWallCollision(pos, dir);
             let ball = blackBall.active ? getBallCollision(pos, dir, blackBall) : {t:Infinity};
             let t = Math.min(wall.t, ball.t);
@@ -354,17 +350,13 @@
             ctx.strokeStyle = gameState==='aimLocked' ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.5)';
             ctx.setLineDash(gameState==='aimLocked' ? [] : [4,4]); ctx.lineWidth=2; ctx.stroke(); ctx.setLineDash([]);
 
-            // Predicción Post-Colisión (simplificada)
             if(ball.t < wall.t && blackBall.active) {
-                // Choque con bola
                 let bDir = {x:blackBall.x-hit.x, y:blackBall.y-hit.y};
                 let bMag = Math.hypot(bDir.x, bDir.y);
                 if(bMag > 0.001) { bDir.x/=bMag; bDir.y/=bMag; drawPath(blackBall, bDir, 'rgba(255,255,0,0.6)'); }
                 
-                // Rebote de blanca (tangente)
                 let tang = {x:-bDir.y, y:bDir.x}; 
                 if(dir.x*tang.x + dir.y*tang.y < 0) { tang.x*=-1; tang.y*=-1; }
-                // Efecto "Follow/Draw" aproximado
                 let follow = spinEffect.y < 0 ? -spinEffect.y : 0;
                 let cDir = { x: bDir.x*follow + tang.x, y: bDir.y*follow + tang.y };
                 let cMag = Math.hypot(cDir.x, cDir.y);
@@ -373,11 +365,9 @@
                     drawPath({x:hit.x-bDir.x*BALL_RADIUS, y:hit.y-bDir.y*BALL_RADIUS}, cDir, 'rgba(255,165,0,0.6)'); 
                 }
             } else if(isFinite(wall.t)) {
-                 // Choque con banda con efecto
                  let nDir = {...dir};
                  if(wall.type.match(/left|right/)) { 
                      nDir.x *= -1; 
-                     // Aplicar efecto banda igual que en física real
                      nDir.y += spinEffect.x * SPIN_FACTOR_CUSHION * (wall.type=='right'?-1:1) * Math.sign(nDir.y||1);
                  } else { 
                      nDir.y *= -1; 
@@ -391,7 +381,6 @@
             if (!Number.isFinite(pos.x) || !Number.isFinite(pos.y)) return;
             ctx.beginPath(); ctx.moveTo(pos.x, pos.y);
             let p = {...pos}, d = {...dir};
-            // Dibujar 1 rebote extra
             let w = getWallCollision(p, d); 
             if(isFinite(w.t)) {
                 let h = {x:p.x+d.x*w.t, y:p.y+d.y*w.t}; ctx.lineTo(h.x, h.y); 
@@ -401,15 +390,49 @@
             ctx.strokeStyle=color; ctx.stroke();
         }
 
+        // --- DIBUJAR TACO (CORREGIDO) ---
         function drawPoolCue() {
-            if(!cueBall.active) return;
+            if(!cueBall.active || !Number.isFinite(BALL_RADIUS) || BALL_RADIUS <= 0) return;
+            
             const ang = Math.atan2(aimDir.y, aimDir.x);
             let pull = powerBar.value * 2;
-            ctx.save(); ctx.translate(cueBall.x, cueBall.y); ctx.rotate(ang);
-            ctx.fillStyle='#d1ae74'; ctx.fillRect(-300-pull, -4, 280, 8);
-            ctx.fillStyle='#fff'; ctx.fillRect(-20-pull, -4, 10, 8);
+            
+            // Dimensiones proporcionales a la bola
+            const tipW = BALL_RADIUS * 0.6;   // Punta más fina
+            const buttW = BALL_RADIUS * 1.2;  // Mango más grueso
+            const len = TABLE_WIDTH * 0.4;    // Largo relativo a la mesa
+            const offset = BALL_RADIUS * 1.5 + pull; // Distancia de la bola
+
+            ctx.save(); 
+            ctx.translate(cueBall.x, cueBall.y); 
+            ctx.rotate(ang);
+            
+            // Dibujar el taco con forma cónica (Path)
+            ctx.beginPath();
+            ctx.moveTo(-offset, -tipW/2);              // Punta arriba
+            ctx.lineTo(-offset - len, -buttW/2);       // Mango arriba
+            ctx.lineTo(-offset - len, buttW/2);        // Mango abajo
+            ctx.lineTo(-offset, tipW/2);               // Punta abajo
+            ctx.closePath();
+
+            // Color madera degradado
+            const grad = ctx.createLinearGradient(-offset - len, 0, -offset, 0);
+            grad.addColorStop(0, '#5c4033'); // Mango oscuro
+            grad.addColorStop(1, '#d2b48c'); // Punta clara
+            ctx.fillStyle = grad;
+            ctx.fill();
+            
+            // Virola (punta blanca)
+            ctx.fillStyle = '#f0f0f0';
+            ctx.fillRect(-offset - (BALL_RADIUS*0.4), -tipW/2, BALL_RADIUS*0.4, tipW);
+            
+            // Suela (punta azul)
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(-offset, -tipW/2, -BALL_RADIUS*0.15, tipW);
+
             ctx.restore();
         }
+
         function drawGhostBall() {
              if(gameState!=='aiming' || draggingBall) return;
              ctx.save(); ctx.globalAlpha=0.3; ctx.beginPath(); ctx.arc(mousePos.x, mousePos.y, BALL_RADIUS, 0, Math.PI*2);
@@ -420,7 +443,6 @@
         function updatePhysics() {
             let moving = false;
             
-            // 1. Movimiento y Fricción
             balls.forEach(b => { 
                 if(b.active) { 
                     b.vx *= FRICTION; 
@@ -430,11 +452,9 @@
                 } 
             });
             
-            // 2. Colisión Bandas (Sincronizada con Predicción)
             balls.forEach(b => {
                 if(!b.active || (b.vx==0 && b.vy==0)) return;
                 
-                // Buchacas
                 POCKETS.forEach(p => { 
                     if(Math.hypot(b.x-p.x, b.y-p.y) < POCKET_RADIUS) { 
                         b.active=false; b.vx=0; b.vy=0; 
@@ -446,25 +466,23 @@
                 let hit = false;
                 let spinX = (b === cueBall) ? spinEffect.x : 0;
 
-                // Rebotes con efecto
-                if(b.x + BALL_RADIUS > PLAYABLE_RECT.right) { // Derecha
+                if(b.x + BALL_RADIUS > PLAYABLE_RECT.right) { 
                     b.x = PLAYABLE_RECT.right - BALL_RADIUS; 
                     b.vx *= -RAIL_RESTITUTION;
-                    // Efecto en banda:
                     if(b === cueBall) b.vy += spinX * SPIN_FACTOR_CUSHION * -1 * Math.sign(b.vy||1);
                     hit = true;
-                } else if(b.x - BALL_RADIUS < PLAYABLE_RECT.left) { // Izquierda
+                } else if(b.x - BALL_RADIUS < PLAYABLE_RECT.left) { 
                     b.x = PLAYABLE_RECT.left + BALL_RADIUS; 
                     b.vx *= -RAIL_RESTITUTION;
                     if(b === cueBall) b.vy += spinX * SPIN_FACTOR_CUSHION * 1 * Math.sign(b.vy||1);
                     hit = true;
                 }
-                if(b.y + BALL_RADIUS > PLAYABLE_RECT.bottom) { // Abajo
+                if(b.y + BALL_RADIUS > PLAYABLE_RECT.bottom) { 
                     b.y = PLAYABLE_RECT.bottom - BALL_RADIUS; 
                     b.vy *= -RAIL_RESTITUTION;
                     if(b === cueBall) b.vx += spinX * SPIN_FACTOR_CUSHION * 1 * Math.sign(b.vx||1);
                     hit = true;
-                } else if(b.y - BALL_RADIUS < PLAYABLE_RECT.top) { // Arriba
+                } else if(b.y - BALL_RADIUS < PLAYABLE_RECT.top) { 
                     b.y = PLAYABLE_RECT.top + BALL_RADIUS; 
                     b.vy *= -RAIL_RESTITUTION;
                     if(b === cueBall) b.vx += spinX * SPIN_FACTOR_CUSHION * -1 * Math.sign(b.vx||1);
@@ -476,11 +494,10 @@
                         let v = Math.min(Math.hypot(b.vx, b.vy)/8, 1);
                         cushionHitSound.triggerAttackRelease("C2", "16n", Tone.now(), v*0.7);
                     } catch(e){}
-                    if(b === cueBall) spinEffect.x *= 0.8; // Degradar efecto tras golpe
+                    if(b === cueBall) spinEffect.x *= 0.8; 
                 }
             });
 
-            // 3. Colisión Bolas
             if(cueBall.active && blackBall.active) {
                  let dx = blackBall.x - cueBall.x;
                  let dy = blackBall.y - cueBall.y;
@@ -489,28 +506,22 @@
                  if(dist < BALL_RADIUS*2 && dist > 0.0001) {
                      try{ballCollisionSound.triggerAttackRelease("G4","16n");}catch(e){}
                      
-                     // Normal y Tangente
                      let nx = dx/dist, ny = dy/dist;
-                     
-                     // Velocidad relativa normal
                      let v1n = cueBall.vx * nx + cueBall.vy * ny;
                      let v2n = blackBall.vx * nx + blackBall.vy * ny;
-                     
-                     // Intercambio de momento con restitución
                      let dv = v1n - v2n;
-                     let impulse = (-(1 + BALL_RESTITUTION) * dv) / 2; // Masas iguales
+                     let impulse = (-(1 + BALL_RESTITUTION) * dv) / 2; 
                      
                      cueBall.vx += impulse * nx; 
                      cueBall.vy += impulse * ny; 
                      blackBall.vx -= impulse * nx; 
                      blackBall.vy -= impulse * ny;
                      
-                     // Corrección de posición (evitar solapamiento)
                      let overlap = (BALL_RADIUS*2 - dist) / 2;
                      cueBall.x -= overlap * nx; cueBall.y -= overlap * ny;
                      blackBall.x += overlap * nx; blackBall.y += overlap * ny;
                      
-                     spinEffect.y = 0; // Reset efecto vertical al chocar bola
+                     spinEffect.y = 0; 
                  }
             }
             
