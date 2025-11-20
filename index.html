@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <!-- Prevent zooming and ensure proper scaling on mobile -->
+    <!-- Prevenir zoom y asegurar escala correcta en móviles -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Simulador de Trayectoria de Billar</title>
 
@@ -12,11 +12,9 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Dancing+Script:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        /* Estilo para la fuente Inter */
         html, body {
             height: 100%; 
-            /* Usar dvh para móviles modernos */
-            height: 100dvh;
+            height: 100dvh; 
             margin: 0;
             padding: 0;
             font-family: 'Inter', sans-serif;
@@ -34,6 +32,19 @@
         body.aim-locked #poolTable { cursor: default; }
         #spinControlCanvas { cursor: pointer; }
         .elegant-script { font-family: 'Dancing Script', cursive; }
+
+        /* Mantiene la proporción 2:1 estricta */
+        .table-container-fixed {
+            aspect-ratio: 2 / 1;
+            width: 100%;
+            height: auto;
+            max-width: 100%;
+            max-height: 100%;
+            @supports not (aspect-ratio: 2 / 1) {
+                height: 0;
+                padding-bottom: 50%; 
+            }
+        }
 
         /* Barra de Fuerza */
         #powerBar {
@@ -59,12 +70,10 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
 
-        /* --- MODO PAISAJE MÓVIL --- */
+        /* MODO PAISAJE MÓVIL */
         @media (max-height: 600px) and (orientation: landscape) {
             #header-block, #footer-credits { display: none !important; }
-            #main-container {
-                flex-direction: row !important; align-items: center;
-            }
+            #main-container { flex-direction: row !important; align-items: center; }
             #controls-wrapper {
                 width: auto !important; flex-direction: column !important;
                 padding: 0.5rem !important; gap: 0.5rem !important;
@@ -74,30 +83,14 @@
             button { padding: 0.25rem 0.75rem !important; font-size: 0.875rem !important; }
         }
 
-        /* --- PANTALLA COMPLETA (Real y Simulada) --- */
-        /* Esta clase se aplica tanto con la API nativa como con el fallback */
+        /* PANTALLA COMPLETA */
         body.maximize-area {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            z-index: 9999;
-            width: 100vw;
-            height: 100dvh;
-            background-color: #111827;
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999;
+            width: 100vw; height: 100dvh; background-color: #111827;
         }
-        body.maximize-area #header-block,
-        body.maximize-area #footer-credits { 
-            display: none !important;
-        }
-        body.maximize-area #table-wrapper {
-            height: 100%; 
-            max-height: 100%;
-            padding: 0;
-        }
-        body.maximize-area #main-container {
-            height: 100%;
-            width: 100%;
-            padding: 0;
-        }
+        body.maximize-area #header-block, body.maximize-area #footer-credits { display: none !important; }
+        body.maximize-area #table-wrapper { height: 100%; max-height: 100%; padding: 0; }
+        body.maximize-area #main-container { height: 100%; width: 100%; padding: 0; }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-100 flex flex-col items-center p-2 h-full">
@@ -115,7 +108,7 @@
             </div>
 
             <div id="table-wrapper" class="flex-1 w-full flex items-center justify-center min-h-0 py-1">
-                <div class="aspect-[2/1] w-full max-w-full max-h-full bg-yellow-900 border-4 md:border-8 border-yellow-800 rounded-lg shadow-2xl overflow-hidden relative">
+                <div class="table-container-fixed bg-yellow-900 border-4 md:border-8 border-yellow-800 rounded-lg shadow-2xl overflow-hidden relative">
                     <canvas id="poolTable" class="w-full h-full touch-none"></canvas>
                 </div>
             </div>
@@ -128,33 +121,25 @@
         </div>
 
         <div id="controls-wrapper" class="w-full md:w-32 lg:w-48 flex flex-row md:flex-col items-center justify-around md:justify-center bg-gray-800 rounded-lg p-2 md:p-4 gap-4 md:gap-6 flex-shrink-0 shadow-lg border border-gray-700">
-            
             <div class="flex flex-col items-center justify-center">
                 <div class="p-1 rounded-full bg-gray-700 shadow-inner border border-gray-600">
                     <canvas id="spinControlCanvas"></canvas>
                 </div>
                 <span class="text-[10px] md:text-xs text-gray-400 mt-1 uppercase tracking-wider">Efecto</span>
             </div>
-
             <div class="flex flex-col items-center gap-1">
                 <input type="range" id="powerBar" min="0" max="100" value="0" step="1" orient="vertical">
                 <label for="powerBar" class="text-[10px] md:text-xs text-gray-400 uppercase tracking-wider">Fuerza</label>
             </div>
-
             <div class="flex flex-col gap-2 w-24 md:w-full">
-                <button id="resetButton" class="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold py-2 px-2 rounded text-xs md:text-sm transition-colors shadow" title="Reiniciar">
-                    Reiniciar
-                </button>
-                <button id="fullscreenButton" class="w-full bg-gray-600 hover:bg-gray-700 active:bg-gray-800 text-white font-bold py-2 px-2 rounded text-xs md:text-sm transition-colors shadow" title="Pantalla Completa">
-                    Pantalla
-                </button>
+                <button id="resetButton" class="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold py-2 px-2 rounded text-xs md:text-sm transition-colors shadow">Reiniciar</button>
+                <button id="fullscreenButton" class="w-full bg-gray-600 hover:bg-gray-700 active:bg-gray-800 text-white font-bold py-2 px-2 rounded text-xs md:text-sm transition-colors shadow">Pantalla</button>
             </div>
-
         </div>
     </div>
 
     <script>
-        // --- CONFIGURACIÓN ---
+        // --- CONFIGURACIÓN & CONSTANTES FÍSICAS CALIBRADAS ---
         const canvas = document.getElementById('poolTable');
         const ctx = canvas.getContext('2d');
         const resetButton = document.getElementById('resetButton');
@@ -162,6 +147,14 @@
         const ctxSpin = canvasSpin.getContext('2d');
         const powerBar = document.getElementById('powerBar');
         const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+
+        // Calibración
+        const FRICTION = 0.988;           // Fricción del paño (más realista que 0.99)
+        const MIN_SPEED = 0.04;           // Umbral para detenerse
+        const RAIL_RESTITUTION = 0.80;    // Rebote de las bandas (menos elástico)
+        const BALL_RESTITUTION = 0.92;    // Rebote entre bolas
+        const SPIN_FACTOR_CUSHION = 0.45; // Cuánto agarra el efecto en la banda
+        const POWER_MULTIPLIER = 0.24;    // Potencia del taco
 
         // --- ESTADO ---
         let cueBall = { x: 0, y: 0, vx: 0, vy: 0, active: true };
@@ -177,11 +170,9 @@
         let spinBallControl = { x: 0, y: 0, radius: 0 };
         let spinIndicator = { x: 0, y: 0 };
 
-        // --- FÍSICA Y MESA ---
         let TABLE_WIDTH = 0, TABLE_HEIGHT = 0;
         let CUSHION_SIZE, BALL_RADIUS, POCKET_RADIUS;
         let POCKETS = [], PLAYABLE_RECT = {};
-        const FRICTION = 0.99, MIN_SPEED = 0.05, SPIN_FACTOR_CUSHION = 0.4, POWER_MULTIPLIER = 0.22, RESTITUTION = 0.95; 
 
         // --- SONIDOS ---
         let soundsReady = false;
@@ -213,7 +204,8 @@
              if (canvas.width <= 0) { requestAnimationFrame(setupCanvas); return; }
              
              TABLE_WIDTH = canvas.width; TABLE_HEIGHT = canvas.height;
-             CUSHION_SIZE = TABLE_WIDTH * 0.045; BALL_RADIUS = Math.max(TABLE_WIDTH * 0.015, 5); 
+             CUSHION_SIZE = TABLE_WIDTH * 0.045; 
+             BALL_RADIUS = Math.max(TABLE_WIDTH * 0.015, 5); 
              POCKET_RADIUS = BALL_RADIUS * 1.8;
              PLAYABLE_RECT = {
                  left: CUSHION_SIZE, top: CUSHION_SIZE,
@@ -249,33 +241,41 @@
              if (spinBallControl.x) { spinIndicator = {...spinBallControl}; drawSpinControl(); }
         }
 
-        // --- DIBUJO SIMPLIFICADO ---
+        // --- DIBUJO ---
         function drawTable() {
              if (!TABLE_WIDTH) return;
              ctx.clearRect(0, 0, TABLE_WIDTH, TABLE_HEIGHT);
              const woodGradient = ctx.createLinearGradient(0, 0, 0, TABLE_HEIGHT);
-             woodGradient.addColorStop(0, '#6b2112'); woodGradient.addColorStop(0.5, '#a1331d'); woodGradient.addColorStop(1, '#6b2112');
+             woodGradient.addColorStop(0, '#6b2112'); woodGradient.addColorStop(1, '#4a170c');
              ctx.fillStyle = woodGradient; ctx.fillRect(0, 0, TABLE_WIDTH, TABLE_HEIGHT);
              
              const diamondR = CUSHION_SIZE * 0.18; 
              const segX = PLAYABLE_RECT.width / 8, segY = PLAYABLE_RECT.height / 4;
              const drawD = (x,y) => {
+                if (!Number.isFinite(x) || !Number.isFinite(y)) return;
                 ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.4)'; ctx.shadowBlur = 2; ctx.shadowOffsetY = 1;
                 const g = ctx.createRadialGradient(x, y-1, 0, x, y, diamondR); g.addColorStop(0, '#FFF'); g.addColorStop(1, '#e0e0e0');
                 ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, diamondR, 0, Math.PI*2); ctx.fill(); ctx.restore();
              };
+             // Rieles
              for(let i=1; i<=7; i++) { drawD(PLAYABLE_RECT.left + segX*i, PLAYABLE_RECT.top/2); drawD(PLAYABLE_RECT.left + segX*i, PLAYABLE_RECT.bottom + CUSHION_SIZE/2); }
              for(let i=1; i<=3; i++) { drawD(PLAYABLE_RECT.left/2, PLAYABLE_RECT.top + segY*i); drawD(PLAYABLE_RECT.right + CUSHION_SIZE/2, PLAYABLE_RECT.top + segY*i); }
              
+             // Fieltro
              ctx.fillStyle = '#059669'; ctx.fillRect(PLAYABLE_RECT.left, PLAYABLE_RECT.top, PLAYABLE_RECT.width, PLAYABLE_RECT.height);
+             
              const baulkX = PLAYABLE_RECT.left + segX*2;
              ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 1;
              ctx.beginPath(); ctx.moveTo(baulkX, PLAYABLE_RECT.top); ctx.lineTo(baulkX, PLAYABLE_RECT.bottom); ctx.stroke();
              
-             ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 8;
-             ctx.beginPath(); ctx.rect(0,0,TABLE_WIDTH, TABLE_HEIGHT); ctx.rect(PLAYABLE_RECT.left, PLAYABLE_RECT.top, PLAYABLE_RECT.width, PLAYABLE_RECT.height);
-             ctx.clip('evenodd'); ctx.fillRect(0,0,TABLE_WIDTH, TABLE_HEIGHT); ctx.restore();
-             
+             // Sombras internas
+             ctx.fillStyle = 'rgba(0,0,0,0.3)';
+             ctx.fillRect(PLAYABLE_RECT.left, PLAYABLE_RECT.top, PLAYABLE_RECT.width, 4); 
+             ctx.fillRect(PLAYABLE_RECT.left, PLAYABLE_RECT.bottom-4, PLAYABLE_RECT.width, 4); 
+             ctx.fillRect(PLAYABLE_RECT.left, PLAYABLE_RECT.top, 4, PLAYABLE_RECT.height); 
+             ctx.fillRect(PLAYABLE_RECT.right-4, PLAYABLE_RECT.top, 4, PLAYABLE_RECT.height); 
+
+             // Buchacas
              POCKETS.forEach(p => {
                 const g = ctx.createRadialGradient(p.x, p.y, POCKET_RADIUS*0.5, p.x, p.y, POCKET_RADIUS);
                 g.addColorStop(0, '#111'); g.addColorStop(1, '#000');
@@ -284,21 +284,22 @@
         }
 
         function drawBall(ball, color) {
+            if (!Number.isFinite(ball.x) || !Number.isFinite(ball.y) || !Number.isFinite(BALL_RADIUS)) return;
             ctx.save(); ctx.beginPath(); ctx.arc(ball.x + BALL_RADIUS*0.1, ball.y + BALL_RADIUS*0.15, BALL_RADIUS, 0, Math.PI*2);
             ctx.fillStyle = 'rgba(0,0,0,0.2)'; ctx.shadowBlur = BALL_RADIUS*0.3; ctx.fill(); ctx.restore();
-            
             ctx.beginPath(); 
             const g = ctx.createRadialGradient(ball.x - BALL_RADIUS*0.3, ball.y - BALL_RADIUS*0.4, BALL_RADIUS*0.05, ball.x, ball.y, BALL_RADIUS);
             if(color==='#FFFFFF'){ g.addColorStop(0,'#FFF'); g.addColorStop(1,'#ccc'); } else { g.addColorStop(0,'#666'); g.addColorStop(1,'#000'); }
             ctx.fillStyle = g; ctx.arc(ball.x, ball.y, BALL_RADIUS, 0, Math.PI*2); ctx.fill();
         }
         function drawBlackBall() {
+            if (!Number.isFinite(blackBall.x) || !Number.isFinite(blackBall.y)) return;
             drawBall(blackBall, '#000');
             ctx.beginPath(); ctx.arc(blackBall.x, blackBall.y, BALL_RADIUS*0.5, 0, Math.PI*2); ctx.fillStyle='#FFF'; ctx.fill();
             ctx.fillStyle='#000'; ctx.font=`bold ${BALL_RADIUS*0.75}px Arial`; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('8', blackBall.x, blackBall.y + BALL_RADIUS*0.05);
         }
         function drawSpinControl() {
-            if(!canvasSpin.width) return;
+            if(!canvasSpin.width || !Number.isFinite(spinBallControl.radius)) return;
             ctxSpin.clearRect(0,0,100,100);
             ctxSpin.save(); ctxSpin.beginPath(); ctxSpin.arc(spinBallControl.x+1, spinBallControl.y+2, spinBallControl.radius, 0, Math.PI*2);
             ctxSpin.fillStyle='rgba(0,0,0,0.2)'; ctxSpin.fill(); ctxSpin.restore();
@@ -309,16 +310,19 @@
             ctxSpin.fillStyle='rgba(220,38,38,0.9)'; ctxSpin.fill();
         }
 
-        // --- LÓGICA FISICA (Simplificada para brevedad) ---
-        function findWallCollision(pos, dir) {
+        // --- LÓGICA FÍSICA COMPARTIDA (PREDICCIÓN Y REAL) ---
+        // 1. Colisión Pared
+        function getWallCollision(pos, dir) {
             let tMin = Infinity, type = null;
             if(dir.x > 0.001) { let t = (PLAYABLE_RECT.right - BALL_RADIUS - pos.x)/dir.x; if(t>0 && t<tMin) {tMin=t; type='right';} }
             else if(dir.x < -0.001) { let t = (PLAYABLE_RECT.left + BALL_RADIUS - pos.x)/dir.x; if(t>0 && t<tMin) {tMin=t; type='left';} }
             if(dir.y > 0.001) { let t = (PLAYABLE_RECT.bottom - BALL_RADIUS - pos.y)/dir.y; if(t>0 && t<tMin) {tMin=t; type='bottom';} }
             else if(dir.y < -0.001) { let t = (PLAYABLE_RECT.top + BALL_RADIUS - pos.y)/dir.y; if(t>0 && t<tMin) {tMin=t; type='top';} }
-            return {t:tMin, hitType:type};
+            return {t:tMin, type:type};
         }
-        function findBallCollision(pos, dir, target) {
+        
+        // 2. Colisión Bola
+        function getBallCollision(pos, dir, target) {
             const v = {x:target.x-pos.x, y:target.y-pos.y};
             const dot = v.x*dir.x + v.y*dir.y; if(dot<=0) return {t:Infinity};
             const distSq = (v.x*v.x + v.y*v.y) - (dot*dot);
@@ -328,13 +332,19 @@
             return {t: t>0 ? t : Infinity};
         }
 
+        // --- TRAYECTORIA PREDICTIVA ---
         function drawFullTrajectory() {
             if ((gameState !== 'aiming' && gameState !== 'aimLocked') || !cueBall.active) return;
-            let pos = {x:cueBall.x, y:cueBall.y}, dir = {...aimDir}, mag = Math.hypot(dir.x, dir.y);
-            if(mag<0.01) return; dir.x/=mag; dir.y/=mag;
             
-            let wall = findWallCollision(pos, dir);
-            let ball = blackBall.active ? findBallCollision(pos, dir, blackBall) : {t:Infinity};
+            let pos = {x:cueBall.x, y:cueBall.y};
+            let dir = {...aimDir};
+            let mag = Math.hypot(dir.x, dir.y);
+            if(mag < 0.01) return;
+            dir.x /= mag; dir.y /= mag;
+            
+            // Simular primer segmento
+            let wall = getWallCollision(pos, dir);
+            let ball = blackBall.active ? getBallCollision(pos, dir, blackBall) : {t:Infinity};
             let t = Math.min(wall.t, ball.t);
             if(t === Infinity || t > 2000) t = 2000;
 
@@ -344,35 +354,53 @@
             ctx.strokeStyle = gameState==='aimLocked' ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.5)';
             ctx.setLineDash(gameState==='aimLocked' ? [] : [4,4]); ctx.lineWidth=2; ctx.stroke(); ctx.setLineDash([]);
 
+            // Predicción Post-Colisión (simplificada)
             if(ball.t < wall.t && blackBall.active) {
-                let bDir = {x:blackBall.x-hit.x, y:blackBall.y-hit.y}, bMag = Math.hypot(bDir.x, bDir.y);
-                if(bMag>0.01) { bDir.x/=bMag; bDir.y/=bMag; drawPath(blackBall, bDir, 'rgba(255,255,0,0.6)'); }
+                // Choque con bola
+                let bDir = {x:blackBall.x-hit.x, y:blackBall.y-hit.y};
+                let bMag = Math.hypot(bDir.x, bDir.y);
+                if(bMag > 0.001) { bDir.x/=bMag; bDir.y/=bMag; drawPath(blackBall, bDir, 'rgba(255,255,0,0.6)'); }
                 
+                // Rebote de blanca (tangente)
                 let tang = {x:-bDir.y, y:bDir.x}; 
                 if(dir.x*tang.x + dir.y*tang.y < 0) { tang.x*=-1; tang.y*=-1; }
-                
-                // Aproximación efecto
+                // Efecto "Follow/Draw" aproximado
                 let follow = spinEffect.y < 0 ? -spinEffect.y : 0;
                 let cDir = { x: bDir.x*follow + tang.x, y: bDir.y*follow + tang.y };
                 let cMag = Math.hypot(cDir.x, cDir.y);
-                if(cMag>0.01) { cDir.x/=cMag; cDir.y/=cMag; drawPath({x:hit.x-bDir.x*BALL_RADIUS, y:hit.y-bDir.y*BALL_RADIUS}, cDir, 'rgba(255,165,0,0.6)'); }
+                if(cMag>0.01) { 
+                    cDir.x/=cMag; cDir.y/=cMag; 
+                    drawPath({x:hit.x-bDir.x*BALL_RADIUS, y:hit.y-bDir.y*BALL_RADIUS}, cDir, 'rgba(255,165,0,0.6)'); 
+                }
             } else if(isFinite(wall.t)) {
-                 let nDir = {...dir}, spinX = spinEffect.x;
-                 if(wall.hitType.match(/left|right/)) { nDir.x*=-1; nDir.y += spinX*0.4*(wall.hitType=='right'?-1:1)*Math.sign(nDir.y||1); }
-                 else { nDir.y*=-1; nDir.x += spinX*0.4*(wall.hitType=='bottom'?1:-1)*Math.sign(nDir.x||1); }
-                 let nMag = Math.hypot(nDir.x, nDir.y); if(nMag>0.01) { nDir.x/=nMag; nDir.y/=nMag; drawPath(hit, nDir, 'rgba(255,255,255,0.4)'); }
+                 // Choque con banda con efecto
+                 let nDir = {...dir};
+                 if(wall.type.match(/left|right/)) { 
+                     nDir.x *= -1; 
+                     // Aplicar efecto banda igual que en física real
+                     nDir.y += spinEffect.x * SPIN_FACTOR_CUSHION * (wall.type=='right'?-1:1) * Math.sign(nDir.y||1);
+                 } else { 
+                     nDir.y *= -1; 
+                     nDir.x += spinEffect.x * SPIN_FACTOR_CUSHION * (wall.type=='bottom'?1:-1) * Math.sign(nDir.x||1);
+                 }
+                 let nMag = Math.hypot(nDir.x, nDir.y); 
+                 if(nMag>0.01) { nDir.x/=nMag; nDir.y/=nMag; drawPath(hit, nDir, 'rgba(255,255,255,0.4)'); }
             }
         }
         function drawPath(pos, dir, color) {
+            if (!Number.isFinite(pos.x) || !Number.isFinite(pos.y)) return;
             ctx.beginPath(); ctx.moveTo(pos.x, pos.y);
             let p = {...pos}, d = {...dir};
-            for(let i=0; i<2; i++) {
-                let w = findWallCollision(p, d); if(!isFinite(w.t)) break;
-                let h = {x:p.x+d.x*w.t, y:p.y+d.y*w.t}; ctx.lineTo(h.x, h.y); p=h;
-                if(w.hitType.match(/left|right/)) d.x*=-1; else d.y*=-1;
+            // Dibujar 1 rebote extra
+            let w = getWallCollision(p, d); 
+            if(isFinite(w.t)) {
+                let h = {x:p.x+d.x*w.t, y:p.y+d.y*w.t}; ctx.lineTo(h.x, h.y); 
+            } else {
+                ctx.lineTo(p.x+d.x*1000, p.y+d.y*1000);
             }
             ctx.strokeStyle=color; ctx.stroke();
         }
+
         function drawPoolCue() {
             if(!cueBall.active) return;
             const ang = Math.atan2(aimDir.y, aimDir.x);
@@ -388,37 +416,112 @@
              ctx.fillStyle='#fff'; ctx.fill(); ctx.restore();
         }
 
-        // --- GAME LOOP & EVENTS ---
+        // --- FÍSICA REAL (CALIBRADA) ---
         function updatePhysics() {
             let moving = false;
+            
+            // 1. Movimiento y Fricción
             balls.forEach(b => { 
                 if(b.active) { 
-                    b.vx*=FRICTION; b.vy*=FRICTION; 
-                    if(Math.hypot(b.vx, b.vy)<MIN_SPEED) {b.vx=0;b.vy=0;} else {b.x+=b.vx; b.y+=b.vy; moving=true;} 
+                    b.vx *= FRICTION; 
+                    b.vy *= FRICTION; 
+                    if(Math.hypot(b.vx, b.vy) < MIN_SPEED) { b.vx=0; b.vy=0; } 
+                    else { b.x += b.vx; b.y += b.vy; moving=true; }
                 } 
             });
             
-            // Simplificado colisiones
+            // 2. Colisión Bandas (Sincronizada con Predicción)
             balls.forEach(b => {
                 if(!b.active || (b.vx==0 && b.vy==0)) return;
-                POCKETS.forEach(p => { if(Math.hypot(b.x-p.x, b.y-p.y)<POCKET_RADIUS) { b.active=false; b.vx=0; b.vy=0; try{pocketSound.triggerAttackRelease("16n");}catch(e){} setTimeout(()=>{if(b==cueBall)resetToStartPositions(); else b.active=true;}, 500); } });
                 
-                if(b.x+BALL_RADIUS > PLAYABLE_RECT.right) { b.x=PLAYABLE_RECT.right-BALL_RADIUS; b.vx*=-RESTITUTION; }
-                else if(b.x-BALL_RADIUS < PLAYABLE_RECT.left) { b.x=PLAYABLE_RECT.left+BALL_RADIUS; b.vx*=-RESTITUTION; }
-                if(b.y+BALL_RADIUS > PLAYABLE_RECT.bottom) { b.y=PLAYABLE_RECT.bottom-BALL_RADIUS; b.vy*=-RESTITUTION; }
-                else if(b.y-BALL_RADIUS < PLAYABLE_RECT.top) { b.y=PLAYABLE_RECT.top+BALL_RADIUS; b.vy*=-RESTITUTION; }
+                // Buchacas
+                POCKETS.forEach(p => { 
+                    if(Math.hypot(b.x-p.x, b.y-p.y) < POCKET_RADIUS) { 
+                        b.active=false; b.vx=0; b.vy=0; 
+                        try{pocketSound.triggerAttackRelease("16n");}catch(e){} 
+                        setTimeout(()=>{ if(b==cueBall) resetToStartPositions(); else b.active=true; }, 500); 
+                    } 
+                });
+                
+                let hit = false;
+                let spinX = (b === cueBall) ? spinEffect.x : 0;
+
+                // Rebotes con efecto
+                if(b.x + BALL_RADIUS > PLAYABLE_RECT.right) { // Derecha
+                    b.x = PLAYABLE_RECT.right - BALL_RADIUS; 
+                    b.vx *= -RAIL_RESTITUTION;
+                    // Efecto en banda:
+                    if(b === cueBall) b.vy += spinX * SPIN_FACTOR_CUSHION * -1 * Math.sign(b.vy||1);
+                    hit = true;
+                } else if(b.x - BALL_RADIUS < PLAYABLE_RECT.left) { // Izquierda
+                    b.x = PLAYABLE_RECT.left + BALL_RADIUS; 
+                    b.vx *= -RAIL_RESTITUTION;
+                    if(b === cueBall) b.vy += spinX * SPIN_FACTOR_CUSHION * 1 * Math.sign(b.vy||1);
+                    hit = true;
+                }
+                if(b.y + BALL_RADIUS > PLAYABLE_RECT.bottom) { // Abajo
+                    b.y = PLAYABLE_RECT.bottom - BALL_RADIUS; 
+                    b.vy *= -RAIL_RESTITUTION;
+                    if(b === cueBall) b.vx += spinX * SPIN_FACTOR_CUSHION * 1 * Math.sign(b.vx||1);
+                    hit = true;
+                } else if(b.y - BALL_RADIUS < PLAYABLE_RECT.top) { // Arriba
+                    b.y = PLAYABLE_RECT.top + BALL_RADIUS; 
+                    b.vy *= -RAIL_RESTITUTION;
+                    if(b === cueBall) b.vx += spinX * SPIN_FACTOR_CUSHION * -1 * Math.sign(b.vx||1);
+                    hit = true;
+                }
+
+                if(hit && soundsReady) {
+                    try { 
+                        let v = Math.min(Math.hypot(b.vx, b.vy)/8, 1);
+                        cushionHitSound.triggerAttackRelease("C2", "16n", Tone.now(), v*0.7);
+                    } catch(e){}
+                    if(b === cueBall) spinEffect.x *= 0.8; // Degradar efecto tras golpe
+                }
             });
 
+            // 3. Colisión Bolas
             if(cueBall.active && blackBall.active) {
-                 let dx=blackBall.x-cueBall.x, dy=blackBall.y-cueBall.y, dist=Math.hypot(dx,dy);
-                 if(dist < BALL_RADIUS*2) {
+                 let dx = blackBall.x - cueBall.x;
+                 let dy = blackBall.y - cueBall.y;
+                 let dist = Math.hypot(dx, dy);
+                 
+                 if(dist < BALL_RADIUS*2 && dist > 0.0001) {
                      try{ballCollisionSound.triggerAttackRelease("G4","16n");}catch(e){}
-                     let nx=dx/dist, ny=dy/dist, p=2*(cueBall.vx*nx + cueBall.vy*ny - blackBall.vx*nx - blackBall.vy*ny)/2;
-                     cueBall.vx -= p*nx; cueBall.vy -= p*ny; blackBall.vx += p*nx; blackBall.vy += p*ny;
-                     let o = (BALL_RADIUS*2-dist)/2; cueBall.x-=o*nx; cueBall.y-=o*ny; blackBall.x+=o*nx; blackBall.y+=o*ny;
+                     
+                     // Normal y Tangente
+                     let nx = dx/dist, ny = dy/dist;
+                     
+                     // Velocidad relativa normal
+                     let v1n = cueBall.vx * nx + cueBall.vy * ny;
+                     let v2n = blackBall.vx * nx + blackBall.vy * ny;
+                     
+                     // Intercambio de momento con restitución
+                     let dv = v1n - v2n;
+                     let impulse = (-(1 + BALL_RESTITUTION) * dv) / 2; // Masas iguales
+                     
+                     cueBall.vx += impulse * nx; 
+                     cueBall.vy += impulse * ny; 
+                     blackBall.vx -= impulse * nx; 
+                     blackBall.vy -= impulse * ny;
+                     
+                     // Corrección de posición (evitar solapamiento)
+                     let overlap = (BALL_RADIUS*2 - dist) / 2;
+                     cueBall.x -= overlap * nx; cueBall.y -= overlap * ny;
+                     blackBall.x += overlap * nx; blackBall.y += overlap * ny;
+                     
+                     spinEffect.y = 0; // Reset efecto vertical al chocar bola
                  }
             }
-            if(!moving) setTimeout(()=> { if(balls.every(b=>!b.active||(b.vx==0&&b.vy==0)) && gameState==='simulating') { gameState='aiming'; document.body.classList.remove('aim-locked'); } }, 100);
+            
+            if(!moving) {
+                setTimeout(()=> { 
+                    if(balls.every(b=>!b.active || (Math.abs(b.vx)<0.001 && Math.abs(b.vy)<0.001)) && gameState==='simulating') { 
+                        gameState='aiming'; 
+                        document.body.classList.remove('aim-locked'); 
+                    } 
+                }, 100);
+            }
         }
 
         function gameLoop() {
@@ -430,7 +533,7 @@
             requestAnimationFrame(gameLoop);
         }
 
-        // --- EVENTOS INTERFAZ ---
+        // --- EVENTOS ---
         function getPos(e) {
             const r = canvas.getBoundingClientRect();
             let cx = e.touches?e.touches[0].clientX:e.clientX, cy = e.touches?e.touches[0].clientY:e.clientY;
@@ -467,7 +570,14 @@
             if(m>0.1) { aimDir.x=dx/m; aimDir.y=dy/m; }
         }
 
-        // --- SPINNER ---
+        // Spin
+        function setupSpinControl() {
+             const spinSize = 100; 
+             canvasSpin.width = spinSize; canvasSpin.height = spinSize; 
+             spinBallControl.radius = canvasSpin.width * 0.4; 
+             spinBallControl.x = canvasSpin.width / 2; spinBallControl.y = canvasSpin.height / 2; 
+             spinIndicator = {x: spinBallControl.x, y: spinBallControl.y};
+        }
         function setSpin(e) {
             const r = canvasSpin.getBoundingClientRect();
             let cx = e.touches?e.touches[0].clientX:e.clientX, cy = e.touches?e.touches[0].clientY:e.clientY;
@@ -478,7 +588,7 @@
         ['mousedown','mousemove','touchstart','touchmove'].forEach(ev => canvasSpin.addEventListener(ev, e => { if(ev.match(/start|down/)) isSettingSpin=true; if(isSettingSpin) { e.preventDefault(); setSpin(e); } }, {passive:false}));
         ['mouseup','touchend'].forEach(ev => window.addEventListener(ev, () => isSettingSpin=false));
 
-        // --- DISPARO ---
+        // Disparo
         powerBar.addEventListener('input', () => { if(gameState==='aiming'||gameState==='aimLocked') drawPoolCue(); });
         ['mouseup','touchend'].forEach(ev => powerBar.addEventListener(ev, () => {
             let v = parseInt(powerBar.value); powerBar.value=0;
@@ -488,58 +598,39 @@
                 try{ cueHitSound.triggerAttackRelease("C3","8n"); }catch(e){}
             }
         }));
-
         resetButton.addEventListener('click', () => { startAudioContext(); restoreLastPositions(); });
 
-        // --- PANTALLA COMPLETA ROBUSTA ---
+        // Fullscreen
         const appEl = document.documentElement;
         const fullBtn = document.getElementById('fullscreenButton');
-        
-        // Función Toggle mejorada para fallbacks
         async function toggleFullScreen() {
             try {
-                // 1. Si ya estamos en fullscreen (nativo o falso), salir.
                 const isNativeFull = document.fullscreenElement || document.webkitFullscreenElement;
                 const isFakeFull = document.body.classList.contains('maximize-area');
-
                 if (isNativeFull) {
                     if (document.exitFullscreen) await document.exitFullscreen();
                     else if (document.webkitExitFullscreen) await document.webkitExitFullscreen();
                 } else if (isFakeFull) {
-                    // Salir del modo falso
-                    document.body.classList.remove('maximize-area');
-                    setTimeout(setupCanvas, 100);
+                    document.body.classList.remove('maximize-area'); setTimeout(setupCanvas, 100);
                 } else {
-                    // 2. Intentar entrar
-                    // Primero probamos API nativa
                     if (appEl.requestFullscreen) await appEl.requestFullscreen();
                     else if (appEl.webkitRequestFullscreen) await appEl.webkitRequestFullscreen();
-                    else {
-                        // Si no existe API (ej. iPhone), lanzamos error para ir al catch
-                        throw new Error("API no soportada");
-                    }
+                    else throw new Error("API no soportada");
                 }
             } catch (err) {
-                console.log("Usando fallback CSS fullscreen");
-                // Fallback: Toggle clase CSS forzada
-                document.body.classList.toggle('maximize-area');
-                setTimeout(setupCanvas, 100);
+                document.body.classList.toggle('maximize-area'); setTimeout(setupCanvas, 100);
             }
         }
-
-        // Listener para cambios nativos (tecla Esc, gesto del sistema)
         function onFullChange() {
             const isFull = !!(document.fullscreenElement || document.webkitFullscreenElement);
             if (isFull) document.body.classList.add('maximize-area');
-            else if (!document.body.style.position) document.body.classList.remove('maximize-area'); // Solo quitar si no forzamos
+            else if (!document.body.style.position) document.body.classList.remove('maximize-area');
             setTimeout(setupCanvas, 200);
         }
         document.addEventListener('fullscreenchange', onFullChange);
         document.addEventListener('webkitfullscreenchange', onFullChange);
-
         fullBtn.addEventListener('click', () => { startAudioContext(); toggleFullScreen(); });
 
-        // Init
         setupSpinControl();
         gameLoop();
         setupCanvas();
