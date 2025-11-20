@@ -46,27 +46,28 @@
             }
         }
 
-        /* Barra de Fuerza */
+        /* Barra de Fuerza Compacta */
         #powerBar {
             -webkit-appearance: slider-vertical; 
             writing-mode: bt-lr; 
-            width: 24px; 
-            height: 140px;
-            padding: 0 5px;
+            width: 16px; /* Reducido de 24px */
+            height: 100px; /* Reducido de 140px */
+            padding: 0;
             transform: rotate(180deg); 
             touch-action: none; 
+            margin: 5px 0;
         }
         #powerBar::-webkit-slider-thumb {
             -webkit-appearance: none; appearance: none;
-            width: 32px; height: 32px;
+            width: 24px; height: 24px; /* Reducido de 32px */
             background: #2563eb; cursor: pointer;
-            border-radius: 50%; border: 3px solid #f0f0f0;
+            border-radius: 50%; border: 2px solid #f0f0f0;
             box-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
         #powerBar::-moz-range-thumb {
-            width: 32px; height: 32px;
+            width: 24px; height: 24px; /* Reducido de 32px */
             background: #2563eb; cursor: pointer;
-            border-radius: 50%; border: 3px solid #f0f0f0;
+            border-radius: 50%; border: 2px solid #f0f0f0;
             box-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
 
@@ -76,11 +77,11 @@
             #main-container { flex-direction: row !important; align-items: center; }
             #controls-wrapper {
                 width: auto !important; flex-direction: column !important;
-                padding: 0.5rem !important; gap: 0.5rem !important;
+                padding: 0.25rem !important; gap: 0.25rem !important;
                 height: 100%; justify-content: center;
             }
-            #powerBar { height: 100px; }
-            button { padding: 0.25rem 0.75rem !important; font-size: 0.875rem !important; }
+            #powerBar { height: 80px; }
+            button { padding: 0.2rem 0.5rem !important; font-size: 0.75rem !important; }
         }
 
         /* PANTALLA COMPLETA */
@@ -95,12 +96,12 @@
 </head>
 <body class="bg-gray-900 text-gray-100 flex flex-col items-center p-2 h-full">
 
-    <div id="main-container" class="w-full max-w-7xl flex flex-col md:flex-row items-center flex-grow min-h-0 gap-2 md:gap-4">
+    <div id="main-container" class="w-full max-w-7xl flex flex-col md:flex-row items-center flex-grow min-h-0 gap-2 md:gap-3">
 
         <div id="main-content-wrapper" class="flex-1 flex flex-col items-center w-full min-h-0 h-full justify-center">
             <div id="header-block" class="flex flex-col items-center w-full px-2 py-1 gap-1 flex-shrink-0 text-center transition-all">
                 <h1 class="text-xl md:text-3xl font-bold text-white leading-tight">Simulador de Billar</h1>
-                <p class="text-xs md:text-base text-gray-400">
+                <p class="text-xs md:text-sm text-gray-400">
                     <span class="hidden md:inline">Apunta con el ratón.</span>
                     <span class="md:hidden">Arrastra para apuntar.</span>
                     <b><span class="hidden md:inline">Clic</span><span class="md:hidden">Levanta</span> para bloquear.</b>
@@ -120,21 +121,30 @@
             </div>
         </div>
 
-        <div id="controls-wrapper" class="w-full md:w-32 lg:w-48 flex flex-row md:flex-col items-center justify-around md:justify-center bg-gray-800 rounded-lg p-2 md:p-4 gap-4 md:gap-6 flex-shrink-0 shadow-lg border border-gray-700">
+        <!-- Panel de Controles Compacto -->
+        <div id="controls-wrapper" class="w-full md:w-24 lg:w-32 flex flex-row md:flex-col items-center justify-around md:justify-center bg-gray-800 rounded-lg p-2 md:p-3 gap-3 md:gap-4 flex-shrink-0 shadow-lg border border-gray-700">
+            
             <div class="flex flex-col items-center justify-center">
                 <div class="p-1 rounded-full bg-gray-700 shadow-inner border border-gray-600">
                     <canvas id="spinControlCanvas"></canvas>
                 </div>
-                <span class="text-[10px] md:text-xs text-gray-400 mt-1 uppercase tracking-wider">Efecto</span>
+                <span class="text-[9px] md:text-[10px] text-gray-400 mt-1 uppercase tracking-wider">Efecto</span>
             </div>
-            <div class="flex flex-col items-center gap-1">
+
+            <div class="flex flex-col items-center gap-0">
                 <input type="range" id="powerBar" min="0" max="100" value="0" step="1" orient="vertical">
-                <label for="powerBar" class="text-[10px] md:text-xs text-gray-400 uppercase tracking-wider">Fuerza</label>
+                <label for="powerBar" class="text-[9px] md:text-[10px] text-gray-400 uppercase tracking-wider">Fuerza</label>
             </div>
+
             <div class="flex flex-col gap-2 w-24 md:w-full">
-                <button id="resetButton" class="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold py-2 px-2 rounded text-xs md:text-sm transition-colors shadow">Reiniciar</button>
-                <button id="fullscreenButton" class="w-full bg-gray-600 hover:bg-gray-700 active:bg-gray-800 text-white font-bold py-2 px-2 rounded text-xs md:text-sm transition-colors shadow">Pantalla</button>
+                <button id="resetButton" class="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold py-1 px-2 rounded text-[10px] md:text-xs transition-colors shadow">
+                    Reiniciar
+                </button>
+                <button id="fullscreenButton" class="w-full bg-gray-600 hover:bg-gray-700 active:bg-gray-800 text-white font-bold py-1 px-2 rounded text-[10px] md:text-xs transition-colors shadow">
+                    Pantalla
+                </button>
             </div>
+
         </div>
     </div>
 
@@ -154,7 +164,7 @@
         const RAIL_RESTITUTION = 0.80;    // Rebote banda
         const BALL_RESTITUTION = 0.92;    // Rebote bola
         const SPIN_FACTOR_CUSHION = 0.45; // Efecto banda
-        const POWER_MULTIPLIER = 0.15;    // Potencia REDUCIDA (antes 0.24) para mejor control en móvil
+        const POWER_MULTIPLIER = 0.15;    // Potencia REDUCIDA
 
         // --- ESTADO ---
         let cueBall = { x: 0, y: 0, vx: 0, vy: 0, active: true };
@@ -173,6 +183,11 @@
         let TABLE_WIDTH = 0, TABLE_HEIGHT = 0;
         let CUSHION_SIZE, BALL_RADIUS, POCKET_RADIUS;
         let POCKETS = [], PLAYABLE_RECT = {};
+
+        // --- UTILIDADES ---
+        function clamp(val, min, max) {
+            return Math.min(Math.max(val, min), max);
+        }
 
         // --- SONIDOS ---
         let soundsReady = false;
@@ -390,7 +405,7 @@
             ctx.strokeStyle=color; ctx.stroke();
         }
 
-        // --- DIBUJAR TACO (CORREGIDO) ---
+        // --- DIBUJAR TACO ---
         function drawPoolCue() {
             if(!cueBall.active || !Number.isFinite(BALL_RADIUS) || BALL_RADIUS <= 0) return;
             
@@ -561,17 +576,35 @@
             startAudioContext();
             if(gameState==='simulating') return;
             let p = getPos(e); if(!p) return; mousePos = p;
+            
+            // Distancias
             let dC = Math.hypot(p.x-cueBall.x, p.y-cueBall.y);
-            if(dC < BALL_RADIUS*2) draggingBall = cueBall;
+            let dB = Math.hypot(p.x-blackBall.x, p.y-blackBall.y);
+            
+            // Radio de agarre más generoso
+            const grabDist = BALL_RADIUS * 2.5;
+
+            if(dC < grabDist && cueBall.active) {
+                draggingBall = cueBall; 
+            } else if(dB < grabDist && blackBall.active) {
+                draggingBall = blackBall; // Ahora puedes mover la negra
+            }
             else if(isTouchDevice && gameState==='aiming') { /* solo mover */ } 
             else if(!isTouchDevice && gameState==='aiming') { gameState='aimLocked'; document.body.classList.add('aim-locked'); updateAim(p); }
             else if(gameState==='aimLocked') { gameState='aiming'; document.body.classList.remove('aim-locked'); }
         }
+
         function handleMove(e) {
             let p = getPos(e); if(!p) return; mousePos = p;
-            if(draggingBall) { draggingBall.x=p.x; draggingBall.y=p.y; e.preventDefault(); }
+            if(draggingBall) { 
+                // Mover con límites de mesa
+                draggingBall.x = clamp(p.x, PLAYABLE_RECT.left + BALL_RADIUS, PLAYABLE_RECT.right - BALL_RADIUS);
+                draggingBall.y = clamp(p.y, PLAYABLE_RECT.top + BALL_RADIUS, PLAYABLE_RECT.bottom - BALL_RADIUS);
+                e.preventDefault(); 
+            }
             else if(cueBall.active && (isTouchDevice || gameState==='aiming')) { updateAim(p); if(e.type=='touchmove') e.preventDefault(); }
         }
+
         function handleEnd() {
             if(isTouchDevice && !draggingBall && gameState==='aiming') { gameState='aimLocked'; document.body.classList.add('aim-locked'); }
             draggingBall = null; isSettingSpin=false;
@@ -583,7 +616,7 @@
 
         // Spin
         function setupSpinControl() {
-             const spinSize = 100; 
+             const spinSize = 70; // Reducido de 100 a 70
              canvasSpin.width = spinSize; canvasSpin.height = spinSize; 
              spinBallControl.radius = canvasSpin.width * 0.4; 
              spinBallControl.x = canvasSpin.width / 2; spinBallControl.y = canvasSpin.height / 2; 
@@ -592,9 +625,25 @@
         function setSpin(e) {
             const r = canvasSpin.getBoundingClientRect();
             let cx = e.touches?e.touches[0].clientX:e.clientX, cy = e.touches?e.touches[0].clientY:e.clientY;
-            let dx = cx-r.left-50, dy = cy-r.top-50, d=Math.hypot(dx,dy);
-            if(d>40) { let a=Math.atan2(dy,dx); dx=Math.cos(a)*40; dy=Math.sin(a)*40; }
-            spinIndicator = {x:50+dx, y:50+dy}; spinEffect = {x:dx/40, y:dy/40}; drawSpinControl();
+            
+            const centerX = canvasSpin.width / 2;
+            const centerY = canvasSpin.height / 2;
+            const maxDist = canvasSpin.width * 0.4;
+            
+            // Corregir cálculo relativo al nuevo tamaño dinámico
+            let dx = cx - r.left - centerX;
+            let dy = cy - r.top - centerY;
+            
+            let d = Math.hypot(dx, dy);
+            if(d > maxDist) { 
+                let a = Math.atan2(dy, dx); 
+                dx = Math.cos(a) * maxDist; 
+                dy = Math.sin(a) * maxDist; 
+            }
+            
+            spinIndicator = {x: centerX + dx, y: centerY + dy}; 
+            spinEffect = {x: dx/maxDist, y: dy/maxDist}; 
+            drawSpinControl();
         }
         ['mousedown','mousemove','touchstart','touchmove'].forEach(ev => canvasSpin.addEventListener(ev, e => { if(ev.match(/start|down/)) isSettingSpin=true; if(isSettingSpin) { e.preventDefault(); setSpin(e); } }, {passive:false}));
         ['mouseup','touchend'].forEach(ev => window.addEventListener(ev, () => isSettingSpin=false));
