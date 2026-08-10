@@ -513,15 +513,15 @@
         const HeroSection = ({ item, onPlay, isFavorite, onToggleFavorite }) => {
             if (!item) return null;
             return (
-                <div className="relative w-full h-[24vh] sm:h-[30vh] overflow-hidden rounded-xl mb-6 group animate-fade-in shadow-lg">
+                <div className="relative w-full h-[22vh] sm:h-[28vh] overflow-hidden rounded-xl mb-6 group animate-fade-in shadow-lg">
                     <div className="absolute inset-0">
                         <img src={item.image || item.poster} alt="Hero" className="w-full h-full object-cover opacity-50" onError={(e) => e.target.src = 'https://placehold.co/800x400/111827/ffffff?text=Stream'} />
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#111827] via-[#111827]/50 to-transparent"></div>
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#111827] via-[#111827]/60 to-transparent"></div>
                     </div>
-                    <div className="absolute inset-0 flex items-end p-4 sm:p-5 max-w-7xl mx-auto">
+                    <div className="absolute inset-0 flex items-end p-3 sm:p-5 max-w-7xl mx-auto">
                         <div className="flex flex-col gap-1 items-start w-full">
-                            <span className="bg-[#E50914] text-white text-[8px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">Destacada</span>
-                            <h1 className="text-lg sm:text-2xl font-black text-white leading-tight line-clamp-1">{item.title || item.name}</h1>
+                            <span className="bg-[#E50914] text-white text-[8px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">Película Destacada</span>
+                            <h1 className="text-base sm:text-2xl font-black text-white leading-tight line-clamp-1">{item.title || item.name}</h1>
                             <p className="text-gray-300 text-xs max-w-md line-clamp-1">{item.description || item.plot || "Disfruta del mejor contenido seleccionado para ti."}</p>
                             <div className="flex gap-2 mt-1">
                                 <button onClick={() => onPlay(item)} className="bg-white text-black px-4 py-1.5 rounded-lg font-bold text-xs flex items-center gap-1 active:scale-95 transition-transform"><Icon name="play" size={14} fill="black"/> Reproducir</button>
