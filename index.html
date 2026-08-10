@@ -54,9 +54,14 @@
         .text-gold-gradient { background: linear-gradient(to right, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C); -webkit-background-clip: text; background-clip: text; color: transparent; }
         .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
         
-        /* Modificado para eliminar fondos negros excesivos en móviles */
-        .iframe-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; background: transparent !important; }
+        /* Ajustes para evitar que las capas bloqueen el video en móviles */
+        .iframe-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; background: transparent !important; pointer-events: auto; }
         .iframe-container iframe { width: 100%; height: 100%; border: 0; background: transparent !important; }
+        
+        /* Permitir clics seguros en los botones flotantes sin obstruir el centro del video */
+        .player-overlay-controls { pointer-events: none; }
+        .player-overlay-controls > * { pointer-events: auto; }
+
         button:focus, div[tabindex="0"]:focus, input:focus { outline: 3px solid #E50914; outline-offset: 2px; z-index: 50; transform: scale(1.05); transition: all 0.2s; }
         
         video { background-color: transparent !important; background: transparent !important; }
@@ -608,7 +613,7 @@
                         ) : selectedItem ? (
                             <div className="animate-fade-in">
                                 <div className="w-full bg-[#111827] relative aspect-video md:h-[70vh] flex flex-col items-center justify-center overflow-hidden">
-                                    <div className="absolute top-4 left-4 z-30">
+                                    <div className="absolute top-4 left-4 z-30 player-overlay-controls">
                                         <button onClick={() => {setSelectedItem(null); setIsLocked(false);}} className="bg-black/50 hover:bg-[#E50914] text-white px-4 py-2 rounded-full backdrop-blur-md flex items-center gap-2 transition-colors border border-white/10">
                                             <Icon name="arrowLeft" size={18} /> <span>Volver</span>
                                         </button>
@@ -617,7 +622,7 @@
                                     <LockScreen correctCode={selectedItem.codigo || selectedItem.password || selectedItem.pin} onUnlock={() => setIsLocked(false)} onCancel={() => {setSelectedItem(null); setIsLocked(false);}} />
                                     ) : (
                                         <>
-                                            <div className="absolute top-4 right-4 z-35">
+                                            <div className="absolute top-4 right-4 z-35 player-overlay-controls">
                                                 <a href={selectedItem.type === 'series' && selectedEpisode ? selectedEpisode.url : selectedItem.url} target="_blank" rel="noopener noreferrer" className="bg-[#E50914] hover:bg-red-700 text-white px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-lg backdrop-blur-md">
                                                     <Icon name="external" size={14} /> Ver en Pantalla Completa
                                                 </a>
