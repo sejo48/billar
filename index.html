@@ -53,9 +53,14 @@
         .heart-pop { animation: heartPop 0.3s ease-in-out; }
         .text-gold-gradient { background: linear-gradient(to right, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C); -webkit-background-clip: text; background-clip: text; color: transparent; }
         .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+        
+        /* Modificado para eliminar fondos negros excesivos en móviles */
+        .iframe-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; background: transparent !important; }
+        .iframe-container iframe { width: 100%; height: 100%; border: 0; background: transparent !important; }
         button:focus, div[tabindex="0"]:focus, input:focus { outline: 3px solid #E50914; outline-offset: 2px; z-index: 50; transform: scale(1.05); transition: all 0.2s; }
-        video { background-color: #000 !important; background: #000 !important; display: block; }
-        video::-webkit-media-controls-panel { background-color: rgba(0,0,0,.75); }
+        
+        video { background-color: transparent !important; background: transparent !important; }
+        video::-webkit-media-controls-panel { background-color: transparent; }
     </style>
 </head>
 <body>
@@ -151,127 +156,6 @@
             SERIES: 'https://raw.githubusercontent.com/sejo48/jorgedrive/refs/heads/main/playlist.json',
             MOVIES: 'https://raw.githubusercontent.com/sejo48/peliculas/refs/heads/main/peliculas.json',
             ANIMADOS: 'https://raw.githubusercontent.com/sejo48/animados./refs/heads/main/animados.json'
-        };
-
-        // Restaurado a la lógica de URL original (Minimal)
-        const cleanDriveUrl = (url) => {
-            if (!url) return '';
-            if (url.includes('drive.google.com')) {
-                const match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
-                if (match) {
-                    // Usamos la URL directa del archivo en lugar del visor de Google Drive.
-                    // El visor es el que suele mostrar una pantalla negra mientras carga.
-                    return `https://drive.google.com/uc?export=download&id=${match[1]}`;
-                }
-            }
-            return url;
-        };
-
-        const isHlsUrl = (url) => /\.m3u8(?:$|[?#])/i.test(url || '');
-        const isVideoUrl = (url) => /\.(mp4|webm|ogg|m4v|mov)(?:$|[?#])/i.test(url || '') || isHlsUrl(url);
-
-        const MediaPlayer = ({ url, title, onClose }) => {
-            const videoRef = useRef(null);
-            const hlsRef = useRef(null);
-            const [error, setError] = useState(false);
-            const [loadingMedia, setLoadingMedia] = useState(true);
-
-            useEffect(() => {
-                const video = videoRef.current;
-                if (!video || !url) return;
-
-                setError(false);
-                setLoadingMedia(true);
-
-                const start = () => setLoadingMedia(false);
-                const fail = () => {
-                    setLoadingMedia(false);
-                    setError(true);
-                };
-
-                video.addEventListener('loadeddata', start);
-                video.addEventListener('canplay', start);
-                video.addEventListener('error', fail);
-
-                if (isHlsUrl(url) && window.Hls && window.Hls.isSupported()) {
-                    const hls = new window.Hls({
-                        enableWorker: true,
-                        lowLatencyMode: true,
-                        backBufferLength: 30
-                    });
-                    hlsRef.current = hls;
-                    hls.loadSource(url);
-                    hls.attachMedia(video);
-                    hls.on(window.Hls.Events.MANIFEST_PARSED, () => {
-                        setLoadingMedia(false);
-                        video.play().catch(() => {});
-                    });
-                    hls.on(window.Hls.Events.ERROR, (_, data) => {
-                        if (data?.fatal) {
-                            try { hls.destroy(); } catch (e) {}
-                            fail();
-                        }
-                    });
-                } else {
-                    video.src = url;
-                    video.load();
-                    video.play().catch(() => {});
-                }
-
-                return () => {
-                    video.removeEventListener('loadeddata', start);
-                    video.removeEventListener('canplay', start);
-                    video.removeEventListener('error', fail);
-                    if (hlsRef.current) {
-                        try { hlsRef.current.destroy(); } catch (e) {}
-                        hlsRef.current = null;
-                    }
-                    video.pause();
-                    video.removeAttribute('src');
-                    video.load();
-                };
-            }, [url]);
-
-            return (
-                <div className="absolute inset-0 bg-black flex items-center justify-center">
-                    <video
-                        ref={videoRef}
-                        className="w-full h-full object-contain"
-                        controls
-                        playsInline
-                        preload="auto"
-                        poster=""
-                        style={{ background: '#000' }}
-                    />
-                    {loadingMedia && !error && (
-                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none bg-black/20">
-                            <div className="flex flex-col items-center gap-3">
-                                <div className="w-10 h-10 border-4 border-white/20 border-t-[#E50914] rounded-full animate-spin"></div>
-                                <span className="text-xs text-gray-300">Cargando video...</span>
-                            </div>
-                        </div>
-                    )}
-                    {error && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-[#111827] p-6 text-center">
-                            <div>
-                                <Icon name="alertCircle" size={42} className="mx-auto mb-3 text-[#E50914]" />
-                                <h3 className="font-bold text-white mb-2">No se pudo reproducir el video</h3>
-                                <p className="text-sm text-gray-400 mb-5">El enlace puede estar protegido o no permitir reproducción directa.</p>
-                                <a href={url} target="_blank" rel="noopener noreferrer"
-                                   className="inline-flex bg-[#E50914] text-white px-5 py-2.5 rounded-lg font-bold">
-                                    Abrir enlace original
-                                </a>
-                            </div>
-                        </div>
-                    )}
-                    <div className="absolute top-4 left-4 z-30">
-                        <button onClick={onClose}
-                                className="bg-black/70 hover:bg-[#E50914] text-white px-4 py-2 rounded-full backdrop-blur-md flex items-center gap-2 border border-white/10">
-                            <Icon name="arrowLeft" size={18} /> Volver
-                        </button>
-                    </div>
-                </div>
-            );
         };
 
         const Icon = ({ name, size = 24, className, fill = "none" }) => {
@@ -520,6 +404,17 @@
 
             useEffect(() => { fetchNotifs(); }, []);
 
+            const cleanDriveUrl = (url) => { 
+                if (!url) return ''; 
+                if (url.includes('drive.google.com')) { 
+                    const match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
+                    if (match) {
+                        return `https://drive.google.com/file/d/${match[1]}/preview?usp=sharing&rm=minimal&autoplay=1`;
+                    }
+                } 
+                return url; 
+            };
+            
             const shareViaWhatsApp = () => { const text = `¡Mira esta app increíble! Entra aquí: ${window.location.href}`; window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank'); };
 
             const safeParseJSON = (text, fallback) => {
@@ -719,13 +614,18 @@
                                         </button>
                                     </div>
                                     {isLocked ? (
-                                        <LockScreen correctCode={selectedItem.codigo || selectedItem.password || selectedItem.pin} onUnlock={() => setIsLocked(false)} onCancel={() => {setSelectedItem(null); setIsLocked(false);}} />
+                                    <LockScreen correctCode={selectedItem.codigo || selectedItem.password || selectedItem.pin} onUnlock={() => setIsLocked(false)} onCancel={() => {setSelectedItem(null); setIsLocked(false);}} />
                                     ) : (
-                                        <MediaPlayer
-                                            url={selectedItem.type === 'series' && selectedEpisode ? selectedEpisode.url : selectedItem.url}
-                                            title={selectedItem.title || selectedItem.name}
-                                            onClose={() => { setSelectedItem(null); setIsLocked(false); }}
-                                        />
+                                        <>
+                                            <div className="absolute top-4 right-4 z-35">
+                                                <a href={selectedItem.type === 'series' && selectedEpisode ? selectedEpisode.url : selectedItem.url} target="_blank" rel="noopener noreferrer" className="bg-[#E50914] hover:bg-red-700 text-white px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-lg backdrop-blur-md">
+                                                    <Icon name="external" size={14} /> Ver en Pantalla Completa
+                                                </a>
+                                            </div>
+                                            <div className="iframe-container">
+                                                <iframe src={selectedItem.type === 'series' && selectedEpisode ? selectedEpisode.url : selectedItem.url} allow="autoplay; encrypted-media; fullscreen" allowFullScreen></iframe>
+                                            </div>
+                                        </>
                                     )}
                                 </div>
                                 {!isLocked && (
