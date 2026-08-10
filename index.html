@@ -2,627 +2,713 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Simulador de Trayectoria de Billar</title>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MAGIS Tube Ultimate - Jorge</title>
+    
+    <!-- Librerías Externas -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Librería de Sonido -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    
+    <!-- Firebase Clásico (Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    
+    <!-- Forzar a Babel a usar el modo clásico -->
+    <script>
+        if (typeof Babel !== 'undefined') {
+            Babel.registerPreset('react-classic', {
+                presets: [
+                    [Babel.availablePresets['react'], { runtime: 'classic' }]
+                ]
+            });
+        }
+    </script>
+    
+    <!-- Fuentes -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Cinzel:wght@700&display=swap" rel="stylesheet">
 
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Dancing+Script:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        html, body {
-            height: 100%; 
-            height: 100dvh; 
-            margin: 0;
-            padding: 0;
-            font-family: 'Inter', sans-serif;
-            overflow: hidden; 
-            background-color: #111827; 
-        }
+        body { background-color: #111827; color: white; font-family: 'Inter', sans-serif; overflow-x: hidden; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #1f2937; }
+        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 2px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(229,9,20,0.5); }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes heartPop { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        .animate-fade-in { animation: fadeIn 0.6s ease-out; }
+        .animate-slide-up { animation: slideUp 0.8s ease-out; }
+        .animate-shake { animation: shake 0.2s ease-in-out 0s 2; }
+        .heart-pop { animation: heartPop 0.3s ease-in-out; }
+        .text-gold-gradient { background: linear-gradient(to right, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+        .iframe-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; background: #111827; }
+        .iframe-container iframe { width: 100%; height: 100%; border: 0; }
+        button:focus, div[tabindex="0"]:focus, input:focus { outline: 3px solid #E50914; outline-offset: 2px; z-index: 50; transform: scale(1.05); transition: all 0.2s; }
         
-        canvas {
-            background-color: #059669; 
-            display: block; 
-            touch-action: none; 
-        }
-
-        #poolTable { cursor: crosshair; }
-        body.aim-locked #poolTable { cursor: default; }
-        #spinControlCanvas { cursor: pointer; }
-        .elegant-script { font-family: 'Dancing Script', cursive; }
-
-        .table-container-fixed {
-            aspect-ratio: 2 / 1;
-            width: 100%;
-            height: auto;
-            max-width: 100%;
-            max-height: 100%;
-            @supports not (aspect-ratio: 2 / 1) {
-                height: 0;
-                padding-bottom: 50%; 
-            }
-        }
-
-        #powerBar {
-            -webkit-appearance: slider-vertical; 
-            writing-mode: bt-lr; 
-            width: 16px; 
-            height: 100px; 
-            padding: 0;
-            transform: rotate(180deg); 
-            touch-action: none; 
-            margin: 5px 0;
-        }
-        #powerBar::-webkit-slider-thumb {
-            -webkit-appearance: none; appearance: none;
-            width: 24px; height: 24px; 
-            background: #2563eb; cursor: pointer;
-            border-radius: 50%; border: 2px solid #f0f0f0;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-        }
-        #powerBar::-moz-range-thumb {
-            width: 24px; height: 24px; 
-            background: #2563eb; cursor: pointer;
-            border-radius: 50%; border: 2px solid #f0f0f0;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-        }
-
-        @media (max-height: 600px) and (orientation: landscape) {
-            #header-block, #footer-credits { display: none !important; }
-            #main-container { flex-direction: row !important; align-items: center; }
-            #controls-wrapper {
-                width: auto !important; flex-direction: column !important;
-                padding: 0.25rem !important; gap: 0.25rem !important;
-                height: 100%; justify-content: center;
-            }
-            #powerBar { height: 80px; }
-            button { padding: 0.2rem 0.5rem !important; font-size: 0.75rem !important; }
-        }
-
-        body.maximize-area {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999;
-            width: 100vw; height: 100dvh; background-color: #111827;
-        }
-        body.maximize-area #header-block, body.maximize-area #footer-credits { display: none !important; }
-        body.maximize-area #table-wrapper { height: 100%; max-height: 100%; padding: 0; }
-        body.maximize-area #main-container { height: 100%; width: 100%; padding: 0; }
+        video { background-color: transparent !important; background: transparent !important; }
+        video::-webkit-media-controls-panel { background-color: transparent; }
     </style>
 </head>
-<body class="bg-gray-900 text-gray-100 flex flex-col items-center p-2 h-full">
-
-    <div id="main-container" class="w-full max-w-7xl flex flex-col md:flex-row items-center flex-grow min-h-0 gap-2 md:gap-3">
-
-        <div id="main-content-wrapper" class="flex-1 flex flex-col items-center w-full min-h-0 h-full justify-center">
-            <div id="header-block" class="flex flex-col items-center w-full px-2 py-1 gap-1 flex-shrink-0 text-center transition-all">
-                <h1 class="text-xl md:text-3xl font-bold text-white leading-tight">Simulador de Billar</h1>
-                <p class="text-xs md:text-sm text-gray-400">
-                    <span class="hidden md:inline">Apunta con el ratón.</span>
-                    <span class="md:hidden">Arrastra para apuntar.</span>
-                    <b><span class="hidden md:inline">Clic</span><span class="md:hidden">Levanta</span> para bloquear.</b>
-                </p>
-            </div>
-
-            <div id="table-wrapper" class="flex-1 w-full flex items-center justify-center min-h-0 py-1">
-                <div class="table-container-fixed bg-yellow-900 border-4 md:border-8 border-yellow-800 rounded-lg shadow-2xl overflow-hidden relative">
-                    <canvas id="poolTable" class="w-full h-full touch-none"></canvas>
-                </div>
-            </div>
-
-            <div id="footer-credits" class="py-1 flex-shrink-0">
-                <p class="elegant-script text-base md:text-xl text-gray-500">
-                    Por Jorge Hernández
-                </p>
-            </div>
-        </div>
-
-        <!-- Panel de Controles -->
-        <div id="controls-wrapper" class="w-full md:w-24 lg:w-32 flex flex-row md:flex-col items-center justify-around md:justify-center bg-gray-800 rounded-lg p-2 md:p-3 gap-3 md:gap-4 flex-shrink-0 shadow-lg border border-gray-700">
-            
-            <div class="flex flex-col items-center justify-center">
-                <div class="p-1 rounded-full bg-gray-700 shadow-inner border border-gray-600">
-                    <canvas id="spinControlCanvas"></canvas>
-                </div>
-                <span class="text-[9px] md:text-[10px] text-gray-400 mt-1 uppercase tracking-wider">Efecto</span>
-            </div>
-
-            <div class="flex flex-col items-center gap-0">
-                <input type="range" id="powerBar" min="0" max="100" value="0" step="1" orient="vertical">
-                <label for="powerBar" class="text-[9px] md:text-[10px] text-gray-400 uppercase tracking-wider">Fuerza</label>
-            </div>
-
-            <div class="flex flex-col gap-2 w-24 md:w-full">
-                <button id="resetButton" class="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold py-1 px-2 rounded text-[10px] md:text-xs transition-colors shadow">
-                    Deshacer
-                </button>
-                <button id="fullscreenButton" class="w-full bg-gray-600 hover:bg-gray-700 active:bg-gray-800 text-white font-bold py-1 px-2 rounded text-[10px] md:text-xs transition-colors shadow">
-                    Pantalla
-                </button>
-            </div>
-
+<body>
+    <div id="root">
+        <div style="display:flex;height:100vh;width:100vw;align-items:center;justify-content:center;background:#111827;color:white;flex-direction:column;font-family:sans-serif;">
+            <div style="width:40px;height:40px;border:4px solid #E50914;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;margin-bottom:20px;"></div>
+            <h2>Cargando MAGIS Tube...</h2>
+            <style>@keyframes spin { 100% { transform: rotate(360deg); } }</style>
         </div>
     </div>
 
-    <script>
-        const canvas = document.getElementById('poolTable');
-        const ctx = canvas.getContext('2d');
-        const resetButton = document.getElementById('resetButton');
-        const canvasSpin = document.getElementById('spinControlCanvas');
-        const ctxSpin = canvasSpin.getContext('2d');
-        const powerBar = document.getElementById('powerBar');
-        const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+    <script type="text/babel" data-presets="react-classic">
+        const envConfig = typeof __firebase_config !== 'undefined' ? __firebase_config : '{}';
+        const firebaseConfig = JSON.parse(envConfig);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'magis-tube-local';
 
-        // Calibración
-        const FRICTION = 0.988; 
-        const MIN_SPEED = 0.04; 
-        const RAIL_RESTITUTION = 0.80; 
-        const BALL_RESTITUTION = 0.92; 
-        const SPIN_FACTOR_CUSHION = 0.45; 
-        const POWER_MULTIPLIER = 0.15; 
-
-        // Estado
-        let cueBall = { x: 0, y: 0, vx: 0, vy: 0, active: true };
-        let blackBall = { x: 0, y: 0, vx: 0, vy: 0, active: true };
-        let balls = [cueBall, blackBall];
+        let db = null; let auth = null; let currentUser = null;
         
-        // Undo Memory
-        let lastCueBallPos = null;
-        let lastBlackBallPos = null;
-        let wasLastBlackBallActive = true;
-
-        let mousePos = { x: 0, y: 0 };
-        let draggingBall = null;
-        let isSettingSpin = false;
-        let gameState = 'aiming'; 
-        let aimDir = { x: 1, y: 0 };
-        let spinEffect = { x: 0, y: 0 };
-        let spinBallControl = { x: 0, y: 0, radius: 0 };
-        let spinIndicator = { x: 0, y: 0 };
-
-        let TABLE_WIDTH = 0, TABLE_HEIGHT = 0;
-        let CUSHION_SIZE, BALL_RADIUS, POCKET_RADIUS;
-        let POCKETS = [], PLAYABLE_RECT = {};
-
-        let soundsReady = false;
-        let cueHitSound, ballCollisionSound, cushionHitSound, pocketSound;
-
-        function clamp(val, min, max) { return Math.min(Math.max(val, min), max); }
-
-        function initSounds() {
-             if (soundsReady) return;
-             try {
-                 cueHitSound = new Tone.MembraneSynth({ pitchDecay: 0.01, octaves: 2, envelope: { attack: 0.001, decay: 0.2, sustain: 0.01, release: 0.1 } }).toDestination();
-                 ballCollisionSound = new Tone.MembraneSynth({ pitchDecay: 0.01, octaves: 5, envelope: { attack: 0.001, decay: 0.15, sustain: 0.01, release: 0.1 } }).toDestination();
-                 ballCollisionSound.volume.value = -6;
-                 cushionHitSound = new Tone.MembraneSynth({ pitchDecay: 0.01, octaves: 1, envelope: { attack: 0.001, decay: 0.1, sustain: 0, release: 0.05 } }).toDestination();
-                 cushionHitSound.volume.value = -12;
-                 pocketSound = new Tone.NoiseSynth({ noise: { type: 'brown' }, envelope: { attack: 0.005, decay: 0.2, sustain: 0.01, release: 0.1 } }).toDestination();
-                 pocketSound.volume.value = -6;
-                 soundsReady = true;
-             } catch (e) { console.error(e); soundsReady = false; }
-        }
-        async function startAudioContext() {
-             if (Tone.context.state !== 'running') { try { await Tone.start(); } catch (e) {} }
-             if (!soundsReady) { initSounds(); }
-        }
-
-        function setupCanvas() {
-             const container = canvas.parentElement;
-             if (!container || container.clientWidth === 0) { requestAnimationFrame(setupCanvas); return; }
-             canvas.width = container.clientWidth;
-             canvas.height = container.clientHeight;
-             if (canvas.width <= 0) { requestAnimationFrame(setupCanvas); return; }
-             
-             TABLE_WIDTH = canvas.width; TABLE_HEIGHT = canvas.height;
-             CUSHION_SIZE = TABLE_WIDTH * 0.045; 
-             BALL_RADIUS = Math.max(TABLE_WIDTH * 0.015, 5); 
-             POCKET_RADIUS = BALL_RADIUS * 1.8;
-             PLAYABLE_RECT = {
-                 left: CUSHION_SIZE, top: CUSHION_SIZE,
-                 width: TABLE_WIDTH - 2 * CUSHION_SIZE, height: TABLE_HEIGHT - 2 * CUSHION_SIZE,
-                 right: TABLE_WIDTH - CUSHION_SIZE, bottom: TABLE_HEIGHT - CUSHION_SIZE
-             };
-             POCKETS = [
-                 { x: PLAYABLE_RECT.left, y: PLAYABLE_RECT.top }, { x: TABLE_WIDTH / 2, y: PLAYABLE_RECT.top }, { x: PLAYABLE_RECT.right, y: PLAYABLE_RECT.top },
-                 { x: PLAYABLE_RECT.left, y: PLAYABLE_RECT.bottom },{ x: TABLE_WIDTH / 2, y: PLAYABLE_RECT.bottom }, { x: PLAYABLE_RECT.right, y: PLAYABLE_RECT.bottom }
-             ];
-             if ((gameState === 'aiming' || gameState === 'aimLocked') && !draggingBall) {
-                 if (lastCueBallPos === null) resetToStartPositions(false); // Init game without clearing non-existent history
-                 else { balls.forEach(b => { if (b.active) { b.x = clamp(b.x, PLAYABLE_RECT.left+BALL_RADIUS, PLAYABLE_RECT.right-BALL_RADIUS); b.y = clamp(b.y, PLAYABLE_RECT.top+BALL_RADIUS, PLAYABLE_RECT.bottom-BALL_RADIUS); }}); }
-             }
-        }
-
-        function resetToStartPositions(clearHistory = true) {
-            gameState = 'aiming'; document.body.classList.remove('aim-locked'); 
-            if (!PLAYABLE_RECT.width) return;
-            
-            cueBall.x = PLAYABLE_RECT.left + PLAYABLE_RECT.width * 0.25; 
-            cueBall.y = PLAYABLE_RECT.top + PLAYABLE_RECT.height / 2;
-            cueBall.vx = 0; cueBall.vy = 0; cueBall.active = true;
-            
-            blackBall.x = PLAYABLE_RECT.left + PLAYABLE_RECT.width * 0.7; 
-            blackBall.y = PLAYABLE_RECT.top + PLAYABLE_RECT.height / 2;
-            blackBall.vx = 0; blackBall.vy = 0; blackBall.active = true;
-            
-            balls = [cueBall, blackBall]; 
-            spinEffect = {x:0, y:0};
-            if (spinBallControl.x) { spinIndicator = {...spinBallControl}; drawSpinControl(); }
-
-            if(clearHistory) {
-                lastCueBallPos = null; 
-                lastBlackBallPos = null;
-            }
-        }
-
-        function restoreLastPositions() {
-             if (!lastCueBallPos) { 
-                 // If no history, just reset positions but don't break anything
-                 resetToStartPositions(true); 
-                 return; 
-             }
-             gameState = 'aiming'; document.body.classList.remove('aim-locked'); 
-             
-             cueBall.x = lastCueBallPos.x; 
-             cueBall.y = lastCueBallPos.y; 
-             cueBall.vx = 0; cueBall.vy = 0; cueBall.active = true;
-             
-             blackBall.x = lastBlackBallPos.x; 
-             blackBall.y = lastBlackBallPos.y; 
-             blackBall.vx = 0; blackBall.vy = 0; 
-             blackBall.active = wasLastBlackBallActive;
-             
-             balls = [cueBall, blackBall]; 
-             spinEffect = {x:0, y:0};
-             if (spinBallControl.x) { spinIndicator = {...spinBallControl}; drawSpinControl(); }
-        }
-
-        function drawTable() {
-             if (!TABLE_WIDTH) return;
-             ctx.clearRect(0, 0, TABLE_WIDTH, TABLE_HEIGHT);
-             const woodGradient = ctx.createLinearGradient(0, 0, 0, TABLE_HEIGHT);
-             woodGradient.addColorStop(0, '#6b2112'); woodGradient.addColorStop(1, '#4a170c');
-             ctx.fillStyle = woodGradient; ctx.fillRect(0, 0, TABLE_WIDTH, TABLE_HEIGHT);
-             
-             const diamondR = CUSHION_SIZE * 0.18; 
-             const segX = PLAYABLE_RECT.width / 8, segY = PLAYABLE_RECT.height / 4;
-             const drawD = (x,y) => {
-                if (!Number.isFinite(x) || !Number.isFinite(y)) return;
-                ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.4)'; ctx.shadowBlur = 2; ctx.shadowOffsetY = 1;
-                const g = ctx.createRadialGradient(x, y-1, 0, x, y, diamondR); g.addColorStop(0, '#FFF'); g.addColorStop(1, '#e0e0e0');
-                ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, diamondR, 0, Math.PI*2); ctx.fill(); ctx.restore();
-             };
-             for(let i=1; i<=7; i++) { drawD(PLAYABLE_RECT.left + segX*i, PLAYABLE_RECT.top/2); drawD(PLAYABLE_RECT.left + segX*i, PLAYABLE_RECT.bottom + CUSHION_SIZE/2); }
-             for(let i=1; i<=3; i++) { drawD(PLAYABLE_RECT.left/2, PLAYABLE_RECT.top + segY*i); drawD(PLAYABLE_RECT.right + CUSHION_SIZE/2, PLAYABLE_RECT.top + segY*i); }
-             
-             ctx.fillStyle = '#059669'; ctx.fillRect(PLAYABLE_RECT.left, PLAYABLE_RECT.top, PLAYABLE_RECT.width, PLAYABLE_RECT.height);
-             const baulkX = PLAYABLE_RECT.left + segX*2;
-             ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 1;
-             ctx.beginPath(); ctx.moveTo(baulkX, PLAYABLE_RECT.top); ctx.lineTo(baulkX, PLAYABLE_RECT.bottom); ctx.stroke();
-             
-             ctx.fillStyle = 'rgba(0,0,0,0.3)';
-             ctx.fillRect(PLAYABLE_RECT.left, PLAYABLE_RECT.top, PLAYABLE_RECT.width, 4); 
-             ctx.fillRect(PLAYABLE_RECT.left, PLAYABLE_RECT.bottom-4, PLAYABLE_RECT.width, 4); 
-             ctx.fillRect(PLAYABLE_RECT.left, PLAYABLE_RECT.top, 4, PLAYABLE_RECT.height); 
-             ctx.fillRect(PLAYABLE_RECT.right-4, PLAYABLE_RECT.top, 4, PLAYABLE_RECT.height); 
-
-             POCKETS.forEach(p => {
-                const g = ctx.createRadialGradient(p.x, p.y, POCKET_RADIUS*0.5, p.x, p.y, POCKET_RADIUS);
-                g.addColorStop(0, '#111'); g.addColorStop(1, '#000');
-                ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p.x, p.y, POCKET_RADIUS, 0, Math.PI*2); ctx.fill();
-             });
-        }
-
-        function drawBall(ball, color) {
-            if (!Number.isFinite(ball.x) || !Number.isFinite(ball.y) || !Number.isFinite(BALL_RADIUS)) return;
-            ctx.save(); ctx.beginPath(); ctx.arc(ball.x + BALL_RADIUS*0.1, ball.y + BALL_RADIUS*0.15, BALL_RADIUS, 0, Math.PI*2);
-            ctx.fillStyle = 'rgba(0,0,0,0.2)'; ctx.shadowBlur = BALL_RADIUS*0.3; ctx.fill(); ctx.restore();
-            ctx.beginPath(); 
-            const g = ctx.createRadialGradient(ball.x - BALL_RADIUS*0.3, ball.y - BALL_RADIUS*0.4, BALL_RADIUS*0.05, ball.x, ball.y, BALL_RADIUS);
-            if(color==='#FFFFFF'){ g.addColorStop(0,'#FFF'); g.addColorStop(1,'#ccc'); } else { g.addColorStop(0,'#666'); g.addColorStop(1,'#000'); }
-            ctx.fillStyle = g; ctx.arc(ball.x, ball.y, BALL_RADIUS, 0, Math.PI*2); ctx.fill();
-        }
-        function drawBlackBall() {
-            if (!Number.isFinite(blackBall.x) || !Number.isFinite(blackBall.y)) return;
-            drawBall(blackBall, '#000');
-            ctx.beginPath(); ctx.arc(blackBall.x, blackBall.y, BALL_RADIUS*0.5, 0, Math.PI*2); ctx.fillStyle='#FFF'; ctx.fill();
-            ctx.fillStyle='#000'; ctx.font=`bold ${BALL_RADIUS*0.75}px Arial`; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('8', blackBall.x, blackBall.y + BALL_RADIUS*0.05);
-        }
-        function drawSpinControl() {
-            if(!canvasSpin.width || !Number.isFinite(spinBallControl.radius)) return;
-            ctxSpin.clearRect(0,0,100,100);
-            ctxSpin.save(); ctxSpin.beginPath(); ctxSpin.arc(spinBallControl.x+1, spinBallControl.y+2, spinBallControl.radius, 0, Math.PI*2);
-            ctxSpin.fillStyle='rgba(0,0,0,0.2)'; ctxSpin.fill(); ctxSpin.restore();
-            const g = ctxSpin.createRadialGradient(spinBallControl.x-12, spinBallControl.y-16, 2, spinBallControl.x, spinBallControl.y, 40);
-            g.addColorStop(0,'#FFF'); g.addColorStop(1,'#ccc'); ctxSpin.fillStyle=g;
-            ctxSpin.beginPath(); ctxSpin.arc(spinBallControl.x, spinBallControl.y, spinBallControl.radius, 0, Math.PI*2); ctxSpin.fill();
-            ctxSpin.beginPath(); ctxSpin.arc(spinIndicator.x, spinIndicator.y, 5, 0, Math.PI*2);
-            ctxSpin.fillStyle='rgba(220,38,38,0.9)'; ctxSpin.fill();
-        }
-
-        function getWallCollision(pos, dir) {
-            let tMin = Infinity, type = null;
-            if(dir.x > 0.001) { let t = (PLAYABLE_RECT.right - BALL_RADIUS - pos.x)/dir.x; if(t>0 && t<tMin) {tMin=t; type='right';} }
-            else if(dir.x < -0.001) { let t = (PLAYABLE_RECT.left + BALL_RADIUS - pos.x)/dir.x; if(t>0 && t<tMin) {tMin=t; type='left';} }
-            if(dir.y > 0.001) { let t = (PLAYABLE_RECT.bottom - BALL_RADIUS - pos.y)/dir.y; if(t>0 && t<tMin) {tMin=t; type='bottom';} }
-            else if(dir.y < -0.001) { let t = (PLAYABLE_RECT.top + BALL_RADIUS - pos.y)/dir.y; if(t>0 && t<tMin) {tMin=t; type='top';} }
-            return {t:tMin, type:type};
-        }
-        function getBallCollision(pos, dir, target) {
-            const v = {x:target.x-pos.x, y:target.y-pos.y};
-            const dot = v.x*dir.x + v.y*dir.y; if(dot<=0) return {t:Infinity};
-            const distSq = (v.x*v.x + v.y*v.y) - (dot*dot);
-            const colRadSq = (BALL_RADIUS*2)**2;
-            if(distSq >= colRadSq) return {t:Infinity};
-            const t = dot - Math.sqrt(colRadSq - distSq);
-            return {t: t>0 ? t : Infinity};
-        }
-
-        function drawFullTrajectory() {
-            if ((gameState !== 'aiming' && gameState !== 'aimLocked') || !cueBall.active) return;
-            let pos = {x:cueBall.x, y:cueBall.y};
-            let dir = {...aimDir};
-            let mag = Math.hypot(dir.x, dir.y);
-            if(mag < 0.01) return;
-            dir.x /= mag; dir.y /= mag;
-            
-            let wall = getWallCollision(pos, dir);
-            let ball = blackBall.active ? getBallCollision(pos, dir, blackBall) : {t:Infinity};
-            let t = Math.min(wall.t, ball.t);
-            if(t === Infinity || t > 2000) t = 2000;
-            let hit = {x: pos.x + dir.x*t, y: pos.y + dir.y*t};
-            
-            ctx.beginPath(); ctx.moveTo(pos.x, pos.y); ctx.lineTo(hit.x, hit.y);
-            ctx.strokeStyle = gameState==='aimLocked' ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.5)';
-            ctx.setLineDash(gameState==='aimLocked' ? [] : [4,4]); ctx.lineWidth=2; ctx.stroke(); ctx.setLineDash([]);
-
-            if(ball.t < wall.t && blackBall.active) {
-                let bDir = {x:blackBall.x-hit.x, y:blackBall.y-hit.y};
-                let bMag = Math.hypot(bDir.x, bDir.y);
-                if(bMag > 0.001) { bDir.x/=bMag; bDir.y/=bMag; drawPath(blackBall, bDir, 'rgba(255,255,0,0.6)'); }
-                
-                let tang = {x:-bDir.y, y:bDir.x}; 
-                if(dir.x*tang.x + dir.y*tang.y < 0) { tang.x*=-1; tang.y*=-1; }
-                let follow = spinEffect.y < 0 ? -spinEffect.y : 0;
-                let cDir = { x: bDir.x*follow + tang.x, y: bDir.y*follow + tang.y };
-                let cMag = Math.hypot(cDir.x, cDir.y);
-                if(cMag>0.01) { cDir.x/=cMag; cDir.y/=cMag; drawPath({x:hit.x-bDir.x*BALL_RADIUS, y:hit.y-bDir.y*BALL_RADIUS}, cDir, 'rgba(255,165,0,0.6)'); }
-            } else if(isFinite(wall.t)) {
-                 let nDir = {...dir};
-                 if(wall.type.match(/left|right/)) { nDir.x *= -1; nDir.y += spinEffect.x * SPIN_FACTOR_CUSHION * (wall.type=='right'?-1:1) * Math.sign(nDir.y||1); } 
-                 else { nDir.y *= -1; nDir.x += spinEffect.x * SPIN_FACTOR_CUSHION * (wall.type=='bottom'?1:-1) * Math.sign(nDir.x||1); }
-                 let nMag = Math.hypot(nDir.x, nDir.y); 
-                 if(nMag>0.01) { nDir.x/=nMag; nDir.y/=nMag; drawPath(hit, nDir, 'rgba(255,255,255,0.4)'); }
-            }
-        }
-        function drawPath(pos, dir, color) {
-            if (!Number.isFinite(pos.x) || !Number.isFinite(pos.y)) return;
-            ctx.beginPath(); ctx.moveTo(pos.x, pos.y);
-            let p = {...pos}, d = {...dir};
-            for(let i=0; i<4; i++) {
-                let w = getWallCollision(p, d); 
-                if(isFinite(w.t)) {
-                    let h = {x:p.x+d.x*w.t, y:p.y+d.y*w.t}; ctx.lineTo(h.x, h.y); p=h;
-                    if(w.type.match(/left|right/)) d.x *= -1; else d.y *= -1;
-                } else { ctx.lineTo(p.x+d.x*1000, p.y+d.y*1000); break; }
-            }
-            ctx.strokeStyle=color; ctx.stroke();
-        }
-
-        function drawPoolCue() {
-            if(!cueBall.active || !Number.isFinite(BALL_RADIUS) || BALL_RADIUS <= 0) return;
-            const ang = Math.atan2(aimDir.y, aimDir.x);
-            let pull = powerBar.value * 2;
-            const tipW = BALL_RADIUS * 0.6; const buttW = BALL_RADIUS * 1.2; const len = TABLE_WIDTH * 0.4; const offset = BALL_RADIUS * 1.5 + pull;
-            ctx.save(); ctx.translate(cueBall.x, cueBall.y); ctx.rotate(ang);
-            ctx.beginPath(); ctx.moveTo(-offset, -tipW/2); ctx.lineTo(-offset - len, -buttW/2); ctx.lineTo(-offset - len, buttW/2); ctx.lineTo(-offset, tipW/2); ctx.closePath();
-            const grad = ctx.createLinearGradient(-offset - len, 0, -offset, 0); grad.addColorStop(0, '#5c4033'); grad.addColorStop(1, '#d2b48c'); ctx.fillStyle = grad; ctx.fill();
-            ctx.fillStyle = '#f0f0f0'; ctx.fillRect(-offset - (BALL_RADIUS*0.4), -tipW/2, BALL_RADIUS*0.4, tipW);
-            ctx.fillStyle = '#3b82f6'; ctx.fillRect(-offset, -tipW/2, -BALL_RADIUS*0.15, tipW);
-            ctx.restore();
-        }
-        function drawGhostBall() {
-             if(gameState!=='aiming' || draggingBall) return;
-             ctx.save(); ctx.globalAlpha=0.3; ctx.beginPath(); ctx.arc(mousePos.x, mousePos.y, BALL_RADIUS, 0, Math.PI*2);
-             ctx.fillStyle='#fff'; ctx.fill(); ctx.restore();
-        }
-
-        function updatePhysics() {
-            let moving = false;
-            balls.forEach(b => { 
-                if(b.active) { 
-                    b.vx *= FRICTION; b.vy *= FRICTION; 
-                    if(Math.hypot(b.vx, b.vy) < MIN_SPEED) { b.vx=0; b.vy=0; } else { b.x += b.vx; b.y += b.vy; moving=true; }
-                } 
-            });
-            
-            balls.forEach(b => {
-                if(!b.active || (b.vx==0 && b.vy==0)) return;
-                POCKETS.forEach(p => { 
-                    if(Math.hypot(b.x-p.x, b.y-p.y) < POCKET_RADIUS) { 
-                        b.active=false; b.vx=0; b.vy=0; 
-                        try{pocketSound.triggerAttackRelease("16n");}catch(e){} 
-                        setTimeout(()=>{ 
-                            // Si es la blanca, la reponemos pero NO reseteamos el historial de Undo
-                            if(b==cueBall) {
-                                b.x = PLAYABLE_RECT.left + PLAYABLE_RECT.width * 0.25; 
-                                b.y = PLAYABLE_RECT.top + PLAYABLE_RECT.height / 2;
-                                b.active = true;
-                            }
-                            // Si es la negra, opcional: resetear partida o solo reponer. Por ahora reponemos para practicar.
-                            else {
-                                b.x = PLAYABLE_RECT.left + PLAYABLE_RECT.width * 0.7; 
-                                b.y = PLAYABLE_RECT.top + PLAYABLE_RECT.height / 2;
-                                b.active = true;
-                            }
-                        }, 500); 
-                    } 
-                });
-                
-                let hit = false;
-                let spinX = (b === cueBall) ? spinEffect.x : 0;
-
-                if(b.x + BALL_RADIUS > PLAYABLE_RECT.right) { b.x = PLAYABLE_RECT.right - BALL_RADIUS; b.vx *= -RAIL_RESTITUTION; if(b === cueBall) b.vy += spinX * SPIN_FACTOR_CUSHION * -1 * Math.sign(b.vy||1); hit = true; } 
-                else if(b.x - BALL_RADIUS < PLAYABLE_RECT.left) { b.x = PLAYABLE_RECT.left + BALL_RADIUS; b.vx *= -RAIL_RESTITUTION; if(b === cueBall) b.vy += spinX * SPIN_FACTOR_CUSHION * 1 * Math.sign(b.vy||1); hit = true; }
-                if(b.y + BALL_RADIUS > PLAYABLE_RECT.bottom) { b.y = PLAYABLE_RECT.bottom - BALL_RADIUS; b.vy *= -RAIL_RESTITUTION; if(b === cueBall) b.vx += spinX * SPIN_FACTOR_CUSHION * 1 * Math.sign(b.vx||1); hit = true; } 
-                else if(b.y - BALL_RADIUS < PLAYABLE_RECT.top) { b.y = PLAYABLE_RECT.top + BALL_RADIUS; b.vy *= -RAIL_RESTITUTION; if(b === cueBall) b.vx += spinX * SPIN_FACTOR_CUSHION * -1 * Math.sign(b.vx||1); hit = true; }
-
-                if(hit && soundsReady) {
-                    try { let v = Math.min(Math.hypot(b.vx, b.vy)/8, 1); cushionHitSound.triggerAttackRelease("C2", "16n", Tone.now(), v*0.7); } catch(e){}
-                    if(b === cueBall) spinEffect.x *= 0.8; 
-                }
-            });
-
-            if(cueBall.active && blackBall.active) {
-                 let dx = blackBall.x - cueBall.x, dy = blackBall.y - cueBall.y, dist = Math.hypot(dx, dy);
-                 if(dist < BALL_RADIUS*2 && dist > 0.0001) {
-                     try{ballCollisionSound.triggerAttackRelease("G4","16n");}catch(e){}
-                     let nx = dx/dist, ny = dy/dist;
-                     let v1n = cueBall.vx * nx + cueBall.vy * ny, v2n = blackBall.vx * nx + blackBall.vy * ny;
-                     let impulse = (-(1 + BALL_RESTITUTION) * (v1n - v2n)) / 2; 
-                     cueBall.vx += impulse * nx; cueBall.vy += impulse * ny; blackBall.vx -= impulse * nx; blackBall.vy -= impulse * ny;
-                     let overlap = (BALL_RADIUS*2 - dist) / 2;
-                     cueBall.x -= overlap * nx; cueBall.y -= overlap * ny; blackBall.x += overlap * nx; blackBall.y += overlap * ny;
-                     spinEffect.y = 0; 
-                 }
-            }
-            
-            if(!moving) {
-                setTimeout(()=> { 
-                    if(balls.every(b=>!b.active || (Math.abs(b.vx)<0.001 && Math.abs(b.vy)<0.001)) && gameState==='simulating') { 
-                        gameState='aiming'; document.body.classList.remove('aim-locked'); 
-                    } 
-                }, 100);
-            }
-        }
-
-        function gameLoop() {
-            if(gameState==='simulating') updatePhysics();
-            drawTable();
-            if(gameState!=='simulating') { drawFullTrajectory(); drawPoolCue(); drawGhostBall(); }
-            balls.forEach(b => { if(b.active) drawBall(b, b==cueBall?'#FFFFFF':'#000'); });
-            if(blackBall.active) drawBlackBall();
-            requestAnimationFrame(gameLoop);
-        }
-
-        function getPos(e) {
-            const r = canvas.getBoundingClientRect();
-            let cx = e.touches?e.touches[0].clientX:e.clientX, cy = e.touches?e.touches[0].clientY:e.clientY;
-            return { x: (cx-r.left)*(canvas.width/r.width), y: (cy-r.top)*(canvas.height/r.height) };
-        }
-        canvas.addEventListener('mousedown', e => handleStart(e));
-        canvas.addEventListener('touchstart', e => { handleStart(e); }, {passive:false});
-        canvas.addEventListener('mousemove', e => handleMove(e));
-        canvas.addEventListener('touchmove', e => { handleMove(e); }, {passive:false});
-        window.addEventListener('mouseup', handleEnd);
-        window.addEventListener('touchend', handleEnd);
-
-        function handleStart(e) {
-            startAudioContext();
-            if(gameState==='simulating') return;
-            let p = getPos(e); if(!p) return; mousePos = p;
-            let dC = Math.hypot(p.x-cueBall.x, p.y-cueBall.y);
-            let dB = Math.hypot(p.x-blackBall.x, p.y-blackBall.y);
-            const grabDist = BALL_RADIUS * 2.5;
-
-            if(dC < grabDist && cueBall.active) { draggingBall = cueBall; } 
-            else if(dB < grabDist && blackBall.active) { draggingBall = blackBall; }
-            else if(isTouchDevice && gameState==='aiming') { /* solo mover */ } 
-            else if(!isTouchDevice && gameState==='aiming') { gameState='aimLocked'; document.body.classList.add('aim-locked'); updateAim(p); }
-            else if(gameState==='aimLocked') { gameState='aiming'; document.body.classList.remove('aim-locked'); }
-        }
-
-        function handleMove(e) {
-            let p = getPos(e); if(!p) return; mousePos = p;
-            if(draggingBall) { 
-                draggingBall.x = clamp(p.x, PLAYABLE_RECT.left + BALL_RADIUS, PLAYABLE_RECT.right - BALL_RADIUS);
-                draggingBall.y = clamp(p.y, PLAYABLE_RECT.top + BALL_RADIUS, PLAYABLE_RECT.bottom - BALL_RADIUS);
-                e.preventDefault(); 
-            }
-            else if(cueBall.active && (isTouchDevice || gameState==='aiming')) { updateAim(p); if(e.type=='touchmove') e.preventDefault(); }
-        }
-
-        function handleEnd() {
-            if(isTouchDevice && !draggingBall && gameState==='aiming') { gameState='aimLocked'; document.body.classList.add('aim-locked'); }
-            draggingBall = null; isSettingSpin=false;
-        }
-        function updateAim(p) {
-            let dx=p.x-cueBall.x, dy=p.y-cueBall.y, m=Math.hypot(dx,dy);
-            if(m>0.1) { aimDir.x=dx/m; aimDir.y=dy/m; }
-        }
-
-        function setupSpinControl() {
-             const spinSize = 70; 
-             canvasSpin.width = spinSize; canvasSpin.height = spinSize; 
-             spinBallControl.radius = canvasSpin.width * 0.4; 
-             spinBallControl.x = canvasSpin.width / 2; spinBallControl.y = canvasSpin.height / 2; 
-             spinIndicator = {x: spinBallControl.x, y: spinBallControl.y};
-        }
-        function setSpin(e) {
-            const r = canvasSpin.getBoundingClientRect();
-            let cx = e.touches?e.touches[0].clientX:e.clientX, cy = e.touches?e.touches[0].clientY:e.clientY;
-            const centerX = canvasSpin.width / 2;
-            const centerY = canvasSpin.height / 2;
-            const maxDist = canvasSpin.width * 0.4;
-            let dx = cx - r.left - centerX;
-            let dy = cy - r.top - centerY;
-            let d = Math.hypot(dx, dy);
-            if(d > maxDist) { let a = Math.atan2(dy, dx); dx = Math.cos(a) * maxDist; dy = Math.sin(a) * maxDist; }
-            spinIndicator = {x: centerX + dx, y: centerY + dy}; 
-            spinEffect = {x: dx/maxDist, y: dy/maxDist}; 
-            drawSpinControl();
-        }
-        ['mousedown','mousemove','touchstart','touchmove'].forEach(ev => canvasSpin.addEventListener(ev, e => { if(ev.match(/start|down/)) isSettingSpin=true; if(isSettingSpin) { e.preventDefault(); setSpin(e); } }, {passive:false}));
-        ['mouseup','touchend'].forEach(ev => window.addEventListener(ev, () => isSettingSpin=false));
-
-        powerBar.addEventListener('input', () => { if(gameState==='aiming'||gameState==='aimLocked') drawPoolCue(); });
-        ['mouseup','touchend'].forEach(ev => powerBar.addEventListener(ev, () => {
-            let v = parseInt(powerBar.value); powerBar.value=0;
-            if(v>5 && cueBall.active && (gameState==='aiming'||gameState==='aimLocked')) {
-                // Guardar estado para Undo
-                lastCueBallPos = { x: cueBall.x, y: cueBall.y };
-                lastBlackBallPos = { x: blackBall.x, y: blackBall.y };
-                wasLastBlackBallActive = blackBall.active;
-                
-                gameState='simulating'; document.body.classList.remove('aim-locked');
-                cueBall.vx = aimDir.x * v * POWER_MULTIPLIER; cueBall.vy = aimDir.y * v * POWER_MULTIPLIER;
-                try{ cueHitSound.triggerAttackRelease("C3","8n"); }catch(e){}
-            }
-        }));
-        resetButton.addEventListener('click', () => { startAudioContext(); restoreLastPositions(); });
-
-        const appEl = document.documentElement;
-        const fullBtn = document.getElementById('fullscreenButton');
-        async function toggleFullScreen() {
+        if (Object.keys(firebaseConfig).length > 0 && window.firebase) {
             try {
-                const isNativeFull = document.fullscreenElement || document.webkitFullscreenElement;
-                const isFakeFull = document.body.classList.contains('maximize-area');
-                if (isNativeFull) {
-                    if (document.exitFullscreen) await document.exitFullscreen();
-                    else if (document.webkitExitFullscreen) await document.webkitExitFullscreen();
-                } else if (isFakeFull) {
-                    document.body.classList.remove('maximize-area'); setTimeout(setupCanvas, 100);
-                } else {
-                    if (appEl.requestFullscreen) await appEl.requestFullscreen();
-                    else if (appEl.webkitRequestFullscreen) await appEl.webkitRequestFullscreen();
-                    else throw new Error("API no soportada");
-                }
-            } catch (err) {
-                document.body.classList.toggle('maximize-area'); setTimeout(setupCanvas, 100);
-            }
+                const app = window.firebase.initializeApp(firebaseConfig);
+                auth = window.firebase.auth();
+                db = window.firebase.firestore();
+                
+                const initAuth = async () => {
+                    try {
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            await auth.signInWithCustomToken(__initial_auth_token);
+                        } else { await auth.signInAnonymously(); }
+                    } catch (e) { console.warn(e); }
+                };
+                initAuth();
+                auth.onAuthStateChanged((user) => { currentUser = user; });
+            } catch (e) { console.warn(e); }
         }
-        function onFullChange() {
-            const isFull = !!(document.fullscreenElement || document.webkitFullscreenElement);
-            if (isFull) document.body.classList.add('maximize-area');
-            else if (!document.body.style.position) document.body.classList.remove('maximize-area');
-            setTimeout(setupCanvas, 200);
-        }
-        document.addEventListener('fullscreenchange', onFullChange);
-        document.addEventListener('webkitfullscreenchange', onFullChange);
-        fullBtn.addEventListener('click', () => { startAudioContext(); toggleFullScreen(); });
 
-        setupSpinControl();
-        gameLoop();
-        setupCanvas();
+        window.DB_API = {
+            saveVisitor: async (name) => {
+                if (!name) return;
+                if (db && auth && currentUser) {
+                    try {
+                        await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('app_visitors').add({
+                            name: name,
+                            timestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+                            uid: currentUser.uid
+                        });
+                        return;
+                    } catch (e) {}
+                }
+                try {
+                    const localData = JSON.parse(localStorage.getItem('magis_local_visitors') || '[]');
+                    const isDuplicate = localData.some(v => v.name === name && (Date.now()/1000 - (v.timestamp?.seconds || 0)) < 60);
+                    if (!isDuplicate) {
+                        localData.push({ name: name, timestamp: { seconds: Date.now() / 1000 }, uid: 'local-user' });
+                        localStorage.setItem('magis_local_visitors', JSON.stringify(localData));
+                    }
+                } catch (e) {}
+            },
+            subscribeToVisitors: (callback) => {
+                if (db) {
+                    try {
+                        return db.collection('artifacts').doc(appId).collection('public').doc('data').collection('app_visitors')
+                            .onSnapshot((snapshot) => {
+                                const visitors = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                                visitors.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+                                callback(visitors);
+                            }, () => { loadLocal(callback); });
+                    } catch (e) { loadLocal(callback); }
+                } else { loadLocal(callback); }
+                return () => {}; 
+            }
+        };
+
+        function loadLocal(callback) {
+            try {
+                const localData = JSON.parse(localStorage.getItem('magis_local_visitors') || '[]');
+                localData.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+                callback(localData);
+            } catch(e) { callback([]); }
+        }
+
+        const { useState, useEffect, useRef, useMemo } = React;
+
+        const safeStorage = {
+            getItem: (key) => { try { return localStorage.getItem(key); } catch (e) { return null; } },
+            setItem: (key, value) => { try { localStorage.setItem(key, value); } catch (e) { } }
+        };
+
+        const NTFY_TOPIC = 'magistube_jorge_avisos'; 
+
+        const URLS = {
+            TV: 'https://raw.githubusercontent.com/sejo48/retrom3u/refs/heads/main/listaoficial.m3u',
+            SERIES: 'https://raw.githubusercontent.com/sejo48/jorgedrive/refs/heads/main/playlist.json',
+            MOVIES: 'https://raw.githubusercontent.com/sejo48/peliculas/refs/heads/main/peliculas.json',
+            ANIMADOS: 'https://raw.githubusercontent.com/sejo48/animados./refs/heads/main/animados.json'
+        };
+
+        const getDriveFileId = (url) => {
+            if (!url || !url.includes('drive.google.com')) return null;
+            const match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
+            return match ? match[1] : null;
+        };
+
+        const Icon = ({ name, size = 24, className, fill = "none" }) => {
+            const icons = {
+                search: <path d="M21 21l-4.35-4.35m0 0a7.5 7.5 0 111.414-1.414 7.5 7.5 0 01-1.414 1.414z" />,
+                menu: <path d="M4 6h16M4 12h16M4 18h16" />,
+                x: <path d="M6 18L18 6M6 6l12 12" />,
+                tv: <path d="M6 20.25h12m-7.5-3v3m3-3v3m-10.125-3h17.25c.621 0 1.125-.504 1.125-1.125V4.875c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125z" />,
+                film: <path d="M19.82 2H4.18C2.97 2 2 2.97 2 4.18v15.64C2 21.03 2.97 22 4.18 22h15.64c1.21 0 2.18-.97 2.18-2.18V4.18C22 2.97 21.03 2 19.82 2zM7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 7h5M17 17h5" />,
+                play: <path d="M5 3l14 9-14 9V3z" />,
+                heart: <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />,
+                arrowLeft: <path d="M19 12H5m7 7l-7-7 7-7" />,
+                alertCircle: <g><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></g>,
+                chevronDown: <path d="M6 9l6 6 6-6" />,
+                chevronUp: <path d="M18 15l-6-6-6 6" />,
+                clapperboard: <g><path d="M20.2 6 3 11l-.9-2.4c-.5-1.1.2-2.3 1.3-2.8l3.2-1.4c1.1-.5 2.3.2 2.8 1.3l.9 2.4l7.9-3l2 4.5Z"/><path d="M4 11v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-9"/></g>,
+                external: <g><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></g>,
+                lock: <path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a7 7 0 00-14 0v2" />,
+                share: <g><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></g>,
+                whatsapp: <path d="M17.498 14.382c-.301-.15-1.767-.867-2.04-.966-.273-.101-.473-.15-.673.15-.197.295-.771.964-.944 1.162-.175.195-.349.21-.646.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>,
+                bell: <path d="M12.02 2.909c-.381 0-.743.088-1.076.246a4.78 4.78 0 0 1 .589 2.228v2.793a4.33 4.33 0 0 1-1.285 3.05 4.33 4.33 0 0 1-3.05 1.285H4.209a2.33 2.33 0 0 0-2.33 2.33v.033c0 1.285 1.045 2.33 2.33 2.33h15.582a2.33 2.33 0 0 0 2.33-2.33V14.84c0-1.285-1.045-2.33-2.33-2.33h-2.989a4.33 4.33 0 0 1-3.05-1.285 4.33 4.33 0 0 1-1.285-3.05V5.383a4.81 4.81 0 0 1 .585-2.23 2.5 2.5 0 0 0-1.032-.244zm-2.02 16.59h4a2 2 0 0 1-4 0z" />,
+                users: <g><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></g>,
+                crown: <g><path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z"/></g>,
+                refresh: <g><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path><path d="M16 21h5v-5"></path></g>,
+                smile: <g><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></g>
+            };
+            return (
+                <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                    {icons[name] || icons.search}
+                </svg>
+            );
+        };
+
+        const UserListModal = ({ onClose }) => {
+            const [users, setUsers] = useState([]);
+            const [loading, setLoading] = useState(true);
+            useEffect(() => { const unsubscribe = window.DB_API?.subscribeToVisitors((data) => { setUsers(data); setLoading(false); }); return () => unsubscribe && unsubscribe(); }, []);
+            return (
+                <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in" onClick={onClose}>
+                    <div className="bg-[#1f2937] w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl border border-white/10" onClick={e => e.stopPropagation()}>
+                        <div className="p-4 bg-gradient-to-r from-blue-900/50 to-[#1f2937] border-b border-white/10 flex justify-between items-center">
+                            <h3 className="font-bold text-white flex items-center gap-2"><Icon name="users" size={20} className="text-blue-400"/> Libro de Visitas</h3>
+                            <button onClick={onClose}><Icon name="x" size={20} className="text-gray-400"/></button>
+                        </div>
+                        <div className="p-0 max-h-[60vh] overflow-y-auto custom-scrollbar">
+                            {loading ? (<div className="p-8 text-center text-gray-500">Cargando lista...</div>) : users.length === 0 ? (<div className="p-8 text-center text-gray-500">Nadie ha firmado aún.</div>) : (
+                                <table className="w-full text-sm text-left">
+                                    <thead className="text-xs text-gray-400 uppercase bg-black/20"><tr><th className="px-4 py-3">Nombre</th><th className="px-4 py-3 text-right">Fecha</th></tr></thead>
+                                    <tbody className="divide-y divide-white/5">
+                                        {users.map((u, i) => (
+                                            <tr key={i} className="hover:bg-white/5">
+                                                <td className="px-4 py-3 font-medium text-white">{u.name}</td>
+                                                <td className="px-4 py-3 text-right text-gray-500 text-xs">{u.timestamp ? new Date(u.timestamp.seconds * 1000).toLocaleDateString() : 'Reciente'}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const AdminModal = ({ onClose, onSent }) => {
+            const [title, setTitle] = useState('');
+            const [message, setMessage] = useState('');
+            const [type, setType] = useState('default');
+            const [sending, setSending] = useState(false);
+            const [successMsg, setSuccessMsg] = useState(false);
+
+            const handleSend = async (e) => {
+                e.preventDefault();
+                setSending(true);
+                let tags = [];
+                if (type === 'success') tags.push('success');
+                if (type === 'alert') tags.push('warning');
+                try {
+                    await fetch(`https://ntfy.sh/${NTFY_TOPIC}?t=${Date.now()}`, {
+                        method: 'POST', body: message, headers: { 'Title': title, 'Tags': tags.join(',') }
+                    });
+                    if(onSent) onSent(); 
+                    setSuccessMsg(true);
+                    setTimeout(() => { setSuccessMsg(false); onClose(); }, 2000);
+                } catch (e) {} finally { setSending(false); }
+            };
+
+            return (
+                <div className="fixed inset-0 z-[70] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in" onClick={onClose}>
+                    <div className="bg-[#1f2937] p-6 rounded-2xl max-w-sm w-full border border-white/10 relative" onClick={e => e.stopPropagation()}>
+                        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-white"><Icon name="x" size={24} /></button>
+                        <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2"><Icon name="crown" size={24} className="text-[#E50914]"/> Enviar Aviso</h3>
+                        {successMsg ? (
+                            <div className="py-8 text-center animate-fade-in"><h4 className="text-lg font-bold text-white">Notificación enviada</h4></div>
+                        ) : (
+                            <form onSubmit={handleSend} className="space-y-4">
+                                <div><label className="block text-xs text-gray-400 mb-1">Título</label><input type="text" className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-white focus:border-[#E50914] outline-none" value={title} onChange={e => setTitle(e.target.value)} required /></div>
+                                <div><label className="block text-xs text-gray-400 mb-1">Mensaje</label><textarea className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-white focus:border-[#E50914] outline-none h-24 resize-none" value={message} onChange={e => setMessage(e.target.value)} required></textarea></div>
+                                <div><label className="block text-xs text-gray-400 mb-1">Tipo</label><select className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-white outline-none" value={type} onChange={e => setType(e.target.value)}><option value="default">Información</option><option value="success">Éxito</option><option value="alert">Alerta</option></select></div>
+                                <button type="submit" disabled={sending} className="w-full bg-[#E50914] hover:bg-red-700 text-white font-bold py-3 rounded-lg transition-colors disabled:opacity-50">{sending ? 'Enviando...' : 'Enviar a Todos'}</button>
+                            </form>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        const LockScreen = ({ onUnlock, correctCode, onCancel }) => {
+            const [input, setInput] = useState(''); const [error, setError] = useState(false);
+            const handleSubmit = (e) => { e.preventDefault(); if (input === String(correctCode)) onUnlock(); else { setError(true); setInput(''); } };
+            return (<div className="absolute inset-0 z-50 bg-black/95 backdrop-blur-sm flex flex-col items-center justify-center p-4 animate-fade-in"><div className="bg-[#1f2937] p-8 rounded-xl max-w-xs w-full text-center border border-white/10 shadow-2xl"><div className="mb-6 flex justify-center"><div className="p-4 bg-red-500/20 rounded-full text-red-500 border border-red-500/30"><Icon name="lock" size={32} /></div></div><h2 className="text-xl font-bold text-white mb-2">Contenido Protegido</h2><form onSubmit={handleSubmit}><input type="password" maxLength="4" className="w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 text-center text-2xl tracking-[0.5em] text-white focus:border-[#E50914] outline-none mb-4" value={input} onChange={(e) => { setInput(e.target.value); setError(false); }} placeholder="••••" autoFocus />{error && <p className="text-red-500 text-xs mb-4 font-bold">Código incorrecto</p>}<div className="flex gap-3"><button type="button" onClick={onCancel} className="flex-1 py-2 rounded-lg border border-white/10 text-gray-300 hover:bg-white/5 text-sm">Cancelar</button><button type="submit" className="flex-1 py-2 rounded-lg bg-[#E50914] text-white font-bold hover:bg-red-700 text-sm">Acceder</button></div></form></div></div>);
+        };
+
+        const QRModal = ({ onClose }) => { const currentUrl = window.location.href; const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(currentUrl)}`; return (<div className="fixed inset-0 z-[60] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in" onClick={onClose}><div className="bg-white p-6 rounded-2xl max-w-sm w-full text-center relative" onClick={e => e.stopPropagation()}><button onClick={onClose} className="absolute top-4 right-4 text-gray-500 hover:text-black"><Icon name="x" size={24} stroke="currentColor" /></button><h3 className="text-2xl font-bold text-black mb-2">¡Comparte la App!</h3><div className="bg-white p-2 rounded-lg shadow-inner border border-gray-200 inline-block mb-4"><img src={qrUrl} className="w-48 h-48 object-contain" /></div></div></div>); };
+        
+        const NotificationsModal = ({ onClose, items, loading, onRefresh }) => (
+            <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex items-start justify-end p-0 animate-fade-in" onClick={onClose}>
+                <div className="h-full w-full sm:w-96 bg-[#1f2937] border-l border-white/10 shadow-2xl p-6 overflow-y-auto" onClick={e => e.stopPropagation()}>
+                    <div className="flex justify-between items-center mb-8"><h2 className="text-2xl font-bold text-white flex items-center gap-2"><Icon name="bell" size={24} className="text-[#E50914]"/> Novedades</h2><button onClick={onClose} className="p-2 bg-black/20 rounded-full text-gray-400 hover:text-white"><Icon name="x" size={20}/></button></div>
+                    <div className="space-y-4">{loading ? <p className="text-gray-500 text-center py-10">Cargando...</p> : items.length === 0 ? <p className="text-gray-500 text-center py-10">No hay avisos recientes.</p> : items.map(note => (<div key={note.id} className="bg-black/40 border border-white/5 rounded-xl p-4"><div className="flex justify-between items-start mb-2"><span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-500/20 text-blue-400">{note.date}</span></div><h3 className="font-bold text-white mb-1">{note.title}</h3><p className="text-sm text-gray-400">{note.message}</p></div>))}</div>
+                </div>
+            </div>
+        );
+
+        const IntroScreen = ({ onEnter }) => (
+            <div className="fixed inset-0 z-[100] bg-[#111827] flex items-center justify-center overflow-hidden font-sans">
+                <div className="absolute inset-0"><img src="https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?q=80&w=2069&auto=format&fit=crop" className="w-full h-full object-cover opacity-10 animate-pulse" /><div className="absolute inset-0 bg-gradient-to-b from-[#111827] via-[#111827]/90 to-[#111827]"></div></div>
+                <div className="relative z-10 text-center p-6 max-w-3xl animate-slide-up">
+                    <div className="mb-4 inline-block bg-[#E50914] px-3 py-1 rounded text-xs font-bold tracking-widest uppercase text-white shadow-[0_0_15px_rgba(229,9,20,0.5)]">Premium Access</div>
+                    <h1 className="text-6xl md:text-8xl font-black text-white mb-2 tracking-tighter drop-shadow-2xl">MAGIS<span className="text-[#E50914]">Tube</span></h1>
+                    <p className="text-xl md:text-2xl text-gray-400 font-light mb-8 italic">"Donde la nostalgia se encuentra con la tecnología."</p>
+                    <div className="h-px w-32 bg-gradient-to-r from-transparent via-[#E50914] to-transparent mx-auto mb-8 opacity-50"></div>
+                    <button onClick={onEnter} className="group relative bg-white text-black px-10 py-4 rounded-full font-bold text-lg hover:scale-105 transition-all duration-300 shadow-[0_0_20px_rgba(255,255,255,0.2)] flex items-center gap-2 mx-auto"><span>Comenzar a Ver</span> <Icon name="play" size={20} fill="black" /></button>
+                    <div className="mt-16 opacity-80"><p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">DISEÑADO Y PROGRAMADO POR</p><h3 className="text-xl font-serif text-gold-gradient font-bold mb-2">JORGE ARTURO HERNÁNDEZ MÉNDEZ</h3><p className="text-[10px] text-gray-600">Potenciado por la inteligencia de <span className="text-blue-400">Gemini AI</span></p></div>
+                </div>
+            </div>
+        );
+
+        const HeroSection = ({ item, onPlay, isFavorite, onToggleFavorite }) => {
+            if (!item) return null;
+            return (
+                <div className="relative w-full h-[50vh] md:h-[65vh] overflow-hidden mb-8 group animate-fade-in">
+                    <div className="absolute inset-0">
+                        <img src={item.image || item.poster} alt="Hero" className="w-full h-full object-cover opacity-60" onError={(e) => e.target.src = 'https://placehold.co/1920x1080/111827/ffffff?text=StreamTube'} />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#111827] via-[#111827]/40 to-transparent"></div>
+                        <div className="absolute inset-0 bg-gradient-to-r from-[#111827] via-[#111827]/60 to-transparent"></div>
+                    </div>
+                    <div className="absolute inset-0 flex items-center p-6 md:p-12 max-w-7xl mx-auto">
+                        <div className="flex flex-col md:flex-row gap-8 items-center md:items-end w-full">
+                            <div className="hidden md:block w-48 lg:w-64 flex-shrink-0 rounded-lg shadow-2xl overflow-hidden border border-white/10">
+                                <img src={item.image || item.poster} className="w-full h-full object-cover" />
+                            </div>
+                            <div className="flex flex-col gap-4 items-start flex-1">
+                                <span className="bg-[#E50914] text-white text-[10px] font-bold px-2 py-1 rounded uppercase tracking-widest">{item.type === 'tv' ? 'En Vivo' : item.type === 'series' ? 'Serie' : 'Película'}</span>
+                                <h1 className="text-4xl md:text-6xl font-black text-white leading-tight drop-shadow-xl line-clamp-2">{item.title || item.name}</h1>
+                                <p className="text-gray-300 text-sm md:text-base max-w-xl line-clamp-3">{item.description || item.plot || "Disfruta del mejor contenido seleccionado especialmente para ti."}</p>
+                                <div className="flex gap-4 mt-4">
+                                    <button onClick={() => onPlay(item)} className="bg-white text-black px-8 py-3 rounded-lg font-bold flex items-center gap-2 hover:bg-gray-200 transition-transform hover:scale-105"><Icon name="play" size={20} fill="black"/> Reproducir</button>
+                                    <button onClick={() => onToggleFavorite(item)} className="bg-white/10 text-white px-4 py-3 rounded-lg font-bold flex items-center gap-2 hover:bg-white/20 backdrop-blur-sm border border-white/10"><Icon name="heart" size={20} className={isFavorite ? "text-[#E50914] fill-[#E50914]" : "text-white"} fill={isFavorite ? "#E50914" : "none"} /></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const TvListItem = ({ channel, isActive, onClick, isFavorite, onToggleFavorite }) => (
+            <div tabIndex="0" onClick={() => onClick(channel)} className={`group flex items-center gap-3 p-3 border-b border-white/5 cursor-pointer transition-colors ${isActive ? 'bg-[#1f2937] border-l-4 border-l-[#E50914]' : 'hover:bg-white/5'}`} > 
+                <div className="w-12 h-8 rounded bg-black flex items-center justify-center overflow-hidden flex-shrink-0 border border-white/10"> 
+                    {channel.image ? ( <img src={channel.image} alt={channel.title} loading="lazy" className="w-full h-full object-contain" onError={(e) => e.target.style.display='none'} /> ) : ( <Icon name="tv" size={16} className="text-gray-400"/> )} 
+                </div> 
+                <div className="flex-1 min-w-0"> 
+                    <p className={`text-sm font-medium truncate ${isActive ? 'text-[#E50914]' : 'text-white'}`}>{channel.title}</p> 
+                    <p className="text-xs text-gray-500 truncate">{channel.group || 'General'}</p> 
+                </div> 
+                <button onClick={(e) => { e.stopPropagation(); onToggleFavorite(channel); }} className="p-2 rounded-full hover:bg-white/10 text-gray-500 hover:text-white z-10"> 
+                    <Icon name="heart" size={18} className={isFavorite ? "text-[#E50914] fill-[#E50914]" : ""} fill={isFavorite ? "#E50914" : "none"} /> 
+                </button> 
+            </div> 
+        );
+
+        const Card = ({ item, onClick, isFavorite, onToggleFavorite, progress }) => { 
+            const isTv = item.type === 'tv'; 
+            const hasLock = item.codigo || item.password || item.pin || item.clave; 
+            const isKids = item.isKids;
+            return ( 
+                <div tabIndex="0" className="group relative flex flex-col gap-2 min-w-[140px] cursor-pointer focus:scale-105 transition-transform" onClick={() => onClick(item)}> 
+                    <div className={`relative overflow-hidden rounded-lg bg-[#1f2937] shadow-lg transition-all duration-300 border border-transparent group-hover:border-white/10 ${isTv ? 'aspect-video' : 'aspect-[2/3]'}`}> 
+                        <img src={item.image || item.poster || item.logo} loading="lazy" className={`w-full h-full ${isTv ? 'object-contain p-4' : 'object-cover'} transition-transform duration-500 group-hover:scale-110`} onError={(e) => { e.target.onerror = null; e.target.src = `https://placehold.co/300x450/1f2937/ffffff?text=X`; }} alt={item.title || item.name} /> 
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"> 
+                            <div className="bg-[#E50914] p-3 rounded-full shadow-lg transform scale-0 group-hover:scale-100 transition-transform duration-300"> 
+                                {hasLock ? <Icon name="lock" size={24} className="text-white"/> : <Icon name="play" size={24} fill="white" className="text-white ml-1" />} 
+                            </div> 
+                        </div> 
+                        <button onClick={(e) => { e.stopPropagation(); onToggleFavorite(item); }} className="absolute top-2 right-2 p-1.5 bg-black/50 rounded-full hover:bg-black/80 transition-colors opacity-0 group-hover:opacity-100"> 
+                            <Icon name="heart" size={16} className={isFavorite ? "text-[#E50914] fill-[#E50914]" : "text-white"} fill={isFavorite ? "#E50914" : "none"} /> 
+                        </button> 
+                        {progress > 0 && progress < 95 && ( <div className="absolute bottom-0 left-0 w-full h-1 bg-gray-700/80"> <div className="h-full bg-[#E50914]" style={{width: `${progress}%`}}></div> </div> )} 
+                        <div className="absolute bottom-2 left-2 flex gap-1"> 
+                            {isTv && <span className="bg-[#E50914] text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm">LIVE</span>} 
+                            {isKids && <span className="bg-blue-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm">KIDS</span>}
+                            {hasLock && <span className="bg-yellow-500 text-black text-[9px] font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5 shadow-sm"><Icon name="lock" size={8}/> PIN</span>} 
+                        </div> 
+                    </div> 
+                    <h3 className="text-sm font-bold text-gray-200 truncate group-hover:text-white transition-colors">{item.title || item.name}</h3> 
+                </div> 
+            ); 
+        };
+
+        const App = () => {
+            const [showIntro, setShowIntro] = useState(true);
+            const [showQR, setShowQR] = useState(false);
+            const [showNotif, setShowNotif] = useState(false);
+            const [showUserList, setShowUserList] = useState(false);
+            const [showAdmin, setShowAdmin] = useState(false); 
+            const [activeTab, setActiveTab] = useState('home');
+            const [content, setContent] = useState({ tv: [], series: [], movies: [], animados: [] });
+            const [search, setSearch] = useState('');
+            const [notifications, setNotifications] = useState([]);
+            const [notifLoading, setNotifLoading] = useState(true);
+            const [selectedItem, setSelectedItem] = useState(null);
+            const [selectedEpisode, setSelectedEpisode] = useState(null);
+            const [isLocked, setIsLocked] = useState(false); 
+            const [favorites, setFavorites] = useState([]);
+            const [watchProgress, setWatchProgress] = useState({});
+            const [loading, setLoading] = useState(true);
+            const [expandedSeason, setExpandedSeason] = useState(0);
+
+            const fetchNotifs = async () => {
+                setNotifLoading(true);
+                try {
+                    const res = await fetch(`https://ntfy.sh/${NTFY_TOPIC}/json?poll=1&since=all&t=${Date.now()}`);
+                    const text = await res.text();
+                    const lines = text.trim().split('\n');
+                    const parsed = lines.map((line, idx) => {
+                        try {
+                            const d = JSON.parse(line);
+                            if(d.event !== 'message') return null;
+                            return { id: d.id || idx, date: new Date(d.time * 1000).toLocaleDateString('es-ES', {day: 'numeric', month: 'short'}), title: d.title || 'Aviso', message: d.message, type: 'info' };
+                        } catch(e) { return null; }
+                    }).filter(Boolean).reverse();
+                    setNotifications(parsed);
+                } catch (e) {} finally { setNotifLoading(false); }
+            };
+
+            useEffect(() => { fetchNotifs(); }, []);
+
+            const cleanDriveUrl = (url) => { 
+                if (!url) return ''; 
+                if (url.includes('drive.google.com')) { 
+                    const match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
+                    if (match) {
+                        return `https://drive.google.com/file/d/${match[1]}/preview?usp=sharing&rm=minimal&autoplay=1`;
+                    }
+                } 
+                return url; 
+            };
+            
+            const shareViaWhatsApp = () => { const text = `¡Mira esta app increíble! Entra aquí: ${window.location.href}`; window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank'); };
+
+            const safeParseJSON = (text, fallback) => {
+                if (!text || text.trim() === '') return fallback;
+                try { return JSON.parse(text); } 
+                catch (e) {
+                    try { return JSON.parse(text.replace(/,\s*([\]}])/g, '$1')); } 
+                    catch (e2) { return fallback; }
+                }
+            };
+
+            useEffect(() => {
+                const init = async () => {
+                    if (window.DB_API && window.DB_API.saveVisitor) window.DB_API.saveVisitor('Visitante');
+                    try {
+                        setLoading(true);
+                        const [resTV, resSeries, resMovies, resAnimados] = await Promise.all([ 
+                            fetch(URLS.TV), fetch(URLS.SERIES), fetch(URLS.MOVIES), fetch(URLS.ANIMADOS).catch(() => ({ text: () => '[]' })) 
+                        ]);
+                        const textTV = await resTV.text(); 
+                        const jsonSeries = safeParseJSON(await resSeries.text(), []); 
+                        const jsonMovies = safeParseJSON(await resMovies.text(), []);
+                        const jsonAnimados = safeParseJSON(await resAnimados.text(), []);
+                        
+                        const tvChannels = parseM3U(textTV);
+                        
+                        const seriesList = (Array.isArray(jsonSeries) ? jsonSeries : []).map(s => ({ 
+                            id: s.tituloSerie, title: s.tituloSerie || s.name, description: s.descripcion || s.description || s.sinopsis, image: s.imagen || s.image, type: 'series', codigo: s.codigo || s.password || s.pin, seasons: (s.temporadas || []).map(t => ({ season_number: t.numeroTemporada || 1, episodes: (t.episodios || []).map(e => ({ title: e.tituloEpisodio || e.title, url: cleanDriveUrl(e.urlDrive || e.url), image: s.imagen })) })) 
+                        }));
+                        
+                        const moviesList = (Array.isArray(jsonMovies) ? jsonMovies : (jsonMovies.peliculas || [])).map(m => ({ 
+                            ...m, type: 'movie', title: m.titulo || m.title, description: m.descripcion || m.sinopsis, image: m.imagen || m.poster, codigo: m.codigo || m.pin, url: cleanDriveUrl(m.urlDrive || m.url) 
+                        }));
+
+                        const animadosList = (Array.isArray(jsonAnimados) ? jsonAnimados : []).map((a, i) => {
+                            const hasSeasons = a.temporadas && a.temporadas.length > 0;
+                            return {
+                                id: `anim-${i}`,
+                                title: a.titulo || a.tituloSerie || a.name,
+                                description: a.descripcion || a.sinopsis,
+                                image: a.imagen || a.image || a.poster,
+                                type: hasSeasons ? 'series' : 'movie',
+                                isKids: true,
+                                codigo: a.codigo || a.pin,
+                                url: cleanDriveUrl(a.urlDrive || a.url),
+                                seasons: hasSeasons ? a.temporadas.map(t => ({ season_number: t.numeroTemporada || 1, episodes: (t.episodios || []).map(e => ({ title: e.tituloEpisodio || e.title, url: cleanDriveUrl(e.urlDrive || e.url), image: a.imagen })) })) : []
+                            };
+                        });
+
+                        setContent({ tv: tvChannels, series: seriesList, movies: moviesList, animados: animadosList });
+                    } catch (err) { } finally { setLoading(false); }
+                };
+
+                const storedFavs = safeStorage.getItem('magistube_favs'); if (storedFavs) { try { setFavorites(JSON.parse(storedFavs)); } catch(e) {} }
+                const storedProgress = safeStorage.getItem('magistube_progress'); if (storedProgress) { try { setWatchProgress(JSON.parse(storedProgress)); } catch(e) {} }
+                init();
+            }, []);
+
+            const parseM3U = (data) => {
+                const lines = data.split('\n'); const channels = [];
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (line.startsWith('#EXTINF:')) {
+                        let title = 'Canal';
+                        const url = lines[i + 1] ? lines[i + 1].trim() : '';
+                        if (url && url.startsWith('http')) {
+                            const logoMatch = line.match(/tvg-logo="([^"]*)"/); const logo = logoMatch ? logoMatch[1] : '';
+                            const groupMatch = line.match(/group-title="([^"]*)"/); const group = groupMatch ? groupMatch[1] : 'General';
+                            const commaIndex = line.lastIndexOf(',');
+                            if (commaIndex !== -1) title = line.substring(commaIndex + 1).trim();
+                            channels.push({ id: `tv-${i}`, title, image: logo, group, url, type: 'tv' });
+                        }
+                    }
+                }
+                return channels;
+            };
+
+            const toggleFavorite = (item) => { const itemId = item.id || item.title; const newFavs = favorites.some(f => (f.id || f.title) === itemId) ? favorites.filter(f => (f.id || f.title) !== itemId) : [item, ...favorites]; setFavorites(newFavs); safeStorage.setItem('magistube_favs', JSON.stringify(newFavs)); };
+            const handlePlay = (item) => { 
+                const code = item.codigo || item.password || item.pin; 
+                if (code) { setSelectedItem(item); setIsLocked(true); } 
+                else { setSelectedItem(item); setIsLocked(false); } 
+                setExpandedSeason(0); 
+                if (item.type === 'series') setSelectedEpisode(item.seasons?.[0]?.episodes?.[0] || null); 
+                window.scrollTo({ top: 0, behavior: 'smooth' }); 
+            };
+
+            const getDisplayContent = () => { 
+                let list = activeTab === 'home' ? [...content.movies, ...content.series, ...content.animados, ...content.tv.slice(0,20)] : activeTab === 'favorites' ? favorites : content[activeTab] || []; 
+                if (search) return list.filter(i => (i.title || i.name).toLowerCase().includes(search.toLowerCase())); 
+                return list; 
+            };
+
+            const displayedItems = getDisplayContent();
+            const heroItem = useMemo(() => (content.movies.length ? content.movies[Math.floor(Math.random() * content.movies.length)] : content.series[0]), [content]);
+
+            if (showIntro) return <IntroScreen onEnter={() => { setShowIntro(false); if(window.DB_API) window.DB_API.saveVisitor('Visitante'); }} />;
+
+            return (
+                <div className="min-h-screen bg-[#111827] text-white font-sans flex flex-col md:flex-row relative">
+                    <aside className="hidden md:flex w-20 flex-col items-center py-6 bg-[#0f1115] border-r border-[#1f2937] fixed h-full z-50">
+                        <div className="mb-8 p-2 bg-[#E50914] rounded-lg shadow-lg cursor-pointer" onClick={() => {setActiveTab('home'); setSelectedItem(null); setIsLocked(false);}}><Icon name="play" size={24} fill="white" className="text-white"/></div>
+                        <div className="flex flex-col gap-6 w-full">
+                            {[
+                                { id: 'home', icon: 'search', label: 'Inicio' }, 
+                                { id: 'series', icon: 'film', label: 'Series' }, 
+                                { id: 'animados', icon: 'smile', label: 'Animados' },
+                                { id: 'movies', icon: 'clapperboard', label: 'Cine' }, 
+                                { id: 'tv', icon: 'tv', label: 'TV' }, 
+                                { id: 'favorites', icon: 'heart', label: 'Favs' }
+                            ].map(tab => (
+                                <button key={tab.id} onClick={() => { setActiveTab(tab.id); setSelectedItem(null); setSearch(''); setIsLocked(false); }} className={`flex flex-col items-center gap-1 transition-colors ${activeTab === tab.id ? 'text-[#E50914]' : 'text-gray-500 hover:text-white'}`}>
+                                    <Icon name={tab.icon} size={24} fill={activeTab === tab.id && tab.id === 'favorites' ? 'currentColor' : 'none'} className={activeTab === tab.id && tab.id === 'favorites' ? 'fill-current' : ''} /><span className="text-[10px] font-medium">{tab.label}</span>
+                                </button>
+                            ))}
+                            <button onClick={() => setShowUserList(true)} className="flex flex-col items-center gap-1 text-gray-500 hover:text-white transition-colors"><Icon name="users" size={24} /><span className="text-[10px] font-medium">Usuarios</span></button>
+                        </div>
+                        <div className="mt-auto flex flex-col items-center gap-4 mb-4 relative w-full">
+                            <button onClick={() => setShowAdmin(true)} className="text-[#E50914] hover:text-white transition-colors relative" title="Admin"><Icon name="crown" size={20} /></button>
+                            <button onClick={() => setShowNotif(true)} className="text-gray-500 hover:text-white transition-colors relative" title="Novedades"><Icon name="bell" size={20} />{notifications.length > 0 && <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>}</button>
+                            <button onClick={() => setShowQR(true)} className="flex flex-col items-center gap-1 text-blue-400 hover:text-white transition-colors mb-4" title="Compartir App"><Icon name="share" size={20} /><span className="text-[10px] font-medium">Compartir</span></button>
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-yellow-400 to-yellow-600 flex items-center justify-center font-serif font-bold text-black border-2 border-white/20">J</div>
+                        </div>
+                    </aside>
+
+                    <div className="md:hidden fixed top-0 w-full bg-[#111827]/95 backdrop-blur z-50 px-4 py-3 flex items-center justify-between border-b border-[#1f2937]">
+                        <div className="flex items-center gap-2 font-black text-xl tracking-tighter"><span className="text-[#E50914]">MAGIS</span> TUBE</div>
+                        <div className="flex gap-3 items-center">
+                            <button onClick={() => setShowAdmin(true)} className="text-[#E50914]"><Icon name="crown" size={22} /></button>
+                            <button onClick={() => setShowUserList(true)} className="text-gray-300"><Icon name="users" size={22} /></button>
+                            <button onClick={() => setShowNotif(true)} className="text-gray-300 relative"><Icon name="bell" size={22} />{notifications.length > 0 && <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full border border-[#111827]"></span>}</button>
+                            <button onClick={shareViaWhatsApp} className="text-green-400 bg-green-400/10 p-1.5 rounded-full border border-green-400/20"><Icon name="whatsapp" size={18} /></button>
+                            <button onClick={() => setShowQR(true)} className="text-blue-400 bg-blue-400/10 p-1.5 rounded-full border border-blue-400/20"><Icon name="share" size={18} /></button>
+                        </div>
+                    </div>
+
+                    <div className="md:hidden fixed bottom-0 w-full bg-[#0f1115] border-t border-[#1f2937] z-50 flex justify-around py-3 pb-safe">
+                        {[
+                            { id: 'home', icon: 'search', label: 'Inicio' }, 
+                            { id: 'series', icon: 'film', label: 'Series' }, 
+                            { id: 'animados', icon: 'smile', label: 'Anim' },
+                            { id: 'movies', icon: 'clapperboard', label: 'Cine' }, 
+                            { id: 'tv', icon: 'tv', label: 'TV' }
+                        ].map(tab => (
+                            <button key={tab.id} onClick={() => { setActiveTab(tab.id); setSelectedItem(null); setIsLocked(false); }} className={`flex flex-col items-center gap-1 ${activeTab === tab.id ? 'text-[#E50914]' : 'text-gray-500'}`}>
+                                <Icon name={tab.icon} size={22} /><span className="text-[10px]">{tab.label}</span>
+                            </button>
+                        ))}
+                    </div>
+
+                    {showUserList && <UserListModal onClose={() => setShowUserList(false)} />}
+                    {showQR && <QRModal onClose={() => setShowQR(false)} />}
+                    {showNotif && <NotificationsModal onClose={() => setShowNotif(false)} items={notifications} loading={notifLoading} onRefresh={fetchNotifs} />}
+                    {showAdmin && <AdminModal onClose={() => setShowAdmin(false)} onSent={fetchNotifs} />}
+
+                    <main className="flex-1 md:ml-20 min-h-screen pt-16 md:pt-0 pb-20 md:pb-0 relative z-10">
+                        {activeTab === 'favorites' && !selectedItem ? (
+                            <div className="p-4 md:p-10 animate-fade-in">
+                                <div className="mb-6 flex items-center gap-3 border-b border-white/10 pb-4">
+                                    <div className="p-2 bg-[#E50914]/20 rounded-lg text-[#E50914]"><Icon name="heart" size={24} fill="currentColor" /></div>
+                                    <h2 className="text-2xl font-bold text-white">Tus Favoritos</h2>
+                                </div>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-4 gap-y-8">
+                                    {favorites.map((item, i) => (<Card key={i} item={item} onClick={handlePlay} isFavorite={true} onToggleFavorite={toggleFavorite} />))}
+                                </div>
+                                {favorites.length === 0 && <div className="text-center py-20 text-gray-500"><p>No tienes favoritos guardados aún.</p></div>}
+                            </div>
+                        ) : activeTab === 'tv' || (selectedItem && selectedItem.type === 'tv') ? (
+                            <div className="flex flex-col lg:flex-row h-full lg:h-screen lg:overflow-hidden">
+                                <div className="flex-1 bg-[#111827] relative flex flex-col lg:h-full">
+                                    {selectedItem && selectedItem.type === 'tv' ? (
+                                        <div className="relative aspect-video w-full bg-[#111827] lg:flex-1 overflow-hidden flex items-center justify-center">
+                                            <button onClick={() => setSelectedItem(null)} className="absolute top-4 left-4 z-30 bg-black/50 p-2 rounded-full text-white lg:hidden"><Icon name="arrowLeft" size={20} /></button>
+                                            <iframe src={selectedItem.url} className="w-full h-full border-0" allow="autoplay; encrypted-media; fullscreen" allowFullScreen></iframe>
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-center justify-center h-full text-gray-500"><p>Selecciona un canal de TV para comenzar</p></div>
+                                    )}
+                                </div>
+                                <div className="w-full lg:w-96 bg-[#111827] lg:border-l border-white/10 flex flex-col lg:h-full lg:overflow-hidden">
+                                    <div className="p-4 sticky top-16 lg:top-0 bg-[#111827] z-20 border-b border-white/5">
+                                        <div className="relative"><input type="text" placeholder="Buscar canal..." className="w-full bg-[#1f2937] border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:border-[#E50914] outline-none pl-10" value={search} onChange={(e) => setSearch(e.target.value)}/><Icon name="search" size={18} className="absolute left-3 top-3 text-gray-400"/></div>
+                                    </div>
+                                    <div className="p-2 space-y-1 lg:overflow-y-auto lg:h-full">
+                                        {content.tv.filter(c => !search || c.title.toLowerCase().includes(search.toLowerCase())).map(channel => (
+                                            <TvListItem key={channel.id} channel={channel} isActive={selectedItem?.id === channel.id} isFavorite={favorites.some(f => f.id === channel.id)} onToggleFavorite={toggleFavorite} onClick={handlePlay} />
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        ) : selectedItem ? (
+                            <div className="animate-fade-in">
+                                <div className="w-full bg-[#111827] relative aspect-video md:h-[70vh] flex flex-col items-center justify-center overflow-hidden">
+                                    <div className="absolute top-4 left-4 z-30">
+                                        <button onClick={() => {setSelectedItem(null); setIsLocked(false);}} className="bg-black/50 hover:bg-[#E50914] text-white px-4 py-2 rounded-full backdrop-blur-md flex items-center gap-2 transition-colors border border-white/10">
+                                            <Icon name="arrowLeft" size={18} /> <span>Volver</span>
+                                        </button>
+                                    </div>
+                                    {isLocked ? (
+                                        <LockScreen correctCode={selectedItem.codigo || selectedItem.password || selectedItem.pin} onUnlock={() => setIsLocked(false)} onCancel={() => {setSelectedItem(null); setIsLocked(false);}} />
+                                    ) : (
+                                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#111827] z-20 p-6 text-center">
+                                            <div className="w-20 h-20 rounded-full bg-[#E50914] flex items-center justify-center shadow-[0_0_25px_rgba(229,9,20,0.6)] mb-4 animate-bounce">
+                                                <Icon name="play" size={36} fill="white" className="text-white ml-1" />
+                                            </div>
+                                            <h2 className="text-xl font-black text-white mb-2">{selectedItem.title || selectedItem.name}</h2>
+                                            <p className="text-gray-400 text-xs mb-6 max-w-xs">Reproduce el video en pantalla limpia y completa sin sombras ni demoras.</p>
+                                            <a href={selectedItem.type === 'series' && selectedEpisode ? selectedEpisode.url : selectedItem.url} target="_blank" rel="noopener noreferrer" className="bg-[#E50914] hover:bg-red-700 text-white px-8 py-3.5 rounded-full text-base font-extrabold flex items-center gap-2 shadow-xl transition-transform hover:scale-105">
+                                                <Icon name="external" size={20} /> Reproducir Película (Pantalla Limpia)
+                                            </a>
+                                        </div>
+                                    )}
+                                </div>
+                                {!isLocked && (
+                                    <div className="p-6 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+                                        <div className="lg:col-span-2">
+                                            <div className="flex items-start justify-between mb-4">
+                                                <div>
+                                                    <h1 className="text-3xl font-bold text-white mb-2">{selectedItem.title || selectedItem.name}</h1>
+                                                    <div className="flex items-center gap-3 text-sm text-gray-400">
+                                                        <span className="bg-[#1f2937] px-2 py-0.5 rounded text-white">{selectedItem.type.toUpperCase()}</span>
+                                                        {selectedItem.type === 'series' && selectedEpisode && <span className="text-[#E50914] font-medium">{selectedEpisode.title}</span>}
+                                                    </div>
+                                                </div>
+                                                <button onClick={() => toggleFavorite(selectedItem)} className="p-3 bg-[#1f2937] rounded-full hover:bg-[#2d3748]">
+                                                    <Icon name="heart" size={24} className={favorites.some(f => (f.id||f.title) === (selectedItem.id||selectedItem.title)) ? "text-[#E50914] fill-[#E50914]" : "text-gray-400"} fill={favorites.some(f => (f.id||f.title) === (selectedItem.id||selectedItem.title)) ? "#E50914" : "none"} />
+                                                </button>
+                                            </div>
+                                            <p className="text-gray-300 leading-relaxed">{selectedItem.description || selectedItem.plot || "Sin descripción disponible."}</p>
+                                        </div>
+                                        {selectedItem.type === 'series' && selectedItem.seasons && selectedItem.seasons.length > 0 && (
+                                            <div className="bg-[#1f2937] rounded-xl p-4 h-fit border border-white/5">
+                                                <h3 className="font-bold text-lg mb-2 flex items-center gap-2"><Icon name="film" size={18} className="text-[#E50914]"/> Temporadas</h3>
+                                                {selectedItem.seasons.map((season, idx) => (
+                                                    <div key={idx} className="border-b border-gray-700 last:border-0 pb-2">
+                                                        <button type="button" onClick={() => setExpandedSeason(expandedSeason === idx ? null : idx)} className="w-full flex justify-between items-center py-2 text-sm font-bold hover:text-[#E50914]">
+                                                            <span>Temporada {season.season_number}</span>
+                                                            {expandedSeason === idx ? <Icon name="chevronUp" size={16}/> : <Icon name="chevronDown" size={16}/>}
+                                                        </button>
+                                                        {expandedSeason === idx && (
+                                                            <div className="flex flex-col gap-1 mt-1 pl-2 max-h-[400px] overflow-y-auto">
+                                                                {season.episodes.map((ep, eIdx) => (
+                                                                    <div key={eIdx} onClick={() => { setSelectedEpisode(ep); window.scrollTo({top:0, behavior:'smooth'}); }} className={`text-sm p-2 rounded cursor-pointer truncate flex items-center gap-2 ${selectedEpisode?.url === ep.url ? 'bg-[#E50914] text-white' : 'text-gray-400 hover:bg-gray-700'}`}>
+                                                                        <Icon name="play" size={12} fill="currentColor" /> {eIdx + 1}. {ep.title}
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <>
+                                <div className="sticky top-0 z-40 bg-[#111827]/95 backdrop-blur py-4 px-6 md:px-10 flex items-center justify-between border-b border-[#1f2937]">
+                                    <div className="flex bg-[#1f2937] border border-[#374151] rounded-full px-4 py-2 w-full max-w-lg items-center focus-within:border-[#E50914] transition-colors">
+                                        <Icon name="search" className="text-gray-400 w-5 h-5 mr-3" />
+                                        <input type="text" placeholder={`Buscar en ${activeTab === 'home' ? 'todo' : activeTab}...`} className="bg-transparent w-full outline-none text-sm placeholder-gray-500 text-white" value={search} onChange={(e) => setSearch(e.target.value)}/>
+                                    </div>
+                                </div>
+                                {activeTab === 'home' && !search && heroItem && <HeroSection item={heroItem} onPlay={handlePlay} isFavorite={favorites.some(f=>(f.id||f.title)===(heroItem.id||heroItem.title))} onToggleFavorite={toggleFavorite}/>}
+                                <div className="p-4 md:p-10">
+                                    <div className="mb-8 flex items-center gap-2">
+                                        <div className="w-1 h-6 bg-[#E50914] rounded-full"></div>
+                                        <h2 className="text-xl font-bold uppercase">{activeTab === 'home' ? 'Tendencias' : activeTab}</h2>
+                                    </div>
+                                    {loading ? (
+                                        <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-12 w-12 border-4 border-[#E50914] border-t-transparent"></div></div>
+                                    ) : displayedItems.length === 0 ? (
+                                        <div className="text-center py-20 text-gray-500"><p>No hay contenido disponible en esta sección.</p></div>
+                                    ) : (
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-4 gap-y-8 animate-slide-up">
+                                            {displayedItems.map((item, i) => (
+                                                <Card key={i} item={item} onClick={handlePlay} isFavorite={favorites.some(f => (f.id||f.title) === (item.id||item.title))} onToggleFavorite={toggleFavorite} />
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </>
+                        )}
+                    </main>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
     </script>
 </body>
 </html>
