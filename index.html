@@ -513,16 +513,17 @@
         const HeroSection = ({ item, onPlay, isFavorite, onToggleFavorite }) => {
             if (!item) return null;
             return (
-                <div className="relative w-full h-[22vh] sm:h-[28vh] overflow-hidden rounded-xl mb-6 group animate-fade-in shadow-lg">
+                <div className="relative w-full h-[180px] sm:h-[220px] overflow-hidden rounded-2xl mb-6 group animate-fade-in shadow-xl">
                     <div className="absolute inset-0">
-                        <img src={item.image || item.poster} alt="Hero" className="w-full h-full object-cover opacity-50" onError={(e) => e.target.src = 'https://placehold.co/800x400/111827/ffffff?text=Stream'} />
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#111827] via-[#111827]/60 to-transparent"></div>
+                        <img src={item.image || item.poster} alt="Hero" className="w-full h-full object-cover object-center opacity-40 filter brightness-90" onError={(e) => e.target.src = 'https://placehold.co/800x400/111827/ffffff?text=Stream'} />
+                        <div className="absolute inset-0 bg-gradient-to-r from-[#111827] via-[#111827]/80 to-transparent"></div>
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#111827] via-transparent to-transparent"></div>
                     </div>
-                    <div className="absolute inset-0 flex items-end p-3 sm:p-5 max-w-7xl mx-auto">
-                        <div className="flex flex-col gap-1 items-start w-full">
+                    <div className="absolute inset-0 flex items-center p-4 sm:p-8 max-w-7xl mx-auto">
+                        <div className="flex flex-col gap-1.5 items-start max-w-lg">
                             <span className="bg-[#E50914] text-white text-[8px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">Película Destacada</span>
-                            <h1 className="text-base sm:text-2xl font-black text-white leading-tight line-clamp-1">{item.title || item.name}</h1>
-                            <p className="text-gray-300 text-xs max-w-md line-clamp-1">{item.description || item.plot || "Disfruta del mejor contenido seleccionado para ti."}</p>
+                            <h1 className="text-lg sm:text-2xl font-black text-white leading-tight line-clamp-1">{item.title || item.name}</h1>
+                            <p className="text-gray-300 text-xs line-clamp-2 leading-relaxed">{item.description || item.plot || "Disfruta del mejor contenido seleccionado para ti."}</p>
                             <div className="flex gap-2 mt-1">
                                 <button onClick={() => onPlay(item)} className="bg-white text-black px-4 py-1.5 rounded-lg font-bold text-xs flex items-center gap-1 active:scale-95 transition-transform"><Icon name="play" size={14} fill="black"/> Reproducir</button>
                                 <button onClick={() => onToggleFavorite(item)} className="bg-white/10 text-white p-1.5 rounded-lg flex items-center justify-center backdrop-blur-sm border border-white/10"><Icon name="heart" size={16} className={isFavorite ? "text-[#E50914] fill-[#E50914]" : "text-white"} fill={isFavorite ? "#E50914" : "none"} /></button>
