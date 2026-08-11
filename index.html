@@ -33,7 +33,6 @@
         body {
             font-family: 'Inter', sans-serif;
         }
-        /* Custom scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
         }
@@ -63,7 +62,6 @@
                 </div>
             </div>
             
-            <!-- Global Navigation Tabs -->
             <nav class="hidden md:flex items-center space-x-1 bg-gray-800/60 p-1 rounded-xl border border-gray-700/50">
                 <button onclick="switchTab('explore')" id="nav-explore" class="px-4 py-2 rounded-lg text-sm font-medium transition-all bg-brand-600 text-white shadow-sm">
                     <i class="fa-solid fa-compass mr-2"></i>Explorar
@@ -88,8 +86,6 @@
         
         <!-- Explore View Section -->
         <div id="view-explore" class="space-y-8">
-            
-            <!-- Hero Banner / Notice -->
             <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-gray-900 via-gray-900 to-rose-950/40 border border-gray-800 p-6 sm:p-8 shadow-2xl">
                 <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-brand-500/10 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="relative z-10 max-w-2xl">
@@ -100,14 +96,13 @@
                         Películas y Series Exclusivas en Español
                     </h1>
                     <p class="text-gray-400 text-sm sm:text-base leading-relaxed mb-6">
-                        Navega, filtra y reproduce contenido optimizado en castellano y español latino directamente desde el repositorio fuente especificado de OK.ru.
+                        Navega, busca cualquier título, filtra y reproduce contenido optimizado en castellano y español latino directamente desde OK.ru.
                     </p>
                     
-                    <!-- Search Bar -->
                     <div class="flex flex-col sm:flex-row gap-3">
                         <div class="relative flex-1">
                             <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                            <input type="text" id="searchInput" oninput="handleSearch()" placeholder="Buscar por título, género o actor..." class="w-full bg-gray-950/80 border border-gray-700/80 rounded-xl pl-11 pr-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all shadow-inner">
+                            <input type="text" id="searchInput" oninput="handleSearch()" placeholder="Busca cualquier película o serie (Ej. La laguna azul)..." class="w-full bg-gray-950/80 border border-gray-700/80 rounded-xl pl-11 pr-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all shadow-inner">
                         </div>
                         <select id="categoryFilter" onchange="handleSearch()" class="bg-gray-950/80 border border-gray-700/80 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all">
                             <option value="all">Todas las Categorías</option>
@@ -118,7 +113,7 @@
                 </div>
             </div>
 
-            <!-- Quick Filter Chips -->
+            <!-- Genre Filter Chips -->
             <div class="flex items-center space-x-2 overflow-x-auto pb-2 scrollbar-none">
                 <button onclick="filterGenre('all')" id="genre-all" class="genre-chip px-4 py-2 rounded-xl text-xs font-medium bg-brand-600 text-white whitespace-nowrap transition-all shadow-sm">Todos</button>
                 <button onclick="filterGenre('Acción')" id="genre-Acción" class="genre-chip px-4 py-2 rounded-xl text-xs font-medium bg-gray-900 border border-gray-800 text-gray-300 hover:bg-gray-800 whitespace-nowrap transition-all">Acción</button>
@@ -129,28 +124,23 @@
                 <button onclick="filterGenre('Suspenso')" id="genre-Suspenso" class="genre-chip px-4 py-2 rounded-xl text-xs font-medium bg-gray-900 border border-gray-800 text-gray-300 hover:bg-gray-800 whitespace-nowrap transition-all">Suspenso</button>
             </div>
 
-            <!-- Results Grid Header -->
             <div class="flex items-center justify-between">
                 <h2 class="text-xl font-bold text-white flex items-center">
                     <i class="fa-solid fa-clapperboard text-brand-500 mr-2"></i>Catálogo Disponible <span id="resultsCount" class="ml-2 text-xs font-normal text-gray-400 bg-gray-900 px-2.5 py-1 rounded-full border border-gray-800"></span>
                 </h2>
                 <div class="text-xs text-gray-400">
-                    Mostrando contenido sincronizado en Español
+                    Sincronización en Español
                 </div>
             </div>
 
-            <!-- Media Grid -->
-            <div id="mediaGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                <!-- Dynamically populated via JavaScript -->
-            </div>
+            <div id="mediaGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
 
-            <!-- Empty State -->
             <div id="emptyState" class="hidden flex-col items-center justify-center py-16 px-4 text-center">
                 <div class="w-16 h-16 rounded-2xl bg-gray-900 border border-gray-800 flex items-center justify-center text-gray-500 text-2xl mb-4">
                     <i class="fa-solid fa-face-frown"></i>
                 </div>
                 <h3 class="text-lg font-semibold text-white mb-1">No se encontraron títulos</h3>
-                <p class="text-gray-400 text-sm max-w-md mb-6">Intenta ajustando los términos de búsqueda o filtros seleccionados para encontrar películas y series en español.</p>
+                <p class="text-gray-400 text-sm max-w-md mb-6">Intenta con otros términos o restablece los filtros.</p>
                 <button onclick="resetFilters()" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all shadow-sm">Restablecer Filtros</button>
             </div>
         </div>
@@ -160,19 +150,17 @@
             <div class="flex items-center justify-between border-b border-gray-800 pb-4">
                 <div>
                     <h2 class="text-2xl font-bold text-white">Tus Favoritos Guardados</h2>
-                    <p class="text-gray-400 text-sm">Accede rápidamente al contenido que has guardado para ver más tarde.</p>
+                    <p class="text-gray-400 text-sm">Accede rápidamente al contenido guardado.</p>
                 </div>
                 <span id="fav-badge-count" class="px-3 py-1 bg-brand-500/20 text-brand-400 border border-brand-500/30 rounded-full text-xs font-semibold">0 ítems</span>
             </div>
-            <div id="favoritesGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                <!-- Populated dynamically -->
-            </div>
+            <div id="favoritesGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
             <div id="emptyFavorites" class="hidden flex-col items-center justify-center py-20 text-center">
                 <div class="w-16 h-16 rounded-2xl bg-gray-900 border border-gray-800 flex items-center justify-center text-gray-500 text-2xl mb-4">
                     <i class="fa-solid fa-heart-crack"></i>
                 </div>
                 <h3 class="text-lg font-semibold text-white mb-1">No tienes favoritos guardados</h3>
-                <p class="text-gray-400 text-sm max-w-md mb-6">Haz clic en el ícono de corazón en cualquier película o serie para guardarla aquí.</p>
+                <p class="text-gray-400 text-sm max-w-md mb-6">Haz clic en el ícono de corazón para guardarlas aquí.</p>
                 <button onclick="switchTab('explore')" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all">Explorar Catálogo</button>
             </div>
         </div>
@@ -193,14 +181,12 @@
                 </div>
 
                 <div class="border-t border-gray-800 pt-6 space-y-4 text-sm text-gray-300 leading-relaxed">
-                    <p>
-                        Este explorador web está sintonizado exclusivamente para filtrar y presentar contenido multimedia en idioma español (películas y series) relacionado con la fuente indicada en OK.ru.
-                    </p>
+                    <p>Este explorador web está sincronizado exclusivamente para reproducir contenido multimedia en idioma español vinculado a la fuente indicada en OK.ru.</p>
                     <div class="bg-gray-950 p-4 rounded-xl border border-gray-800 space-y-2 font-mono text-xs text-gray-400">
                         <div class="flex justify-between"><span>ID de Fuente:</span> <span class="text-white font-semibold">15932289192379</span></div>
                         <div class="flex justify-between"><span>Plataforma:</span> <span class="text-white font-semibold">Odnoklassniki (OK.ru Video)</span></div>
                         <div class="flex justify-between"><span>Idioma Principal:</span> <span class="text-brand-400 font-semibold">Español (Castellano / Latino)</span></div>
-                        <div class="flex justify-between"><span>Estado de Sincronización:</span> <span class="text-emerald-400 font-semibold">Activo y Verificado</span></div>
+                        <div class="flex justify-between"><span>Estado:</span> <span class="text-emerald-400 font-semibold">Activo y Verificado</span></div>
                     </div>
                     <div class="pt-2 flex flex-col sm:flex-row gap-3">
                         <a href="https://ok.ru/video/15932289192379" target="_blank" class="flex-1 bg-brand-600 hover:bg-brand-700 text-white font-medium py-2.5 px-4 rounded-xl text-center transition-all flex items-center justify-center shadow-sm">
@@ -216,9 +202,9 @@
 
     </main>
 
+    <!-- Player Modal -->
     <div id="playerModal" class="fixed inset-0 z-50 hidden bg-black/90 backdrop-blur-md flex items-center justify-center p-2 sm:p-4">
         <div class="bg-gray-900 border border-gray-800 w-full max-w-4xl rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[95vh]">
-            <!-- Modal Header -->
             <div class="px-6 py-4 border-b border-gray-800 flex items-center justify-between bg-gray-950/50">
                 <div class="flex items-center space-x-3">
                     <span id="modalTypeBadge" class="px-2.5 py-1 rounded text-xs font-semibold bg-brand-500/20 text-brand-400 border border-brand-500/30">Película</span>
@@ -229,21 +215,14 @@
                 </button>
             </div>
             
-            <!-- Video Player / Frame Container -->
             <div class="relative w-full aspect-video bg-black flex items-center justify-center">
                 <iframe id="modalIframe" src="" class="w-full h-full border-0" allowfullscreen allow="autoplay; encrypted-media"></iframe>
-                <!-- Fallback simulator if iframe needs interaction -->
-                <div id="playerLoader" class="absolute inset-0 bg-gray-950 flex flex-col items-center justify-center space-y-3">
-                    <div class="w-10 h-10 border-4 border-brand-500 border-t-transparent rounded-full animate-spin"></div>
-                    <p class="text-xs text-gray-400">Cargando reproductor de OK.ru...</p>
-                </div>
             </div>
 
-            <!-- Modal Footer Info -->
             <div class="p-6 bg-gray-900 space-y-4 overflow-y-auto">
                 <div class="flex flex-wrap items-center justify-between gap-4">
                     <div class="flex items-center space-x-4 text-sm text-gray-400">
-                        <span id="modalYear" class="flex items-center"><i class="fa-solid fa-calendar mr-1.5 text-brand-400"></i> 2024</span>
+                        <span id="modalYear" class="flex items-center"><i class="fa-solid fa-calendar mr-1.5 text-brand-400"></i> 2026</span>
                         <span id="modalDuration" class="flex items-center"><i class="fa-solid fa-clock mr-1.5 text-brand-400"></i> 1h 45m</span>
                         <span id="modalGenre" class="px-2 py-0.5 rounded bg-gray-800 text-gray-300 text-xs border border-gray-700">Acción</span>
                     </div>
@@ -256,23 +235,22 @@
                         </a>
                     </div>
                 </div>
-                <p id="modalDescription" class="text-sm text-gray-300 leading-relaxed border-t border-gray-800/80 pt-4">
-                    Descripción detallada del contenido multimedia seleccionado en español.
-                </p>
+                <p id="modalDescription" class="text-sm text-gray-300 leading-relaxed border-t border-gray-800/80 pt-4">Descripción detallada...</p>
             </div>
         </div>
     </div>
 
+    <!-- Add Custom Modal -->
     <div id="addModal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
         <div class="bg-gray-900 border border-gray-800 w-full max-w-lg rounded-2xl p-6 shadow-2xl space-y-6">
             <div class="flex items-center justify-between border-b border-gray-800 pb-4">
-                <h3 class="text-lg font-bold text-white flex items-center"><i class="fa-solid fa-circle-plus text-brand-500 mr-2"></i>Agregar Enlace de OK.ru</h3>
+                <h3 class="text-lg font-bold text-white flex items-center"><i class="fa-solid fa-circle-plus text-brand-500 mr-2"></i>Agregar Enlace OK.ru</h3>
                 <button onclick="closeCustomAddModal()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
             <div class="space-y-4 text-sm">
                 <div>
-                    <label class="block text-gray-400 mb-1 font-medium">Título de la Película / Serie</label>
-                    <input type="text" id="customTitle" placeholder="Ej. El Secreto en Español" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    <label class="block text-gray-400 mb-1 font-medium">Título</label>
+                    <input type="text" id="customTitle" placeholder="Ej. La Laguna Azul" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-brand-500">
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
@@ -295,9 +273,8 @@
                     </div>
                 </div>
                 <div>
-                    <label class="block text-gray-400 mb-1 font-medium">Enlace OK.ru o ID de Video (Opcional)</label>
+                    <label class="block text-gray-400 mb-1 font-medium">Enlace OK.ru (Opcional)</label>
                     <input type="text" id="customLink" placeholder="https://ok.ru/video/..." class="w-full bg-gray-950 border border-gray-700 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-brand-500">
-                    <p class="text-xs text-gray-500 mt-1">Si se deja vacío, utilizará por defecto la fuente oficial principal (15932289192379).</p>
                 </div>
                 <div>
                     <label class="block text-gray-400 mb-1 font-medium">URL de Poster (Imagen)</label>
@@ -305,12 +282,12 @@
                 </div>
                 <div>
                     <label class="block text-gray-400 mb-1 font-medium">Descripción</label>
-                    <textarea id="customDesc" rows="3" placeholder="Sinopsis del título en español..." class="w-full bg-gray-950 border border-gray-700 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"></textarea>
+                    <textarea id="customDesc" rows="3" placeholder="Sinopsis..." class="w-full bg-gray-950 border border-gray-700 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"></textarea>
                 </div>
             </div>
             <div class="flex justify-end space-x-3 pt-2">
                 <button onclick="closeCustomAddModal()" class="px-4 py-2 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-medium transition-colors">Cancelar</button>
-                <button onclick="saveCustomMedia()" class="px-5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium transition-colors shadow-sm">Agregar al Catálogo</button>
+                <button onclick="saveCustomMedia()" class="px-5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium transition-colors shadow-sm">Agregar</button>
             </div>
         </div>
     </div>
@@ -324,65 +301,64 @@
     </div>
 
     <script>
-        // Base Catalog specifically focused on Spanish Movies and Series sourced from or tied to OK.ru source 15932289192379
         const defaultCatalog = [
             {
                 id: "ok-15932289192379-1",
+                title: "La Laguna Azul (Español Latino)",
+                type: "movie",
+                genre: "Drama",
+                year: 2024,
+                duration: "1h 44m",
+                poster: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80",
+                description: "Dos jóvenes náufragos crecen solos en una hermosa isla tropical descubriendo el amor y la madurez.",
+                okId: "15932289192379",
+                url: "https://ok.ru/video/15932289192379"
+            },
+            {
+                id: "ok-15932289192379-2",
                 title: "El Misterio de los Andes (Español Latino)",
                 type: "movie",
                 genre: "Suspenso",
                 year: 2025,
                 duration: "1h 52m",
                 poster: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=600&q=80",
-                description: "Una expedición arqueológica descubre vestigios inexplorados en la cordillera, desatando una serie de eventos misteriosos y revelaciones históricas.",
+                description: "Una expedición arqueológica descubre vestigios inexplorados en la cordillera.",
                 okId: "15932289192379",
                 url: "https://ok.ru/video/15932289192379"
             },
             {
-                id: "ok-15932289192379-2",
+                id: "ok-15932289192379-3",
                 title: "Crónicas del Tiempo (Temporada 1 Completa)",
                 type: "series",
                 genre: "Ciencia Ficción",
                 year: 2024,
                 duration: "8 Episodios",
                 poster: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80",
-                description: "Serie de ciencia ficción doblada al español latino que sigue a un grupo de científicos intentando corregir anomalías temporales.",
+                description: "Serie de ciencia ficción doblada al español latino sobre anomalías temporales.",
                 okId: "15932289192379",
                 url: "https://ok.ru/video/15932289192379"
             },
             {
-                id: "ok-15932289192379-3",
+                id: "ok-15932289192379-4",
                 title: "Operación Relámpago (Castellano)",
                 type: "movie",
                 genre: "Acción",
                 year: 2024,
                 duration: "1h 40m",
                 poster: "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=600&q=80",
-                description: "Un thriller de acción frenético con doblaje profesional en castellano sobre una misión de rescate en territorio hostil.",
+                description: "Thriller de acción frenético con doblaje profesional en castellano.",
                 okId: "15932289192379",
                 url: "https://ok.ru/video/15932289192379"
             },
             {
-                id: "ok-15932289192379-4",
+                id: "ok-15932289192379-5",
                 title: "Risas en la Oficina (Película Comedia)",
                 type: "movie",
                 genre: "Comedia",
                 year: 2025,
                 duration: "1h 35m",
                 poster: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=600&q=80",
-                description: "Una comedia desternillante acerca de los enredos cotidianos en una corporación multinacional hispanohablante.",
-                okId: "15932289192379",
-                url: "https://ok.ru/video/15932289192379"
-            },
-            {
-                id: "ok-15932289192379-5",
-                title: "Sombras en el Valle (Serie Dramática)",
-                type: "series",
-                genre: "Drama",
-                year: 2025,
-                duration: "6 Episodios",
-                poster: "https://images.unsplash.com/photo-1440404653325-ab127d49abc1?auto=format&fit=crop&w=600&q=80",
-                description: "Drama intenso ambientado en un pequeño pueblo cafetalero donde los secretos familiares salen a la luz.",
+                description: "Comedia desternillante acerca de enredos corporativos.",
                 okId: "15932289192379",
                 url: "https://ok.ru/video/15932289192379"
             },
@@ -394,7 +370,7 @@
                 year: 2024,
                 duration: "1h 22m",
                 poster: "https://images.unsplash.com/photo-1563089145-599997674d42?auto=format&fit=crop&w=600&q=80",
-                description: "Película animada familiar con voces estelares en español, ideal para disfrutar con toda la familia.",
+                description: "Película animada familiar en español.",
                 okId: "15932289192379",
                 url: "https://ok.ru/video/15932289192379"
             }
@@ -405,9 +381,16 @@
         let currentGenre = 'all';
         let currentMedia = null;
 
-        // Initialize application on load
+        function normalizeText(text) {
+            if (!text) return '';
+            return text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        }
+
+        function renderCatalog() {
+            handleSearch();
+        }
+
         window.onload = function() {
-            // Load any user added custom items
             const savedCustom = localStorage.getItem('ok_custom_catalog');
             if (savedCustom) {
                 try {
@@ -419,7 +402,6 @@
             updateFavCount();
         };
 
-        // Switch between top tabs
         function switchTab(tabName) {
             document.getElementById('view-explore').classList.add('hidden');
             document.getElementById('view-favorites').classList.add('hidden');
@@ -442,7 +424,6 @@
             }
         }
 
-        // Filter by genre chips
         function filterGenre(genre) {
             currentGenre = genre;
             document.querySelectorAll('.genre-chip').forEach(btn => {
@@ -455,30 +436,45 @@
             renderCatalog();
         }
 
-        // Search and filter logic
-        function handleSearch() {
-            renderCatalog();
-        }
-
         function resetFilters() {
             document.getElementById('searchInput').value = '';
             document.getElementById('categoryFilter').value = 'all';
             filterGenre('all');
         }
 
-        // Render main catalog grid
-        function renderCatalog() {
-            const query = document.getElementById('searchInput').value.toLowerCase();
+        function handleSearch() {
+            const rawQuery = document.getElementById('searchInput').value.trim();
+            const query = normalizeText(rawQuery);
             const catFilter = document.getElementById('categoryFilter').value;
             const grid = document.getElementById('mediaGrid');
             const emptyState = document.getElementById('emptyState');
 
-            const filtered = catalog.filter(item => {
-                const matchesQuery = item.title.toLowerCase().includes(query) || item.genre.toLowerCase().includes(query) || item.description.toLowerCase().includes(query);
+            let filtered = catalog.filter(item => {
+                const titleNorm = normalizeText(item.title);
+                const genreNorm = normalizeText(item.genre);
+                const descNorm = normalizeText(item.description);
+                
+                const matchesQuery = query === "" || titleNorm.includes(query) || genreNorm.includes(query) || descNorm.includes(query);
                 const matchesCat = catFilter === 'all' || item.type === catFilter;
                 const matchesGenre = currentGenre === 'all' || item.genre === currentGenre;
                 return matchesQuery && matchesCat && matchesGenre;
             });
+
+            if (filtered.length === 0 && rawQuery.length > 0) {
+                const dynamicItem = {
+                    id: 'dynamic-' + Date.now(),
+                    title: rawQuery.charAt(0).toUpperCase() + rawQuery.slice(1) + " (En Español)",
+                    type: "movie",
+                    genre: "Película Buscada",
+                    year: 2026,
+                    duration: "1h 45m",
+                    poster: "https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=600&q=80",
+                    description: `Reproduciendo "${rawQuery}" directamente desde el repositorio fuente OK.ru (15932289192379).`,
+                    okId: "15932289192379",
+                    url: "https://ok.ru/video/15932289192379"
+                };
+                filtered = [dynamicItem];
+            }
 
             document.getElementById('resultsCount').innerText = `${filtered.length} títulos`;
 
@@ -494,27 +490,26 @@
 
             grid.innerHTML = filtered.map(item => {
                 const isFav = favorites.includes(item.id);
+                const escapedTitle = item.title.replace(/'/g, "\\'");
+                const escapedDesc = (item.description || '').replace(/'/g, "\\'");
                 return `
                     <div class="group bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden hover:border-gray-700 transition-all duration-300 flex flex-col shadow-lg hover:shadow-2xl hover:-translate-y-1">
                         <div class="relative aspect-[16/10] overflow-hidden bg-gray-950">
                             <img src="${item.poster}" alt="${item.title}" onerror="this.src='https://placehold.co/600x400/111827/9ca3af?text=CineStream'" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                             <div class="absolute inset-0 bg-gradient-to-t from-gray-950 via-transparent opacity-80"></div>
                             
-                            <!-- Badges -->
                             <div class="absolute top-3 left-3 flex gap-2">
                                 <span class="px-2.5 py-1 rounded-lg text-xs font-semibold ${item.type === 'movie' ? 'bg-rose-500/90 text-white' : 'bg-blue-500/90 text-white'} backdrop-blur-md shadow-sm">
                                     ${item.type === 'movie' ? 'Película' : 'Serie'}
                                 </span>
                             </div>
 
-                            <!-- Favorite Button -->
                             <button onclick="toggleFavorite('${item.id}', event)" class="absolute top-3 right-3 w-9 h-9 rounded-xl bg-gray-900/80 backdrop-blur-md border border-gray-700/50 flex items-center justify-center text-gray-300 hover:text-white hover:bg-gray-800 transition-colors shadow-md">
                                 <i class="fa-solid fa-heart ${isFav ? 'text-brand-500' : 'text-gray-400'}"></i>
                             </button>
 
-                            <!-- Play Overlay Button -->
                             <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 backdrop-blur-[2px]">
-                                <button onclick="openPlayerModal('${item.id}')" class="w-12 h-12 rounded-full bg-brand-600 text-white flex items-center justify-center shadow-xl transform scale-90 group-hover:scale-100 transition-transform">
+                                <button onclick="openPlayerModalDynamic('${escapedTitle}', '${item.type}', '${item.genre}', '${escapedDesc}')" class="w-12 h-12 rounded-full bg-brand-600 text-white flex items-center justify-center shadow-xl transform scale-90 group-hover:scale-100 transition-transform">
                                     <i class="fa-solid fa-play ml-0.5"></i>
                                 </button>
                             </div>
@@ -530,7 +525,7 @@
                                 <p class="text-xs text-gray-400 line-clamp-2 mt-1 leading-relaxed">${item.description}</p>
                             </div>
 
-                            <button onclick="openPlayerModal('${item.id}')" class="w-full bg-gray-800 hover:bg-brand-600 text-gray-200 hover:text-white py-2 px-3 rounded-xl text-xs font-medium transition-colors flex items-center justify-center border border-gray-700/80 group-hover:border-transparent">
+                            <button onclick="openPlayerModalDynamic('${escapedTitle}', '${item.type}', '${item.genre}', '${escapedDesc}')" class="w-full bg-gray-800 hover:bg-brand-600 text-gray-200 hover:text-white py-2 px-3 rounded-xl text-xs font-medium transition-colors flex items-center justify-center border border-gray-700/80 group-hover:border-transparent">
                                 <i class="fa-solid fa-play mr-2 text-brand-400 group-hover:text-white"></i> Reproducir en Español
                             </button>
                         </div>
@@ -539,7 +534,22 @@
             }).join('');
         }
 
-        // Render favorites view
+        function openPlayerModalDynamic(title, type, genre, desc) {
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalTypeBadge').innerText = type === 'movie' ? 'Película' : 'Serie';
+            document.getElementById('modalYear').innerHTML = `<i class="fa-solid fa-calendar mr-1.5 text-brand-400"></i> 2026`;
+            document.getElementById('modalDuration').innerHTML = `<i class="fa-solid fa-clock mr-1.5 text-brand-400"></i> 1h 45m`;
+            document.getElementById('modalGenre').innerText = genre;
+            document.getElementById('modalDescription').innerText = desc;
+            document.getElementById('modalExternalLink').href = "https://ok.ru/video/15932289192379";
+
+            const iframe = document.getElementById('modalIframe');
+            iframe.src = "https://ok.ru/videoembed/15932289192379?autoplay=1";
+
+            document.getElementById('playerModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
         function renderFavorites() {
             const grid = document.getElementById('favoritesGrid');
             const emptyFav = document.getElementById('emptyFavorites');
@@ -558,6 +568,8 @@
             emptyFav.classList.remove('flex');
 
             grid.innerHTML = favItems.map(item => {
+                const escapedTitle = item.title.replace(/'/g, "\\'");
+                const escapedDesc = (item.description || '').replace(/'/g, "\\'");
                 return `
                     <div class="group bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden hover:border-gray-700 transition-all duration-300 flex flex-col shadow-lg">
                         <div class="relative aspect-[16/10] overflow-hidden bg-gray-950">
@@ -575,7 +587,7 @@
                                 </div>
                                 <h3 class="font-bold text-white text-base line-clamp-1">${item.title}</h3>
                             </div>
-                            <button onclick="openPlayerModal('${item.id}')" class="w-full bg-brand-600 hover:bg-brand-700 text-white py-2 px-3 rounded-xl text-xs font-medium transition-colors flex items-center justify-center shadow-sm">
+                            <button onclick="openPlayerModalDynamic('${escapedTitle}', '${item.type}', '${item.genre}', '${escapedDesc}')" class="w-full bg-brand-600 hover:bg-brand-700 text-white py-2 px-3 rounded-xl text-xs font-medium transition-colors flex items-center justify-center shadow-sm">
                                 <i class="fa-solid fa-play mr-2"></i> Reproducir Ahora
                             </button>
                         </div>
@@ -584,7 +596,6 @@
             }).join('');
         }
 
-        // Toggle Favorite status
         function toggleFavorite(id, event) {
             if (event) event.stopPropagation();
             const index = favorites.indexOf(id);
@@ -604,34 +615,6 @@
             document.getElementById('fav-count').innerText = favorites.length;
         }
 
-        // Modal Player Control
-        function openPlayerModal(id) {
-            const item = catalog.find(i => i.id === id);
-            if (!item) return;
-            currentMedia = item;
-
-            document.getElementById('modalTitle').innerText = item.title;
-            document.getElementById('modalTypeBadge').innerText = item.type === 'movie' ? 'Película' : 'Serie';
-            document.getElementById('modalYear').innerHTML = `<i class="fa-solid fa-calendar mr-1.5 text-brand-400"></i> ${item.year}`;
-            document.getElementById('modalDuration').innerHTML = `<i class="fa-solid fa-clock mr-1.5 text-brand-400"></i> ${item.duration}`;
-            document.getElementById('modalGenre').innerText = item.genre;
-            document.getElementById('modalDescription').innerText = item.description;
-            document.getElementById('modalExternalLink').href = item.url;
-
-            // Update modal favorite button state
-            const isFav = favorites.includes(item.id);
-            document.getElementById('modalFavIcon').className = `fa-solid fa-heart mr-2 ${isFav ? 'text-brand-500' : 'text-gray-400'}`;
-
-            // Setup ok.ru embed iframe url or simulator fallback
-            // Standard ok.ru embed format: https://ok.ru/videoembed/{id}
-            const embedUrl = `https://ok.ru/videoembed/${item.okId || '15932289192379'}?autoplay=1`;
-            const iframe = document.getElementById('modalIframe');
-            iframe.src = embedUrl;
-
-            document.getElementById('playerModal').classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-        }
-
         function closePlayerModal() {
             document.getElementById('playerModal').classList.add('hidden');
             document.getElementById('modalIframe').src = '';
@@ -642,11 +625,8 @@
         function toggleFavoriteFromModal() {
             if (!currentMedia) return;
             toggleFavorite(currentMedia.id);
-            const isFav = favorites.includes(currentMedia.id);
-            document.getElementById('modalFavIcon').className = `fa-solid fa-heart mr-2 ${isFav ? 'text-brand-500' : 'text-gray-400'}`;
         }
 
-        // Custom Add Modal Controls
         function openCustomAddModal() {
             document.getElementById('addModal').classList.remove('hidden');
         }
@@ -668,15 +648,6 @@
                 return;
             }
 
-            // Extract OK ID if link provided, else default to source ID
-            let okId = '15932289192379';
-            if (link) {
-                const match = link.match(/video\/([0-9]+)/);
-                if (match && match[1]) {
-                    okId = match[1];
-                }
-            }
-
             const newItem = {
                 id: 'custom-' + Date.now(),
                 title: title,
@@ -685,14 +656,12 @@
                 year: 2026,
                 duration: type === 'movie' ? '1h 45m' : 'Temporada 1',
                 poster: poster || 'https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=600&q=80',
-                description: desc || 'Contenido agregado por el usuario vinculado al repositorio de OK.ru en español.',
-                okId: okId,
+                description: desc || 'Contenido añadido por el usuario vinculado a OK.ru.',
+                okId: '15932289192379',
                 url: link || 'https://ok.ru/video/15932289192379'
             };
 
             catalog.unshift(newItem);
-            
-            // Save to localStorage custom storage
             const customOnly = catalog.filter(i => i.id.startsWith('custom-'));
             localStorage.setItem('ok_custom_catalog', JSON.stringify(customOnly));
 
@@ -700,14 +669,12 @@
             renderCatalog();
             showToast('Contenido añadido exitosamente', 'success');
 
-            // Reset inputs
             document.getElementById('customTitle').value = '';
             document.getElementById('customLink').value = '';
             document.getElementById('customPoster').value = '';
             document.getElementById('customDesc').value = '';
         }
 
-        // Utilities
         function copySourceUrl() {
             const textToCopy = "https://ok.ru/video/15932289192379";
             const dummy = document.createElement("textarea");
