@@ -16,7 +16,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
     
-    <!-- Forzar modo clásico de Babel -->
     <script>
         if (typeof Babel !== 'undefined') {
             Babel.registerPreset('react-classic', {
@@ -43,8 +42,6 @@
         .animate-slide-up { animation: slideUp 0.5s ease-out; }
         .text-gold-gradient { background: linear-gradient(to right, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C); -webkit-background-clip: text; background-clip: text; color: transparent; }
         .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
-        .video-container { position: relative; width: 100%; aspect-ratio: 16/9; max-height: 75vh; z-index: 10; background: #000; display: flex; align-items: center; justify-content: center; }
-        .video-container iframe { width: 100%; height: 100%; object-fit: contain; border: none; }
         button:focus, div[tabindex="0"]:focus, input:focus { outline: none; }
     </style>
 </head>
@@ -82,51 +79,6 @@
             } catch (e) { console.warn(e); }
         }
 
-        window.DB_API = {
-            saveVisitor: async (name) => {
-                if (!name) return;
-                if (db && auth && currentUser) {
-                    try {
-                        await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('app_visitors').add({
-                            name: name,
-                            timestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
-                            uid: currentUser.uid
-                        });
-                        return;
-                    } catch (e) {}
-                }
-                try {
-                    const localData = JSON.parse(localStorage.getItem('magis_local_visitors') || '[]');
-                    const isDuplicate = localData.some(v => v.name === name && (Date.now()/1000 - (v.timestamp?.seconds || 0)) < 60);
-                    if (!isDuplicate) {
-                        localData.push({ name: name, timestamp: { seconds: Date.now() / 1000 }, uid: 'local-user' });
-                        localStorage.setItem('magis_local_visitors', JSON.stringify(localData));
-                    }
-                } catch (e) {}
-            },
-            subscribeToVisitors: (callback) => {
-                if (db) {
-                    try {
-                        return db.collection('artifacts').doc(appId).collection('public').doc('data').collection('app_visitors')
-                            .onSnapshot((snapshot) => {
-                                const visitors = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                                visitors.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
-                                callback(visitors);
-                            }, () => { loadLocal(callback); });
-                    } catch (e) { loadLocal(callback); }
-                } else { loadLocal(callback); }
-                return () => {}; 
-            }
-        };
-
-        function loadLocal(callback) {
-            try {
-                const localData = JSON.parse(localStorage.getItem('magis_local_visitors') || '[]');
-                localData.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
-                callback(localData);
-            } catch(e) { callback([]); }
-        }
-
         const { useState, useEffect, useRef, useMemo } = React;
 
         const safeStorage = {
@@ -140,15 +92,27 @@
             ANIMADOS: 'https://raw.githubusercontent.com/sejo48/animados./refs/heads/main/animados.json'
         };
 
-        const convertDriveUrl = (url) => { 
-            if (!url) return ''; 
-            if (url.includes('drive.google.com')) { 
-                const match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
-                if (match) {
-                    return `https://drive.google.com/file/d/${match[1]}/preview`;
+        // Conversión segura de URL de Google Drive sin expresiones regulares problemáticas
+        const convertDriveUrl = (url) => {
+            if (!url) return '';
+            if (url.includes('drive.google.com')) {
+                let fileId = '';
+                if (url.includes('/file/d/')) {
+                    const parts = url.split('/file/d/');
+                    if (parts[1]) {
+                        fileId = parts[1].split('/')[0];
+                    }
+                } else if (url.includes('id=')) {
+                    const parts = url.split('id=');
+                    if (parts[1]) {
+                        fileId = parts[1].split('&')[0];
+                    }
                 }
-            } 
-            return url; 
+                if (fileId) {
+                    return `https://drive.google.com/file/d/${fileId}/preview`;
+                }
+            }
+            return url;
         };
 
         const STATIC_MOVIES = [
@@ -366,7 +330,7 @@
                         ))}
                     </div>
 
-                    <main className="flex-1 md:ml-20 min-h-screen pt-14 md:pt-0 pb-20 md:pb-0 relative z-10">
+                    <main className="flex-1 md:ml-20 min-h-screen pt-14 md:pt-0 pb-24 md:pb-0 relative z-10">
                         {activeTab === 'favorites' && !selectedItem ? (
                             <div className="p-4 sm:p-8 animate-fade-in">
                                 <div className="mb-6 flex items-center gap-3 border-b border-white/10 pb-3">
@@ -403,7 +367,7 @@
                             </div>
                         ) : selectedItem ? (
                             <div className="animate-fade-in flex flex-col min-h-screen">
-                                <div className="w-full bg-black relative video-container shadow-2xl">
+                                <div className="w-full bg-black relative aspect-video md:h-[65vh] flex items-center justify-center overflow-hidden">
                                     <div className="absolute top-3 left-3 z-30 flex gap-2">
                                         <button onClick={() => {setSelectedItem(null); setIsLocked(false);}} className="bg-black/70 hover:bg-[#E50914] text-white px-3.5 py-1.5 rounded-full backdrop-blur-md flex items-center gap-1.5 text-xs transition-colors border border-white/15 shadow-lg">
                                             <Icon name="arrowLeft" size={16} /> <span>Volver</span>
@@ -437,7 +401,6 @@
                                             </div>
                                             <p className="text-gray-300 text-xs sm:text-sm leading-relaxed mb-6">{selectedItem.description || selectedItem.plot || "Sin descripción disponible."}</p>
                                             
-                                            {/* Sección de Recomendaciones para aprovechar el espacio */}
                                             <div className="mt-8">
                                                 <h3 className="text-sm font-bold uppercase tracking-wider text-gray-400 mb-3 flex items-center gap-2">
                                                     <div className="w-1 h-4 bg-[#E50914] rounded-full"></div> Más para ver
@@ -534,10 +497,10 @@
                         <img 
                             src={item.image || item.poster} 
                             alt="Hero BG" 
-                            className="w-full h-full object-cover filter blur-[20px] opacity-80 scale-125 brightness-110 contrast-125 saturate-150 transform translate-x-12" 
+                            className="w-full h-full object-cover filter blur-md opacity-75 scale-125 brightness-125 contrast-125" 
                             onError={(e) => e.target.style.display='none'} 
                         />
-                        <div className="absolute inset-0 bg-gradient-to-r from-[#0b0f19] via-[#0b0f19]/40 to-transparent"></div>
+                        <div className="absolute inset-0 bg-gradient-to-r from-[#0b0f19]/80 via-[#0b0f19]/40 to-transparent"></div>
                         <div className="absolute inset-0 bg-gradient-to-t from-[#0b0f19] via-transparent to-transparent"></div>
                     </div>
                     <div className="relative z-10 w-full h-full flex flex-col sm:flex-row items-center justify-start px-6 sm:px-12 max-w-7xl mx-auto gap-8">
