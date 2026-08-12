@@ -62,10 +62,6 @@
             setItem: (key, value) => { try { localStorage.setItem(key, value); } catch (e) { } }
         };
 
-        const URLS = {
-            TV: 'https://raw.githubusercontent.com/sejo48/retrom3u/refs/heads/main/listaoficial.m3u'
-        };
-
         const convertDriveUrl = (url) => {
             if (!url) return '';
             if (url.includes('drive.google.com')) {
@@ -88,6 +84,7 @@
             return url;
         };
 
+        // Catálogo completo integrado con todas tus películas, incluyendo "Enemigo mío (1985)"
         const STATIC_MOVIES = [
             { "titulo": "Enemigo mío (1985)", "descripcion": "El odio entre un extraterrestre y su enemigo humano, se torna en amistad, cuando son abandonados en un planeta desolado.", "imagen": "https://pics.filmaffinity.com/Enemigo_maio-201777719-large.jpg", "urlDrive": "https://drive.google.com/file/d/1qYg1p7D-Oki-5ALxG-3TyfwzI0_46pCi/view?usp=sharing", "codigo": null },
             { "titulo": "1923 - El Hombre Mosca", "descripcion": "Un joven de campo recién llegado a la ciudad debe tratar de escalar un edificio de 12 pisos.", "imagen": "https://m.media-amazon.com/images/M/MV5BM2EzYzA2NTgtODQzYy00N2UwLWE0ZGYtMDU3YmYwZTFlOTA5XkEyXkFqcGc@._V1_.jpg", "urlDrive": "https://drive.google.com/file/d/1y9OJY2Se0PJdiUjIL-fcA32TszqwDaRd/view?usp=sharing", "codigo": null },
@@ -316,7 +313,7 @@
                                         <LockScreen correctCode={selectedItem.codigo || selectedItem.password || selectedItem.pin} onUnlock={() => setIsLocked(false)} onCancel={() => {setSelectedItem(null); setIsLocked(false);}} />
                                     ) : (
                                         <iframe 
-                                            src={selectedItem.type === 'series' && selectedEpisode ? selectedEpisode.url : selectedItem.url} 
+                                            src={convertDriveUrl(selectedItem.type === 'series' && selectedEpisode ? selectedEpisode.url : selectedItem.url)} 
                                             className="w-full h-full border-0" 
                                             allow="autoplay; encrypted-media; fullscreen" 
                                             allowFullScreen
