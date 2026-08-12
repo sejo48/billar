@@ -63,9 +63,7 @@
         };
 
         const URLS = {
-            TV: 'https://raw.githubusercontent.com/sejo48/retrom3u/refs/heads/main/listaoficial.m3u',
-            SERIES: 'https://raw.githubusercontent.com/sejo48/jorgedrive/refs/heads/main/playlist.json',
-            ANIMADOS: 'https://raw.githubusercontent.com/sejo48/animados./refs/heads/main/animados.json'
+            TV: 'https://raw.githubusercontent.com/sejo48/retrom3u/refs/heads/main/listaoficial.m3u'
         };
 
         const convertDriveUrl = (url) => {
@@ -90,7 +88,7 @@
             return url;
         };
 
-        // CATÁLOGO COMPLETO DE PELÍCULAS INTEGRADO
+        // Catálogo completo integrado de películas
         const STATIC_MOVIES = [
             { "titulo": "Enemigo mío (1985)", "descripcion": "El odio entre un extraterrestre y su enemigo humano, se torna en amistad, cuando son abandonados en un planeta desolado.", "imagen": "https://pics.filmaffinity.com/Enemigo_maio-201777719-large.jpg", "urlDrive": "https://drive.google.com/file/d/1qYg1p7D-Oki-5ALxG-3TyfwzI0_46pCi/view?usp=sharing", "codigo": null },
             { "titulo": "1923 - El Hombre Mosca", "descripcion": "Un joven de campo recién llegado a la ciudad debe tratar de escalar un edificio de 12 pisos.", "imagen": "https://m.media-amazon.com/images/M/MV5BM2EzYzA2NTgtODQzYy00N2UwLWE0ZGYtMDU3YmYwZTFlOTA5XkEyXkFqcGc@._V1_.jpg", "urlDrive": "https://drive.google.com/file/d/1y9OJY2Se0PJdiUjIL-fcA32TszqwDaRd/view?usp=sharing", "codigo": null },
@@ -137,7 +135,7 @@
             { "titulo": "Abbott y Costello en Hollywood", "descripcion": "Comedia clásica ambientada en el mundo de la música.", "imagen": "https://resizing.flixster.com/DlvT75cgHkoSpIf2UOV1fppds_I=/fit-in/705x460/v2/https://resizing.flixster.com/-XZAfHZM39UwaGJIFWKAE8fS0ak=/v3/t/assets/p3777_v_v9_ac.jpg", "urlDrive": "https://drive.google.com/file/d/1zcGqEHpawtMEgVd7OcIdvaGRlY9jeZjo/view?usp=sharing", "codigo": null },
             { "titulo": "Abbott y Costello en la marina", "descripcion": "Un cantante famoso se une a la Marina de Estados Unidos.", "imagen": "https://pics.filmaffinity.com/abbott_and_costello_in_the_foreign_legion-859287517-msmall.jpg", "urlDrive": "https://drive.google.com/file/d/1LrICZedKrbs7tjnD0olC-uoWf1hZ2b6t/view?usp=sharing&t=2", "codigo": null },
             { "titulo": "Abbott y Costello en la legión", "descripcion": "Aventuras y enredos en la Legión Extranjera.", "imagen": "https://m.media-amazon.com/images/M/MV5BMzA1MDgwNjk4M15BMl5BanBnXkFtZTYwNzA5OTI5._V1_QL75_UX159_.jpg", "urlDrive": "https://drive.google.com/file/d/1-QMjFclS6I3cNjY4FeqTazsvlkGCUlrM/view?usp=sharing", "codigo": null },
-            { "titulo": "Abbott y Costello en Alaska", "descripcion": "Comedia clásica ambientada en las tierras heladas de Alaska.", "imagen": "https://m.media-amazon.com/images/I/512euKquxEL._AC_SY445*.jpg", "urlDrive": "https://drive.google.com/file/d/1ZYB7Z-orECYqL51rBx9xtcIuUCLNksak/view?usp=sharing", "codigo": null },
+            { "titulo": "Abbott y Costello en Alaska", "descripcion": "Comedia clásica ambientada en las tierras heladas de Alaska.", "imagen": "https://m.media-amazon.com/images/I/512euKquxEL._AC_SY445_.jpg", "urlDrive": "https://drive.google.com/file/d/1ZYB7Z-orECYqL51rBx9xtcIuUCLNksak/view?usp=sharing", "codigo": null },
             { "titulo": "Abbott y Costello vs Dr. Jekyll", "descripcion": "Policías en Londres que se topan con la pócima del Dr. Jekyll.", "imagen": "https://i5.walmartimages.com/seo/Abbott-and-Costello-Meet-Dr-Jekyll-and-Mr-Hyde-DVD-Shock-Comedy_92bc5dae-ee24-4672-b59f-79fd4df902b3.2dd52632dd11e870685969957451a651.jpeg", "urlDrive": "https://drive.google.com/file/d/1L8Ol-mgSkpNCflBn7T4BuuzLk3hxtVW5/view?usp=sharing", "codigo": null },
             { "titulo": "Abbott y Costello En Venus", "descripcion": "Lanzamiento accidental de cohete hacia un planeta de mujeres.", "imagen": "https://www.mauvais-genres.com/36933-thickbox_default/abbott-and-costello-go-to-mars-movie-poster-14x21-in-1953-charles-lamont-bud-abbot-lou-costello.jpg", "urlDrive": "https://drive.google.com/file/d/1jKxY0n5eOWtpAUChtuRywPmAitf7zo97/view?usp=sharing", "codigo": null },
             { "titulo": "Depredador 1 (1987)", "descripcion": "Fuerzas especiales cazadas por un extraterrestre en la jungla.", "imagen": "https://www.cinecalidad.rs/wp-content/uploads/2017/07/depredador.jpg", "urlDrive": "https://drive.google.com/file/d/1qca85Ro5ho71aio185w7Qc3mQftzkOVo/view?usp=sharing", "codigo": null },
@@ -621,7 +619,7 @@
                 <div className="relative w-full h-[320px] sm:h-[380px] bg-[#0b0f19] overflow-hidden rounded-3xl mb-8 group animate-fade-in shadow-2xl border border-white/5 flex items-center">
                     <div className="absolute inset-0 overflow-hidden pointer-events-none">
                         <img 
-                            src={item.image || item.poster} 
+                            src={item.imagen || item.image || item.poster} 
                             alt="Hero BG" 
                             className="w-full h-full object-cover filter blur-md opacity-75 scale-125 brightness-125 contrast-125" 
                             onError={(e) => e.target.style.display='none'} 
@@ -631,12 +629,12 @@
                     </div>
                     <div className="relative z-10 w-full h-full flex flex-col sm:flex-row items-center justify-start px-6 sm:px-12 max-w-7xl mx-auto gap-8">
                         <div className="w-32 sm:w-44 aspect-[2/3] rounded-xl overflow-hidden shadow-2xl border border-white/20 flex-shrink-0 bg-black/50 transform group-hover:scale-105 transition-transform duration-300">
-                            <img src={item.image || item.poster} alt={item.title} className="w-full h-full object-cover" onError={(e) => e.target.src='https://placehold.co/300x450/1f2937/ffffff?text=Poster'} />
+                            <img src={item.imagen || item.image || item.poster} alt={item.titulo || item.title} className="w-full h-full object-cover" onError={(e) => e.target.src='https://placehold.co/300x450/1f2937/ffffff?text=Poster'} />
                         </div>
                         <div className="flex-1 flex flex-col gap-2 items-start max-w-xl">
                             <span className="bg-[#E50914] text-white text-[9px] font-extrabold px-2.5 py-1 rounded uppercase tracking-wider shadow">Película</span>
-                            <h1 className="text-2xl sm:text-4xl font-black text-white leading-tight drop-shadow-md line-clamp-1">{item.title || item.name}</h1>
-                            <p className="text-gray-100 text-xs sm:text-sm line-clamp-3 leading-relaxed drop-shadow">{item.description || item.plot || "Disfruta del mejor contenido seleccionado para ti."}</p>
+                            <h1 className="text-2xl sm:text-4xl font-black text-white leading-tight drop-shadow-md line-clamp-1">{item.titulo || item.title || item.name}</h1>
+                            <p className="text-gray-100 text-xs sm:text-sm line-clamp-3 leading-relaxed drop-shadow">{item.descripcion || item.plot || "Disfruta del mejor contenido seleccionado para ti."}</p>
                             <div className="flex gap-3 mt-3">
                                 <button onClick={() => onPlay(item)} className="bg-white text-black px-6 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-2 active:scale-95 transition-transform shadow-lg hover:bg-gray-200">
                                     <Icon name="play" size={16} fill="black"/> Reproducir
@@ -670,10 +668,12 @@
             const isTv = item.type === 'tv'; 
             const hasLock = item.codigo || item.password || item.pin; 
             const isKids = item.isKids;
+            const imgSource = item.imagen || item.image || item.poster || item.logo;
+            const titleSource = item.titulo || item.title || item.name;
             return ( 
                 <div tabIndex="0" className="group relative flex flex-col gap-1.5 cursor-pointer active:scale-95 transition-transform" onClick={() => onClick(item)}> 
                     <div className={`relative overflow-hidden rounded-lg bg-[#1f2937] shadow-md ${isTv ? 'aspect-video' : 'aspect-[2/3]'}`}> 
-                        <img src={item.image || item.poster || item.logo} loading="lazy" className={`w-full h-full ${isTv ? 'object-contain p-3' : 'object-cover'}`} onError={(e) => { e.target.onerror = null; e.target.src = `https://placehold.co/300x450/1f2937/ffffff?text=X`; }} alt={item.title || item.name} /> 
+                        <img src={imgSource} loading="lazy" className={`w-full h-full ${isTv ? 'object-contain p-3' : 'object-cover'}`} onError={(e) => { e.target.onerror = null; e.target.src = `https://placehold.co/300x450/1f2937/ffffff?text=X`; }} alt={titleSource} /> 
                         <button onClick={(e) => { e.stopPropagation(); onToggleFavorite(item); }} className="absolute top-1.5 right-1.5 p-1.5 bg-black/60 rounded-full text-white"> 
                             <Icon name="heart" size={14} className={isFavorite ? "text-[#E50914] fill-[#E50914]" : ""} fill={isFavorite ? "#E50914" : "none"} /> 
                         </button> 
@@ -683,7 +683,7 @@
                             {hasLock && <span className="bg-yellow-500 text-black text-[8px] font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5"><Icon name="lock" size={7}/> PIN</span>} 
                         </div> 
                     </div> 
-                    <h3 className="text-xs font-bold text-gray-200 truncate">{item.title || item.name}</h3> 
+                    <h3 className="text-xs font-bold text-gray-200 truncate">{titleSource}</h3> 
                 </div> 
             ); 
         };
