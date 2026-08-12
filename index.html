@@ -43,8 +43,8 @@
         .animate-slide-up { animation: slideUp 0.5s ease-out; }
         .text-gold-gradient { background: linear-gradient(to right, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C); -webkit-background-clip: text; background-clip: text; color: transparent; }
         .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
-        .video-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; background: #000; display: flex; align-items: center; justify-content: center; }
-        .video-container video { width: 100%; height: 100%; object-fit: contain; }
+        .iframe-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; background: #000; }
+        .iframe-container iframe { width: 100%; height: 100%; border: 0; }
         button:focus, div[tabindex="0"]:focus, input:focus { outline: none; }
     </style>
 </head>
@@ -140,18 +140,17 @@
             ANIMADOS: 'https://raw.githubusercontent.com/sejo48/animados./refs/heads/main/animados.json'
         };
 
-        const convertDriveUrl = (url) => { 
+        const cleanDriveUrl = (url) => { 
             if (!url) return ''; 
             if (url.includes('drive.google.com')) { 
                 const match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
                 if (match) {
-                    return `https://docs.google.com/uc?export=download&id=${match[1]}`;
+                    return `https://drive.google.com/file/d/${match[1]}/preview?usp=sharing&rm=minimal&autoplay=1`;
                 }
             } 
             return url; 
         };
 
-        // Lista completa integrada con todas tus películas incluyendo "Enemigo Mío (1985)"
         const STATIC_MOVIES = [
             { "titulo": "Enemigo mío (1985)", "descripcion": "El odio entre un extraterrestre y su enemigo humano, se torna en amistad, cuando son abandonados en un planeta desolado.", "imagen": "https://pics.filmaffinity.com/Enemigo_maio-201777719-large.jpg", "urlDrive": "https://drive.google.com/file/d/1qYg1p7D-Oki-5ALxG-3TyfwzI0_46pCi/view?usp=sharing", "codigo": null },
             { "titulo": "1923 - El Hombre Mosca", "descripcion": "Un joven de campo recién llegado a la ciudad debe tratar de escalar un edificio de 12 pisos.", "imagen": "https://m.media-amazon.com/images/M/MV5BM2EzYzA2NTgtODQzYy00N2UwLWE0ZGYtMDU3YmYwZTFlOTA5XkEyXkFqcGc@._V1_.jpg", "urlDrive": "https://drive.google.com/file/d/1y9OJY2Se0PJdiUjIL-fcA32TszqwDaRd/view?usp=sharing", "codigo": null },
@@ -210,11 +209,11 @@
             { "titulo": "Tarzán y las amazonas", "descripcion": "Búsqueda de una antigua ciudad en un valle oculto.", "imagen": "https://cartelesmix.es/cartelesdecine/wp-content/uploads/2018/07/tarzanylasamazonas45008.jpg", "urlDrive": "https://drive.google.com/file/d/17lnv7F-DBvOYsmhKhUr_fT3Z3WwF5xOT/view?usp=sharing", "codigo": null },
             { "titulo": "Mi Marciano Favorito", "descripcion": "Un extraterrestre varado en la Tierra.", "imagen": "https://m.media-amazon.com/images/M/MV5BNDg2NTMwMzA0M15BMl5BanBnXkFtZTcwMTQ2NDUxMQ@@._V1_FMjpg_UX1000_.jpg", "urlDrive": "https://drive.google.com/file/d/1k9PNst5sndGrG92oykUyswM-fxqsWpGs/view?usp=sharing", "codigo": null },
             { "titulo": "LASSIE - SERIE TV", "descripcion": "Galardonada serie con el inolvidable perro collie.", "imagen": "https://www.lavanguardia.com/peliculas-series/images/serie/poster/1954/9/w300/vqbVr4fYRZb28ywczaidn29JJTA.jpg", "urlDrive": "https://drive.google.com/file/d/1JQEl5FtTpHiKvrdKredtki3qgUtQod0S/view?usp=sharing", "codigo": null },
-            { "titulo": "Daktari", "descripcion": "Centro de estudios animales en África.", "imagen": "https://m.media-amazon.com/images/I/51nHajPxU9L._UF894,1000_QL80_.jpg", "urlDrive": "https://drive.google.com/file/d/1J7XXVoQmK5pj5XeF68T4FaA91hltZSGm/view?usp=sharing", "codigo": null },
+            { "titulo": "Daktari", "descripcion": "Centro de estudios animales en África.", "imagen": "https://m.media-amazon.com/images/I/51nHajPxU9L.*UF894,1000_QL80_.jpg", "urlDrive": "https://drive.google.com/file/d/1J7XXVoQmK5pj5XeF68T4FaA91hltZSGm/view?usp=sharing", "codigo": null },
             { "titulo": "Las Aventuras de Rin Tin Tin", "descripcion": "Clásica serie de TV ambientada en el Salvaje Oeste.", "imagen": "https://m.media-amazon.com/images/M/MV5BMzgyYTYwZGQtNDcwNC00ODhhLThlYjYtYzIxOGMxNDExZTNlXkEyXkFqcGc@._V1_.jpg", "urlDrive": "https://drive.google.com/file/d/1EbHgQhySwZfR0lyCjmQnMkJ-P70RL74d/view?usp=sharing", "codigo": null },
             { "titulo": "Misión Imposible ( 1966 )", "descripcion": "Un clásico de la televisión con la Fuerza de Misiones Imposibles.", "imagen": "https://s3.opensubtitles.com/features/4/0/2/8204.jpg", "urlDrive": "https://drive.google.com/file/d/15h74amMWOgxKqoCdsXl80ibEF7z2cw99/view?usp=sharing", "codigo": null },
             { "titulo": "LOS 3 CHIFLADOS", "descripcion": "Comedia basada en el slapstick y la comicidad física.", "imagen": "https://www.lavanguardia.com/peliculas-series/images/serie/poster/2024/5/w1280/o5aZTW2nFVCQzkiOnaiAXgRzKcc.jpg", "urlDrive": "https://drive.google.com/file/d/1sn5gdexgBmAwbtndQ3sT29_6FPs2JHE0/view?usp=sharing", "codigo": null },
-            { "titulo": "Titanes en el ring", "descripcion": "Aventuras con Martín Karadagián y su troupe.", "imagen": "https://www.radiocantilo.com/adjuntos/cantilo/2018/10/titanes-en-el-ring-Silva-brothers-720x1024.jpg", "urlDrive": "https://drive.google.com/file/d/1p2Lp7q2Vj6Yhxs2qBOE8GsqTYYA1dkP-/view?usp=sharing", "codigo": null },
+            { "titulo": "Los Titanes en el ring", "descripcion": "Aventuras con Martín Karadagián y su troupe.", "imagen": "https://www.radiocantilo.com/adjuntos/cantilo/2018/10/titanes-en-el-ring-Silva-brothers-720x1024.jpg", "urlDrive": "https://drive.google.com/file/d/1p2Lp7q2Vj6Yhxs2qBOE8GsqTYYA1dkP-/view?usp=sharing", "codigo": null },
             { "titulo": "La Pandilla (1955)", "descripcion": "Niños con habilidades especiales para ayudar a los demás.", "imagen": "https://pics.filmaffinity.com/La_Pandilla_Serie_de_TV-229666271-large.jpg", "urlDrive": "https://drive.google.com/file/d/1X_QOyjR9h5zQcBGiRuUJ7GAO5ErfyfYw/view?usp=sharing", "codigo": null },
             { "titulo": "Viaje Al Centro De La Tierra", "descripcion": "Exploración a través de un volcán islandés.", "imagen": "https://m.media-amazon.com/images/M/MV5BMTg2MjkyMjMzM15BMl5BanBnXkFtZTYwMjQ1ODg4._V1_.jpg", "urlDrive": "https://drive.google.com/file/d/130YMhi-XFGnAy8cJ76U2Wnk4CRy3KSVM/view?usp=sharing", "codigo": null },
             { "titulo": "GREASE (1978)", "descripcion": "Musical romántico protagonizado por John Travolta y Olivia Newton John.", "imagen": "https://i.pinimg.com/736x/76/65/a0/7665a0f3298262e079b2d8fd3fa734a2.jpg", "urlDrive": "https://drive.google.com/file/d/1AfkegbTGrVEKXUN8Ninr54Kk0Mb037k2/view?usp=sharing", "codigo": null }
@@ -248,11 +247,11 @@
                         const tvChannels = parseM3U(textTV);
                         
                         const seriesList = (Array.isArray(jsonSeries) ? jsonSeries : []).map(s => ({ 
-                            id: s.tituloSerie, title: s.tituloSerie || s.name, description: s.descripcion || s.description || s.sinopsis, image: s.imagen || s.image, type: 'series', codigo: s.codigo || s.password || s.pin, seasons: (s.temporadas || []).map(t => ({ season_number: t.numeroTemporada || 1, episodes: (t.episodios || []).map(e => ({ title: e.tituloEpisodio || e.title, url: convertDriveUrl(e.urlDrive || e.url), image: s.imagen })) })) 
+                            id: s.tituloSerie, title: s.tituloSerie || s.name, description: s.descripcion || s.description || s.sinopsis, image: s.imagen || s.image, type: 'series', codigo: s.codigo || s.password || s.pin, seasons: (s.temporadas || []).map(t => ({ season_number: t.numeroTemporada || 1, episodes: (t.episodios || []).map(e => ({ title: e.tituloEpisodio || e.title, url: cleanDriveUrl(e.urlDrive || e.url), image: s.imagen })) })) 
                         }));
                         
                         const moviesList = STATIC_MOVIES.map((m, idx) => ({ 
-                            ...m, id: `mov-${idx}`, type: 'movie', title: m.titulo, description: m.descripcion, image: m.imagen, url: convertDriveUrl(m.urlDrive) 
+                            ...m, id: `mov-${idx}`, type: 'movie', title: m.titulo, description: m.descripcion, image: m.imagen, url: cleanDriveUrl(m.urlDrive) 
                         }));
 
                         const animadosList = (Array.isArray(jsonAnimados) ? jsonAnimados : []).map((a, i) => {
@@ -265,8 +264,8 @@
                                 type: hasSeasons ? 'series' : 'movie',
                                 isKids: true,
                                 codigo: a.codigo || a.pin,
-                                url: convertDriveUrl(a.urlDrive || a.url),
-                                seasons: hasSeasons ? a.temporadas.map(t => ({ season_number: t.numeroTemporada || 1, episodes: (t.episodios || []).map(e => ({ title: e.tituloEpisodio || e.title, url: convertDriveUrl(e.urlDrive || e.url), image: a.imagen })) })) : []
+                                url: cleanDriveUrl(a.urlDrive || a.url),
+                                seasons: hasSeasons ? a.temporadas.map(t => ({ season_number: t.numeroTemporada || 1, episodes: (t.episodios || []).map(e => ({ title: e.tituloEpisodio || e.title, url: cleanDriveUrl(e.urlDrive || e.url), image: a.imagen })) })) : []
                             };
                         });
 
@@ -410,18 +409,15 @@
                                         <button onClick={() => {setSelectedItem(null); setIsLocked(false);}} className="bg-black/60 hover:bg-[#E50914] text-white px-3.5 py-1.5 rounded-full backdrop-blur-md flex items-center gap-1.5 text-xs transition-colors border border-white/10">
                                             <Icon name="arrowLeft" size={16} /> <span>Volver</span>
                                         </button>
+                                        <a href={selectedItem.type === 'series' && selectedEpisode ? selectedEpisode.url : selectedItem.url} target="_blank" rel="noopener noreferrer" className="bg-red-600 hover:bg-red-700 text-white px-4 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-lg">
+                                            <span>Pantalla Completa / Transmitir ↗</span>
+                                        </a>
                                     </div>
                                     {isLocked ? (
                                         <LockScreen correctCode={selectedItem.codigo || selectedItem.password || selectedItem.pin} onUnlock={() => setIsLocked(false)} onCancel={() => {setSelectedItem(null); setIsLocked(false);}} />
                                     ) : (
-                                        <div className="video-container">
-                                            <video 
-                                                src={selectedItem.type === 'series' && selectedEpisode ? selectedEpisode.url : selectedItem.url} 
-                                                controls 
-                                                autoPlay 
-                                                playsInline
-                                                className="w-full h-full"
-                                            ></video>
+                                        <div className="iframe-container">
+                                            <iframe src={selectedItem.type === 'series' && selectedEpisode ? selectedEpisode.url : selectedItem.url} allow="autoplay; encrypted-media; fullscreen" allowFullScreen></iframe>
                                         </div>
                                     )}
                                 </div>
