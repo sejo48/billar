@@ -140,12 +140,13 @@
             ANIMADOS: 'https://raw.githubusercontent.com/sejo48/animados./refs/heads/main/animados.json'
         };
 
+        // Función corregida para garantizar que el iframe de Google Drive cargue y reproduzca de forma directa
         const cleanDriveUrl = (url) => { 
             if (!url) return ''; 
             if (url.includes('drive.google.com')) { 
                 const match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
                 if (match) {
-                    return `https://drive.google.com/file/d/${match[1]}/preview?usp=sharing&rm=minimal&autoplay=1`;
+                    return `https://drive.google.com/file/d/${match[1]}/preview`;
                 }
             } 
             return url; 
@@ -209,7 +210,7 @@
             { "titulo": "Tarzán y las amazonas", "descripcion": "Búsqueda de una antigua ciudad en un valle oculto.", "imagen": "https://cartelesmix.es/cartelesdecine/wp-content/uploads/2018/07/tarzanylasamazonas45008.jpg", "urlDrive": "https://drive.google.com/file/d/17lnv7F-DBvOYsmhKhUr_fT3Z3WwF5xOT/view?usp=sharing", "codigo": null },
             { "titulo": "Mi Marciano Favorito", "descripcion": "Un extraterrestre varado en la Tierra.", "imagen": "https://m.media-amazon.com/images/M/MV5BNDg2NTMwMzA0M15BMl5BanBnXkFtZTcwMTQ2NDUxMQ@@._V1_FMjpg_UX1000_.jpg", "urlDrive": "https://drive.google.com/file/d/1k9PNst5sndGrG92oykUyswM-fxqsWpGs/view?usp=sharing", "codigo": null },
             { "titulo": "LASSIE - SERIE TV", "descripcion": "Galardonada serie con el inolvidable perro collie.", "imagen": "https://www.lavanguardia.com/peliculas-series/images/serie/poster/1954/9/w300/vqbVr4fYRZb28ywczaidn29JJTA.jpg", "urlDrive": "https://drive.google.com/file/d/1JQEl5FtTpHiKvrdKredtki3qgUtQod0S/view?usp=sharing", "codigo": null },
-            { "titulo": "Daktari", "descripcion": "Centro de estudios animales en África.", "imagen": "https://m.media-amazon.com/images/I/51nHajPxU9L.*UF894,1000_QL80_.jpg", "urlDrive": "https://drive.google.com/file/d/1J7XXVoQmK5pj5XeF68T4FaA91hltZSGm/view?usp=sharing", "codigo": null },
+            { "titulo": "Daktari", "descripcion": "Centro de estudios animales en África.", "imagen": "https://m.media-amazon.com/images/I/51nHajPxU9L._UF894,1000_QL80_.jpg", "urlDrive": "https://drive.google.com/file/d/1J7XXVoQmK5pj5XeF68T4FaA91hltZSGm/view?usp=sharing", "codigo": null },
             { "titulo": "Las Aventuras de Rin Tin Tin", "descripcion": "Clásica serie de TV ambientada en el Salvaje Oeste.", "imagen": "https://m.media-amazon.com/images/M/MV5BMzgyYTYwZGQtNDcwNC00ODhhLThlYjYtYzIxOGMxNDExZTNlXkEyXkFqcGc@._V1_.jpg", "urlDrive": "https://drive.google.com/file/d/1EbHgQhySwZfR0lyCjmQnMkJ-P70RL74d/view?usp=sharing", "codigo": null },
             { "titulo": "Misión Imposible ( 1966 )", "descripcion": "Un clásico de la televisión con la Fuerza de Misiones Imposibles.", "imagen": "https://s3.opensubtitles.com/features/4/0/2/8204.jpg", "urlDrive": "https://drive.google.com/file/d/15h74amMWOgxKqoCdsXl80ibEF7z2cw99/view?usp=sharing", "codigo": null },
             { "titulo": "LOS 3 CHIFLADOS", "descripcion": "Comedia basada en el slapstick y la comicidad física.", "imagen": "https://www.lavanguardia.com/peliculas-series/images/serie/poster/2024/5/w1280/o5aZTW2nFVCQzkiOnaiAXgRzKcc.jpg", "urlDrive": "https://drive.google.com/file/d/1sn5gdexgBmAwbtndQ3sT29_6FPs2JHE0/view?usp=sharing", "codigo": null },
@@ -409,9 +410,6 @@
                                         <button onClick={() => {setSelectedItem(null); setIsLocked(false);}} className="bg-black/60 hover:bg-[#E50914] text-white px-3.5 py-1.5 rounded-full backdrop-blur-md flex items-center gap-1.5 text-xs transition-colors border border-white/10">
                                             <Icon name="arrowLeft" size={16} /> <span>Volver</span>
                                         </button>
-                                        <a href={selectedItem.type === 'series' && selectedEpisode ? selectedEpisode.url : selectedItem.url} target="_blank" rel="noopener noreferrer" className="bg-red-600 hover:bg-red-700 text-white px-4 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-lg">
-                                            <span>Pantalla Completa / Transmitir ↗</span>
-                                        </a>
                                     </div>
                                     {isLocked ? (
                                         <LockScreen correctCode={selectedItem.codigo || selectedItem.password || selectedItem.pin} onUnlock={() => setIsLocked(false)} onCancel={() => {setSelectedItem(null); setIsLocked(false);}} />
