@@ -16,7 +16,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
     
-    <!-- Forzar modo clásico de Babel -->
     <script>
         if (typeof Babel !== 'undefined') {
             Babel.registerPreset('react-classic', {
@@ -43,9 +42,7 @@
         .animate-slide-up { animation: slideUp 0.5s ease-out; }
         .text-gold-gradient { background: linear-gradient(to right, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C); -webkit-background-clip: text; background-clip: text; color: transparent; }
         .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
-        .iframe-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; background: #000; }
-        .iframe-container iframe { width: 100%; height: 100%; border: 0; }
-        button:focus, div[tabindex="0"]:focus, input:focus { outline: none; }
+        button:focus, div[tabindex="0"]:focus, input:focus, select:focus { outline: none; }
     </style>
 </head>
 <body>
@@ -58,75 +55,6 @@
     </div>
 
     <script type="text/babel" data-presets="react-classic">
-        const envConfig = typeof __firebase_config !== 'undefined' ? __firebase_config : '{}';
-        const firebaseConfig = JSON.parse(envConfig);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'magis-tube-local';
-
-        let db = null; let auth = null; let currentUser = null;
-        
-        if (Object.keys(firebaseConfig).length > 0 && window.firebase) {
-            try {
-                const app = window.firebase.initializeApp(firebaseConfig);
-                auth = window.firebase.auth();
-                db = window.firebase.firestore();
-                
-                const initAuth = async () => {
-                    try {
-                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                            await auth.signInWithCustomToken(__initial_auth_token);
-                        } else { await auth.signInAnonymously(); }
-                    } catch (e) { console.warn(e); }
-                };
-                initAuth();
-                auth.onAuthStateChanged((user) => { currentUser = user; });
-            } catch (e) { console.warn(e); }
-        }
-
-        window.DB_API = {
-            saveVisitor: async (name) => {
-                if (!name) return;
-                if (db && auth && currentUser) {
-                    try {
-                        await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('app_visitors').add({
-                            name: name,
-                            timestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
-                            uid: currentUser.uid
-                        });
-                        return;
-                    } catch (e) {}
-                }
-                try {
-                    const localData = JSON.parse(localStorage.getItem('magis_local_visitors') || '[]');
-                    const isDuplicate = localData.some(v => v.name === name && (Date.now()/1000 - (v.timestamp?.seconds || 0)) < 60);
-                    if (!isDuplicate) {
-                        localData.push({ name: name, timestamp: { seconds: Date.now() / 1000 }, uid: 'local-user' });
-                        localStorage.setItem('magis_local_visitors', JSON.stringify(localData));
-                    }
-                } catch (e) {}
-            },
-            subscribeToVisitors: (callback) => {
-                if (db) {
-                    try {
-                        return db.collection('artifacts').doc(appId).collection('public').doc('data').collection('app_visitors')
-                            .onSnapshot((snapshot) => {
-                                const visitors = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                                visitors.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
-                                callback(visitors);
-                            }, () => { loadLocal(callback); });
-                    } catch (e) { loadLocal(callback); }
-                } else { loadLocal(callback); }
-                return () => {}; 
-            }
-        };
-
-        function loadLocal(callback) {
-            try {
-                const localData = JSON.parse(localStorage.getItem('magis_local_visitors') || '[]');
-                localData.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
-                callback(localData);
-            } catch(e) { callback([]); }
-        }
-
         const { useState, useEffect, useRef, useMemo } = React;
 
         const safeStorage = {
@@ -140,18 +68,28 @@
             ANIMADOS: 'https://raw.githubusercontent.com/sejo48/animados./refs/heads/main/animados.json'
         };
 
-        const cleanDriveUrl = (url) => { 
-            if (!url) return ''; 
-            if (url.includes('drive.google.com')) { 
-                const match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
-                if (match) {
-                    return `https://drive.google.com/file/d/${match[1]}/preview?usp=sharing&rm=minimal&autoplay=1`;
+        const convertDriveUrl = (url) => {
+            if (!url) return '';
+            if (url.includes('drive.google.com')) {
+                let fileId = '';
+                if (url.includes('/file/d/')) {
+                    const parts = url.split('/file/d/');
+                    if (parts[1]) {
+                        fileId = parts[1].split('/')[0];
+                    }
+                } else if (url.includes('id=')) {
+                    const parts = url.split('id=');
+                    if (parts[1]) {
+                        fileId = parts[1].split('&')[0];
+                    }
                 }
-            } 
-            return url; 
+                if (fileId) {
+                    return `https://drive.google.com/file/d/${fileId}/preview`;
+                }
+            }
+            return url;
         };
 
-        // Catálogo completo integrado con todas tus películas incluyendo "Enemigo mío (1985)"
         const STATIC_MOVIES = [
             { "titulo": "Enemigo mío (1985)", "descripcion": "El odio entre un extraterrestre y su enemigo humano, se torna en amistad, cuando son abandonados en un planeta desolado.", "imagen": "https://pics.filmaffinity.com/Enemigo_maio-201777719-large.jpg", "urlDrive": "https://drive.google.com/file/d/1qYg1p7D-Oki-5ALxG-3TyfwzI0_46pCi/view?usp=sharing", "codigo": null },
             { "titulo": "1923 - El Hombre Mosca", "descripcion": "Un joven de campo recién llegado a la ciudad debe tratar de escalar un edificio de 12 pisos.", "imagen": "https://m.media-amazon.com/images/M/MV5BM2EzYzA2NTgtODQzYy00N2UwLWE0ZGYtMDU3YmYwZTFlOTA5XkEyXkFqcGc@._V1_.jpg", "urlDrive": "https://drive.google.com/file/d/1y9OJY2Se0PJdiUjIL-fcA32TszqwDaRd/view?usp=sharing", "codigo": null },
@@ -182,7 +120,7 @@
             { "titulo": "2001 Una odisea del espacio", "descripcion": "Obra maestra de la ciencia ficción de Stanley Kubrick.", "imagen": "https://m.media-amazon.com/images/I/71fCGy3H29L._AC_UF894,1000_QL80_.jpg", "urlDrive": "https://drive.google.com/file/d/1kYD0j9JCFfaJfnpHEuDJwNAh-w-XYlbM/view?usp=sharing", "codigo": null },
             { "titulo": "Bikini Beach (1964)", "descripcion": "Comedia musical estadounidense.", "imagen": "https://i.redd.it/mduo2owf2p8c1.jpeg", "urlDrive": "https://drive.google.com/file/d/1yw-UzKH8eMJLXXA2ReHly6p-0zBMjKx0/view", "codigo": null },
             { "titulo": "Viaje alucinante", "descripcion": "Reducción del cuerpo humano a un tamaño microscópico.", "imagen": "https://pics.filmaffinity.com/Viaje_alucinante-783175048-large.jpg", "urlDrive": "https://drive.google.com/file/d/1KZQ3bdWQoafMl180-O94ZSkZP3v4HB3J/view?usp=sharing", "codigo": null },
-            { "titulo": "El Zorro", "descripcion": "Aventuras del clásico héroe enmascarado.", "imagen": "https://m.media-amazon.com/images/I/51ODfZ13foL.*AC_UF1000,1000_QL80_.jpg", "urlDrive": "https://drive.google.com/file/d/1qeo9jihKVgMqfdyvwporj7rbW4aO3roF/view", "codigo": null },
+            { "titulo": "El Zorro", "descripcion": "Aventuras del clásico héroe enmascarado.", "imagen": "https://m.media-amazon.com/images/I/51ODfZ13foL._AC_UF1000,1000_QL80_.jpg", "urlDrive": "https://drive.google.com/file/d/1qeo9jihKVgMqfdyvwporj7rbW4aO3roF/view", "codigo": null },
             { "titulo": "Kojak", "descripcion": "Famosa serie policíaca protagonizada por Telly Savalas.", "imagen": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEifsy4xBH4rXxauiQ_x_9_XLWQ_iCrAf_smpeY8d2UgGVJhxmsQrAr5kWELyuv0MNA5GbDO5HU4PstiCP8_hFODpH2qKtZHiTYwcOw3z7hGSeMs-jInRJCuLVUb3s1Yy4hb3DpSTeANNmd6ZIXnz2IPSWZHr4vGnjuW_RcUgJXgusIjMyAbGUe_Ii0rPrU/s320/l_86837_7869d079.jpg", "urlDrive": "https://drive.google.com/file/d/17aHFrLAzi7aTxz32Lqvso1FQu9EIRaKc/view?usp=sharing", "codigo": null },
             { "titulo": "Ironside", "descripcion": "El inspector de policía investiga los casos más difíciles.", "imagen": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiHKKB3-k_Hu244-9Bz5jhhHImh0Di286FpyOXBahnZLP1nT0Ri4zzrMsWeOFXRro9Stb-YDyvYS1NKZXgjBHmxVboAEJi_RMi8dLUIeN3V3LsNw8SyMmORVSmq_Fuy3rrh4QN8QJCH_YXPppukTHagfklKNtYKNev9rLrWJFeO1L9wvLrRHeHpio072f8/s568/Ironside-1a7.webp", "urlDrive": "https://drive.google.com/file/d/1x6MS_JmYoS6iCEm3I2bpCLCnMLc1Uob_/view?usp=sharing", "codigo": null },
             { "titulo": "Odisea 2010", "descripcion": "Secuela directa de la mítica 2001: Una odisea del espacio.", "imagen": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEilhJfo_F6VfBUSFnx9jjphQ5PrGXyptUXuM81eT3gWJicWd4yfJ_9vvY0rjrY2KgfmF7cB1QuH-hI3nL9yRNchQ3hnXspiDBeWG-bLVn8EiPbFfNvlB75OXZnZqnY0_WjN5PjJdSfE9XNRvtUTEWkUJzXzwSgPBD2hjT5OI6L9Y5PdB8fvNMau4s8Jbuc/s320/l_86837_7869d079.jpg", "urlDrive": "https://drive.google.com/file/d/1_U5hMBLlvywMoJ2pMZCmn9LoR5cEHaLa/view", "codigo": null },
@@ -216,64 +154,33 @@
             { "titulo": "LOS 3 CHIFLADOS", "descripcion": "Comedia basada en el slapstick y la comicidad física.", "imagen": "https://www.lavanguardia.com/peliculas-series/images/serie/poster/2024/5/w1280/o5aZTW2nFVCQzkiOnaiAXgRzKcc.jpg", "urlDrive": "https://drive.google.com/file/d/1sn5gdexgBmAwbtndQ3sT29_6FPs2JHE0/view?usp=sharing", "codigo": null },
             { "titulo": "Los Titanes en el ring", "descripcion": "Aventuras con Martín Karadagián y su troupe.", "imagen": "https://www.radiocantilo.com/adjuntos/cantilo/2018/10/titanes-en-el-ring-Silva-brothers-720x1024.jpg", "urlDrive": "https://drive.google.com/file/d/1p2Lp7q2Vj6Yhxs2qBOE8GsqTYYA1dkP-/view?usp=sharing", "codigo": null },
             { "titulo": "La Pandilla (1955)", "descripcion": "Niños con habilidades especiales para ayudar a los demás.", "imagen": "https://pics.filmaffinity.com/La_Pandilla_Serie_de_TV-229666271-large.jpg", "urlDrive": "https://drive.google.com/file/d/1X_QOyjR9h5zQcBGiRuUJ7GAO5ErfyfYw/view?usp=sharing", "codigo": null },
-            { "titulo": "Viaje Al Centro De La Tierra", "descripcion": "Exploración a través de un volcán islandés.", "imagen": "https://m.media-amazon.com/images/M/MV5BMTg2MjkyMjMzM15BMl5BanBnXkFtZTYwMjQ1ODg4._V1_.jpg", "urlDrive": "https://drive.google.com/file/d/130YMhi-XFGnAy8cJ76U2Wnk4CRy3KSVM/view?usp=sharing", "codigo": null },
+            { "titulo": "Viaje Al Centro De La Tierra", "descripcion": "Exploración a través de un volcán islandés.", "imagen": "https://m.media-amazon.com/images/M/MV5BMTg2MjkyMjMzM15BMl5BanBnXkFtZTYwMjQ1ODg4._V1_.jpg", "urlDrive": "https://drive.github.com/...", "codigo": null },
             { "titulo": "GREASE (1978)", "descripcion": "Musical romántico protagonizado por John Travolta y Olivia Newton John.", "imagen": "https://i.pinimg.com/736x/76/65/a0/7665a0f3298262e079b2d8fd3fa734a2.jpg", "urlDrive": "https://drive.google.com/file/d/1AfkegbTGrVEKXUN8Ninr54Kk0Mb037k2/view?usp=sharing", "codigo": null }
         ];
 
         const App = () => {
             const [showIntro, setShowIntro] = useState(true);
             const [activeTab, setActiveTab] = useState('home');
-            const [content, setContent] = useState({ tv: [], series: [], movies: [], animados: [] });
+            const [content, setContent] = useState({ tv: [], series: [], movies: STATIC_MOVIES, animados: [] });
             const [search, setSearch] = useState('');
             const [selectedItem, setSelectedItem] = useState(null);
             const [selectedEpisode, setSelectedEpisode] = useState(null);
             const [isLocked, setIsLocked] = useState(false); 
             const [favorites, setFavorites] = useState([]);
-            const [loading, setLoading] = useState(true);
+            const [loading, setLoading] = useState(false);
             const [expandedSeason, setExpandedSeason] = useState(0);
 
             useEffect(() => {
                 const init = async () => {
                     try {
-                        setLoading(true);
-                        const [resTV, resSeries, resAnimados] = await Promise.all([ 
-                            fetch(URLS.TV), 
-                            fetch(URLS.SERIES), 
-                            fetch(URLS.ANIMADOS).catch(() => ({ text: () => '[]' })) 
-                        ]);
-                        const textTV = await resTV.text(); 
-                        const jsonSeries = safeParseJSON(await resSeries.text(), []); 
-                        const jsonAnimados = safeParseJSON(await resAnimados.text(), []);
-                        
-                        const tvChannels = parseM3U(textTV);
-                        
-                        const seriesList = (Array.isArray(jsonSeries) ? jsonSeries : []).map(s => ({ 
-                            id: s.tituloSerie, title: s.tituloSerie || s.name, description: s.descripcion || s.description || s.sinopsis, image: s.imagen || s.image, type: 'series', codigo: s.codigo || s.password || s.pin, seasons: (s.temporadas || []).map(t => ({ season_number: t.numeroTemporada || 1, episodes: (t.episodios || []).map(e => ({ title: e.tituloEpisodio || e.title, url: convertDriveUrl(e.urlDrive || e.url), image: s.imagen })) })) 
-                        }));
-                        
-                        const moviesList = STATIC_MOVIES.map((m, idx) => ({ 
-                            ...m, id: `mov-${idx}`, type: 'movie', title: m.titulo, description: m.descripcion, image: m.imagen, url: convertDriveUrl(m.urlDrive) 
-                        }));
-
-                        const animadosList = (Array.isArray(jsonAnimados) ? jsonAnimados : []).map((a, i) => {
-                            const hasSeasons = a.temporadas && a.temporadas.length > 0;
-                            return {
-                                id: `anim-${i}`,
-                                title: a.titulo || a.tituloSerie || a.name,
-                                description: a.descripcion || a.sinopsis,
-                                image: a.imagen || a.image || a.poster,
-                                type: hasSeasons ? 'series' : 'movie',
-                                isKids: true,
-                                codigo: a.codigo || a.pin,
-                                url: convertDriveUrl(a.urlDrive || a.url),
-                                seasons: hasSeasons ? a.temporadas.map(t => ({ season_number: t.numeroTemporada || 1, episodes: (t.episodios || []).map(e => ({ title: e.tituloEpisodio || e.title, url: convertDriveUrl(e.urlDrive || e.url), image: a.imagen })) })) : []
-                            };
-                        });
-
-                        setContent({ tv: tvChannels, series: seriesList, movies: moviesList, animados: animadosList });
-                    } catch (err) { } finally { setLoading(false); }
+                        const resTV = await fetch(URLS.TV).catch(() => null);
+                        if (resTV && resTV.ok) {
+                            const textTV = await resTV.text();
+                            const tvChannels = parseM3U(textTV);
+                            setContent(prev => ({ ...prev, tv: tvChannels }));
+                        }
+                    } catch (e) {}
                 };
-
                 const storedFavs = safeStorage.getItem('magistube_favs'); if (storedFavs) { try { setFavorites(JSON.parse(storedFavs)); } catch(e) {} }
                 init();
             }, []);
@@ -295,15 +202,6 @@
                     }
                 }
                 return channels;
-            };
-
-            const safeParseJSON = (text, fallback) => {
-                if (!text || text.trim() === '') return fallback;
-                try { return JSON.parse(text); } 
-                catch (e) {
-                    try { return JSON.parse(text.replace(/,\s*([\]}])/g, '$1')); } 
-                    catch (e2) { return fallback; }
-                }
             };
 
             const toggleFavorite = (item) => { const itemId = item.id || item.title; const newFavs = favorites.some(f => (f.id || f.title) === itemId) ? favorites.filter(f => (f.id || f.title) !== itemId) : [item, ...favorites]; setFavorites(newFavs); safeStorage.setItem('magistube_favs', JSON.stringify(newFavs)); };
