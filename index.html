@@ -62,6 +62,10 @@
             setItem: (key, value) => { try { localStorage.setItem(key, value); } catch (e) { } }
         };
 
+        const URLS = {
+            TV: 'https://raw.githubusercontent.com/sejo48/retrom3u/refs/heads/main/listaoficial.m3u'
+        };
+
         const convertDriveUrl = (url) => {
             if (!url) return '';
             if (url.includes('drive.google.com')) {
@@ -84,7 +88,7 @@
             return url;
         };
 
-        // Catálogo completo integrado con todas tus películas, incluyendo "Enemigo mío (1985)"
+        // Catálogo completo integrado garantizado
         const STATIC_MOVIES = [
             { "titulo": "Enemigo mío (1985)", "descripcion": "El odio entre un extraterrestre y su enemigo humano, se torna en amistad, cuando son abandonados en un planeta desolado.", "imagen": "https://pics.filmaffinity.com/Enemigo_maio-201777719-large.jpg", "urlDrive": "https://drive.google.com/file/d/1qYg1p7D-Oki-5ALxG-3TyfwzI0_46pCi/view?usp=sharing", "codigo": null },
             { "titulo": "1923 - El Hombre Mosca", "descripcion": "Un joven de campo recién llegado a la ciudad debe tratar de escalar un edificio de 12 pisos.", "imagen": "https://m.media-amazon.com/images/M/MV5BM2EzYzA2NTgtODQzYy00N2UwLWE0ZGYtMDU3YmYwZTFlOTA5XkEyXkFqcGc@._V1_.jpg", "urlDrive": "https://drive.google.com/file/d/1y9OJY2Se0PJdiUjIL-fcA32TszqwDaRd/view?usp=sharing", "codigo": null },
@@ -143,7 +147,7 @@
             { "titulo": "Tarzán y las amazonas", "descripcion": "Búsqueda de una antigua ciudad en un valle oculto.", "imagen": "https://cartelesmix.es/cartelesdecine/wp-content/uploads/2018/07/tarzanylasamazonas45008.jpg", "urlDrive": "https://drive.google.com/file/d/17lnv7F-DBvOYsmhKhUr_fT3Z3WwF5xOT/view?usp=sharing", "codigo": null },
             { "titulo": "Mi Marciano Favorito", "descripcion": "Un extraterrestre varado en la Tierra.", "imagen": "https://m.media-amazon.com/images/M/MV5BNDg2NTMwMzA0M15BMl5BanBnXkFtZTcwMTQ2NDUxMQ@@._V1_FMjpg_UX1000_.jpg", "urlDrive": "https://drive.google.com/file/d/1k9PNst5sndGrG92oykUyswM-fxqsWpGs/view?usp=sharing", "codigo": null },
             { "titulo": "LASSIE - SERIE TV", "descripcion": "Galardonada serie con el inolvidable perro collie.", "imagen": "https://www.lavanguardia.com/peliculas-series/images/serie/poster/1954/9/w300/vqbVr4fYRZb28ywczaidn29JJTA.jpg", "urlDrive": "https://drive.google.com/file/d/1JQEl5FtTpHiKvrdKredtki3qgUtQod0S/view?usp=sharing", "codigo": null },
-            { "titulo": "Daktari", "descripcion": "Centro de estudios animales en África.", "imagen": "https://m.media-amazon.com/images/I/51nHajPxU9L._UF894,1000_QL80_.jpg", "urlDrive": "https://drive.google.com/file/d/1J7XXVoQmK5pj5XeF68T4FaA91hltZSGm/view?usp=sharing", "codigo": null },
+            { "titulo": "Daktari", "descripcion": "Centro de estudios animales en África.", "imagen": "https://m.media-amazon.com/images/I/51nHajPxU9L.*UF894,1000_QL80_.jpg", "urlDrive": "https://drive.google.com/file/d/1J7XXVoQmK5pj5XeF68T4FaA91hltZSGm/view?usp=sharing", "codigo": null },
             { "titulo": "Las Aventuras de Rin Tin Tin", "descripcion": "Clásica serie de TV ambientada en el Salvaje Oeste.", "imagen": "https://m.media-amazon.com/images/M/MV5BMzgyYTYwZGQtNDcwNC00ODhhLThlYjYtYzIxOGMxNDExZTNlXkEyXkFqcGc@._V1_.jpg", "urlDrive": "https://drive.google.com/file/d/1EbHgQhySwZfR0lyCjmQnMkJ-P70RL74d/view?usp=sharing", "codigo": null },
             { "titulo": "Misión Imposible ( 1966 )", "descripcion": "Un clásico de la televisión con la Fuerza de Misiones Imposibles.", "imagen": "https://s3.opensubtitles.com/features/4/0/2/8204.jpg", "urlDrive": "https://drive.google.com/file/d/15h74amMWOgxKqoCdsXl80ibEF7z2cw99/view?usp=sharing", "codigo": null },
             { "titulo": "LOS 3 CHIFLADOS", "descripcion": "Comedia basada en el slapstick y la comicidad física.", "imagen": "https://www.lavanguardia.com/peliculas-series/images/serie/poster/2024/5/w1280/o5aZTW2nFVCQzkiOnaiAXgRzKcc.jpg", "urlDrive": "https://drive.google.com/file/d/1sn5gdexgBmAwbtndQ3sT29_6FPs2JHE0/view?usp=sharing", "codigo": null },
