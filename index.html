@@ -62,9 +62,11 @@
             setItem: (key, value) => { try { localStorage.setItem(key, value); } catch (e) { } }
         };
 
+        // Corrección: añadimos un timestamp para evitar el caché del navegador
+        const timestamp = Date.now();
         const URLS = {
-            TV: 'https://raw.githubusercontent.com/sejo48/retrom3u/refs/heads/main/listaoficial.m3u',
-            MOVIES: 'https://raw.githubusercontent.com/sejo48/peliculas/refs/heads/main/peliculas.json'
+            TV: `https://raw.githubusercontent.com/sejo48/retrom3u/refs/heads/main/listaoficial.m3u?t=${timestamp}`,
+            MOVIES: `https://raw.githubusercontent.com/sejo48/peliculas/refs/heads/main/peliculas.json?t=${timestamp}`
         };
 
         const convertDriveUrl = (url) => {
@@ -657,4 +659,3 @@
     </script>
 </body>
 </html>
-```eof
