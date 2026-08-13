@@ -62,7 +62,6 @@
             setItem: (key, value) => { try { localStorage.setItem(key, value); } catch (e) { } }
         };
 
-        // Corrección: añadimos un timestamp para evitar el caché del navegador
         const timestamp = Date.now();
         const URLS = {
             TV: `https://raw.githubusercontent.com/sejo48/retrom3u/refs/heads/main/listaoficial.m3u?t=${timestamp}`,
@@ -119,21 +118,39 @@
                         }
 
                         let moviesList = [];
+                        let seriesList = [];
+                        let animadosList = [];
+
                         if (resMovies && resMovies.ok) {
                             const jsonMovies = await resMovies.json();
-                            const rawMovies = Array.isArray(jsonMovies) ? jsonMovies : (jsonMovies.peliculas || []);
-                            moviesList = rawMovies.map((m, idx) => ({ 
-                                ...m, 
-                                id: `mov-${idx}`, 
-                                type: 'movie', 
-                                title: m.titulo || m.title, 
-                                description: m.descripcion || m.sinopsis, 
-                                image: m.imagen || m.poster, 
-                                url: convertDriveUrl(m.urlDrive || m.url) 
-                            }));
+                            const rawMovies = Array.isArray(jsonMovies) ? jsonMovies : (jsonMovies.peliculas || jsonMovies.content || []);
+                            
+                            rawMovies.forEach((m, idx) => {
+                                const formattedItem = { 
+                                    ...m, 
+                                    id: `item-${idx}`, 
+                                    type: m.type || (m.seasons ? 'series' : 'movie'), 
+                                    title: m.titulo || m.title || m.name, 
+                                    description: m.descripcion || m.sinopsis || m.plot, 
+                                    image: m.imagen || m.poster || m.image, 
+                                    url: convertDriveUrl(m.urlDrive || m.url) 
+                                };
+
+                                const cat = (m.categoria || m.category || m.group || '').toLowerCase();
+                                if (formattedItem.type === 'series' || cat.includes('serie')) {
+                                    formattedItem.type = 'series';
+                                    seriesList.push(formattedItem);
+                                } else if (cat.includes('animado') || cat.includes('anime') || cat.includes('infantil') || m.isKids) {
+                                    formattedItem.type = 'animados';
+                                    animadosList.push(formattedItem);
+                                } else {
+                                    formattedItem.type = 'movies';
+                                    moviesList.push(formattedItem);
+                                }
+                            });
                         }
 
-                        setContent(prev => ({ ...prev, tv: tvChannels, movies: moviesList }));
+                        setContent({ tv: tvChannels, movies: moviesList, series: seriesList, animados: animadosList });
                     } catch (err) {
                         console.error("Error cargando contenido remoto", err);
                     } finally {
@@ -165,7 +182,13 @@
                 return channels;
             };
 
-            const toggleFavorite = (item) => { const itemId = item.id || item.title; const newFavs = favorites.some(f => (f.id || f.title) === itemId) ? favorites.filter(f => (f.id || f.title) !== itemId) : [item, ...favorites]; setFavorites(newFavs); safeStorage.setItem('magistube_favs', JSON.stringify(newFavs)); };
+            const toggleFavorite = (item) => { 
+                const itemId = item.id || item.title; 
+                const newFavs = favorites.some(f => (f.id || f.title) === itemId) ? favorites.filter(f => (f.id || f.title) !== itemId) : [item, ...favorites]; 
+                setFavorites(newFavs); 
+                safeStorage.setItem('magistube_favs', JSON.stringify(newFavs)); 
+            };
+
             const handlePlay = (item) => { 
                 const code = item.codigo || item.password || item.pin; 
                 if (code) { setSelectedItem(item); setIsLocked(true); } 
@@ -176,7 +199,11 @@
             };
 
             const getDisplayContent = () => { 
-                let list = activeTab === 'home' ? [...content.movies, ...content.series, ...content.animados, ...content.tv.slice(0,20)] : activeTab === 'favorites' ? favorites : content[activeTab] || []; 
+                let list = activeTab === 'home' 
+                    ? [...content.movies, ...content.series, ...content.animados, ...content.tv.slice(0,20)] 
+                    : activeTab === 'favorites' 
+                    ? favorites 
+                    : content[activeTab] || []; 
                 if (search && activeTab !== 'jorgeflix') return list.filter(i => (i.title || i.name || i.titulo).toLowerCase().includes(search.toLowerCase())); 
                 return list; 
             };
@@ -190,16 +217,18 @@
                 <div className="min-h-screen bg-[#111827] text-white font-sans flex flex-col md:flex-row relative">
                     <aside className="hidden md:flex w-20 flex-col items-center py-6 bg-[#0f1115] border-r border-[#1f2937] fixed h-full z-50">
                         <div className="mb-8 p-2 bg-[#E50914] rounded-lg shadow-lg cursor-pointer" onClick={() => {setActiveTab('home'); setSelectedItem(null); setIsLocked(false);}}><Icon name="play" size={22} fill="white" className="text-white"/></div>
-                        <div className="flex flex-col gap-6 w-full">
+                        <div className="flex flex-col gap-5 w-full items-center">
                             {[
                                 { id: 'home', icon: 'search', label: 'Inicio' }, 
                                 { id: 'movies', icon: 'clapperboard', label: 'Cine' }, 
+                                { id: 'series', icon: 'film', label: 'Series' },
+                                { id: 'animados', icon: 'smile', label: 'Animados' },
                                 { id: 'tv', icon: 'tv', label: 'TV' }, 
                                 { id: 'jorgeflix', icon: 'compass', label: 'Buscador' },
                                 { id: 'favorites', icon: 'heart', label: 'Favs' }
                             ].map(tab => (
-                                <button key={tab.id} onClick={() => { setActiveTab(tab.id); setSelectedItem(null); setSearch(''); setIsLocked(false); }} className={`flex flex-col items-center gap-1 transition-colors ${activeTab === tab.id ? 'text-[#E50914]' : 'text-gray-500 hover:text-white'}`}>
-                                    <Icon name={tab.icon} size={22} fill={activeTab === tab.id && tab.id === 'favorites' ? 'currentColor' : 'none'} className={activeTab === tab.id && tab.id === 'favorites' ? 'fill-current' : ''} /><span className="text-[10px] font-medium">{tab.label}</span>
+                                <button key={tab.id} onClick={() => { setActiveTab(tab.id); setSelectedItem(null); setSearch(''); setIsLocked(false); }} className={`flex flex-col items-center gap-1 transition-colors w-full py-1 ${activeTab === tab.id ? 'text-[#E50914]' : 'text-gray-500 hover:text-white'}`}>
+                                    <Icon name={tab.icon} size={20} fill={activeTab === tab.id && tab.id === 'favorites' ? 'currentColor' : 'none'} className={activeTab === tab.id && tab.id === 'favorites' ? 'fill-current' : ''} /><span className="text-[9px] font-medium">{tab.label}</span>
                                 </button>
                             ))}
                         </div>
@@ -216,12 +245,14 @@
                         {[
                             { id: 'home', icon: 'search', label: 'Inicio' }, 
                             { id: 'movies', icon: 'clapperboard', label: 'Cine' }, 
+                            { id: 'series', icon: 'film', label: 'Series' },
+                            { id: 'animados', icon: 'smile', label: 'Animados' },
                             { id: 'tv', icon: 'tv', label: 'TV' },
-                            { id: 'jorgeflix', icon: 'compass', label: 'Buscador' },
+                            { id: 'jorgeflix', icon: 'compass', label: 'Buscar' },
                             { id: 'favorites', icon: 'heart', label: 'Favs' }
                         ].map(tab => (
                             <button key={tab.id} onClick={() => { setActiveTab(tab.id); setSelectedItem(null); setIsLocked(false); }} className={`flex flex-col items-center gap-0.5 ${activeTab === tab.id ? 'text-[#E50914]' : 'text-gray-500'}`}>
-                                <Icon name={tab.icon} size={19} /><span className="text-[8px] font-medium">{tab.label}</span>
+                                <Icon name={tab.icon} size={17} /><span className="text-[7.5px] font-medium">{tab.label}</span>
                             </button>
                         ))}
                     </div>
@@ -289,7 +320,7 @@
                                                 <div>
                                                     <h1 className="text-xl sm:text-2xl font-bold text-white mb-1">{selectedItem.titulo || selectedItem.title || selectedItem.name}</h1>
                                                     <div className="flex items-center gap-2.5 text-xs text-gray-400">
-                                                        <span className="bg-[#1f2937] px-2 py-0.5 rounded text-white">PELÍCULA</span>
+                                                        <span className="bg-[#1f2937] px-2 py-0.5 rounded text-white uppercase">{selectedItem.type}</span>
                                                     </div>
                                                 </div>
                                                 <button onClick={() => toggleFavorite(selectedItem)} className="p-2.5 bg-[#1f2937] rounded-full hover:bg-[#2d3748]">
@@ -569,7 +600,7 @@
                             <img src={imgSource} alt={titleSource} className="w-full h-full object-cover" onError={(e) => e.target.src='https://placehold.co/300x450/1f2937/ffffff?text=Poster'} />
                         </div>
                         <div className="flex-1 flex flex-col gap-2 items-start max-w-xl">
-                            <span className="bg-[#E50914] text-white text-[9px] font-extrabold px-2.5 py-1 rounded uppercase tracking-wider shadow">Película</span>
+                            <span className="bg-[#E50914] text-white text-[9px] font-extrabold px-2.5 py-1 rounded uppercase tracking-wider shadow">Destacado</span>
                             <h1 className="text-2xl sm:text-4xl font-black text-white leading-tight drop-shadow-md line-clamp-1">{titleSource}</h1>
                             <p className="text-gray-100 text-xs sm:text-sm line-clamp-3 leading-relaxed drop-shadow">{descSource || "Disfruta del mejor contenido seleccionado para ti."}</p>
                             <div className="flex gap-3 mt-3">
@@ -604,7 +635,7 @@
         const Card = ({ item, onClick, isFavorite, onToggleFavorite }) => { 
             const isTv = item.type === 'tv'; 
             const hasLock = item.codigo || item.password || item.pin; 
-            const isKids = item.isKids;
+            const isKids = item.isKids || item.type === 'animados';
             const imgSource = item.imagen || item.image || item.poster || item.logo;
             const titleSource = item.titulo || item.title || item.name;
             return ( 
