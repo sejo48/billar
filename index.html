@@ -32,12 +32,35 @@
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .custom-scrollbar::-webkit-scrollbar { width: 3px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 2px; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeIn { from { opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .animate-fade-in { animation: fadeIn 0.4s ease-out; }
         .animate-slide-up { animation: slideUp 0.5s ease-out; }
         .text-gold-gradient { background: linear-gradient(to right, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C); -webkit-background-clip: text; background-clip: text; color: transparent; }
         .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+
+        .bar {
+            width: 4px;
+            background-color: #E50914;
+            border-radius: 2px;
+            animation: equalize 1s infinite alternate;
+            transform-origin: bottom;
+        }
+        .bar:nth-child(1) { animation-delay: -0.2s; }
+        .bar:nth-child(2) { animation-delay: -0.4s; }
+        .bar:nth-child(3) { animation-delay: -0.6s; }
+        .bar:nth-child(4) { animation-delay: -0.8s; }
+        .bar:nth-child(5) { animation-delay: -1.0s; }
+
+        @keyframes equalize {
+            0% { transform: scaleY(0.2); opacity: 0.5; }
+            100% { transform: scaleY(1); opacity: 1; }
+        }
+        .paused-bar {
+            transform: scaleY(0.2) !important;
+            animation: none !important;
+            opacity: 0.5;
+        }
 
         button:focus, div[tabindex="0"]:focus, input:focus, select:focus { outline: none; }
     </style>
@@ -59,44 +82,24 @@
             setItem: (key, value) => { try { localStorage.setItem(key, value); } catch (e) { } }
         };
 
-        // URLs con respaldo (intentan cargar localmente y si no existen recurren a GitHub)
         const URLS = {
-            TV: ['./listaoficial.m3u', 'https://raw.githubusercontent.com/sejo48/retrom3u/refs/heads/main/listaoficial.m3u'],
-            SERIES: ['./playlist.json', 'https://raw.githubusercontent.com/sejo48/jorgedrive/refs/heads/main/playlist.json'],
-            MOVIES: ['./peliculas.json', 'https://raw.githubusercontent.com/sejo48/peliculas/refs/heads/main/peliculas.json'],
-            ANIMADOS: ['./animados.json', 'https://raw.githubusercontent.com/sejo48/animados./refs/heads/main/animados.json']
+            TV: './listaoficial.m3u',
+            SERIES: './playlist.json',
+            MOVIES: './peliculas.json',
+            ANIMADOS: './animados.json',
+            RADIOS: './radios.json'
         };
 
-        // Datos de respaldo directo en caso de fallas de red
-        const DEMO_MOVIES = [
-            { id: 'mov-demo-1', type: 'movies', title: 'Spider-Man: No Way Home', description: 'Por primera vez en la historia cinematográfica de Spider-Man, nuestro amigable héroe de la vecindad es desenmascarado.', image: 'https://images.unsplash.com/photo-1635805737707-575885ab0820?q=80&w=600&auto=format&fit=crop', url: 'https://ok.ru/video/2800000000000' },
-            { id: 'mov-demo-2', type: 'movies', title: 'Batman: El Caballero de la Noche', description: 'Batman se enfrenta al Caos encarnado por el Guasón en Ciudad Gótica.', image: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=600&auto=format&fit=crop', url: 'https://ok.ru/video/2800000000001' },
-            { id: 'mov-demo-3', type: 'movies', title: 'Interstellar', description: 'Un grupo de exploradores viaja a través de un agujero de gusano en el espacio en un intento por asegurar la supervivencia de la humanidad.', image: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=600&auto=format&fit=crop', url: 'https://ok.ru/video/2800000000002' },
-            { id: 'mov-demo-4', type: 'movies', title: 'Avatar: El Camino del Agua', description: 'Jake Sully vive con su familia formada en el planeta Pandora cuando una amenaza regresa.', image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=600&auto=format&fit=crop', url: 'https://ok.ru/video/2800000000003' }
-        ];
+        const RAW_URLS = {
+            TV: 'https://raw.githubusercontent.com/sejo48/StreamTube-V20/main/listaoficial.m3u',
+            SERIES: 'https://raw.githubusercontent.com/sejo48/StreamTube-V20/main/playlist.json',
+            MOVIES: 'https://raw.githubusercontent.com/sejo48/StreamTube-V20/main/peliculas.json',
+            ANIMADOS: 'https://raw.githubusercontent.com/sejo48/StreamTube-V20/main/animados.json',
+            RADIOS: 'https://raw.githubusercontent.com/sejo48/StreamTube-V20/main/radios.json'
+        };
 
-        const DEMO_SERIES = [
-            {
-                id: 'serie-demo-1', type: 'series', title: 'Breaking Bad', description: 'Un profesor de química diagnosticado con cáncer se asocia con un antiguo alumno para asegurar el futuro de su familia.', image: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=600&auto=format&fit=crop',
-                seasons: [{ seasonNumber: 1, episodes: [{ title: 'Piloto', url: 'https://ok.ru/video/2800000000010' }, { title: 'El gato en la bolsa', url: 'https://ok.ru/video/2800000000011' }] }]
-            },
-            {
-                id: 'serie-demo-2', type: 'series', title: 'Stranger Things', description: 'Un grupo de niños descubre misterios sobrenaturales y experimentos secretos del gobierno en su pequeño pueblo.', image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=600&auto=format&fit=crop',
-                seasons: [{ seasonNumber: 1, episodes: [{ title: 'Capítulo uno: La desaparición', url: 'https://ok.ru/video/2800000000012' }] }]
-            }
-        ];
-
-        const DEMO_ANIMADOS = [
-            { id: 'anim-demo-1', type: 'animados', title: 'Dragon Ball Super', description: 'Tras la derrota de Majin Boo, la paz regresa a la Tierra pero surgen nuevos dioses y universos.', image: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=600&auto=format&fit=crop', url: 'https://ok.ru/video/2800000000020' },
-            { id: 'anim-demo-2', type: 'animados', title: 'Los Simpson', description: 'Las aventuras de una familia de clase trabajadora en la ciudad de Springfield.', image: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=600&auto=format&fit=crop', url: 'https://ok.ru/video/2800000000021' }
-        ];
-
-        const DEMO_TV = [
-            { id: 'tv-demo-1', type: 'tv', title: 'Canal 7 Costa Rica', group: 'Nacional', image: 'https://placehold.co/150x100/1e293b/ffffff?text=Teletica', url: 'https://icecasthd.teletica.com/radiodos' },
-            { id: 'tv-demo-2', type: 'tv', title: 'Repretel Canal 6', group: 'Nacional', image: 'https://placehold.co/150x100/1e293b/ffffff?text=Repretel', url: 'https://icecasthd.teletica.com/los40' }
-        ];
-
-        const RADIO_STATIONS = [
+        const DEFAULT_RADIO_STATIONS = [
+            { id: 'cr-sinfonola', title: 'Radio Sinfonola 90.3 FM', group: 'Romántica / Clásicos', image: 'https://static.mytuner.mobi/media/tvos_radios/415/radio-sinfonola.79d5c3e6.png', url: 'https://live.turadio.stream:7006/;' },
             { id: 'cr-hit', title: 'Hit 104.7 FM', group: 'Juvenil / Pop', image: 'https://static.mytuner.mobi/media/tvos_radios/164/radio-hit-1047-fm.1180f4a3.jpg', url: 'https://live.turadio.stream:7004/stream?nocache=596&type=http' },
             { id: 'cr-crc', title: 'CRC 94.7 FM', group: 'Alternativo / Rock', image: 'https://static.mytuner.mobi/media/tvos_radios/nAwNLxJbnm.png', url: 'https://23263.live.streamtheworld.com/CRC_947AAC_SC' },
             { id: 'cr-zeta', title: 'Zeta FM 95.1', group: 'Tropical / Latina', image: 'https://static.mytuner.mobi/media/tvos_radios/879/zeta-fm.feb3fb70.png', url: 'https://d5g44yionyslb.cloudfront.net/medialist_14854753276708185244_hls.m3u8' },
@@ -104,245 +107,10 @@
             { id: 'cr-mejor', title: 'La Mejor 99.1 FM', group: 'Regional / Latina', image: 'https://static.mytuner.mobi/media/tvos_radios/575/la-mejor-991.95c72890.png', url: 'https://d3svz5xnvdysyz.cloudfront.net/medialist_14854753276708185244_hls.m3u8' },
             { id: 'cr-r2', title: 'Radio Dos 99.5 FM', group: 'Clásicos / Rock', image: 'https://placehold.co/300x300/0033a0/ffffff?text=R2', url: 'https://icecasthd.teletica.com/radiodos' },
             { id: 'cr-los40', title: 'Los 40 Costa Rica 104.3 FM', group: 'Éxitos / Urbano', image: 'https://placehold.co/300x300/ffcc00/000000?text=Los40', url: 'https://icecasthd.teletica.com/los40' },
-            { id: 'cr-disney', title: 'Radio Disney 101.1 FM', group: 'Pop / Éxitos', image: 'https://static.mytuner.mobi/media/tvos_radios/652/radio-disney-costa-rica.d297c76c.jpg', url: 'https://26673.live.streamtheworld.com/DISNEY_CRI_SJ_ADP/HLS/031b1ae7-b742-4bf3-8001-31b8478440ef/0/playlist.m3u8' }
+            { id: 'cr-disney', title: 'Radio Disney 101.1 FM', group: 'Pop / Éxitos', image: 'https://static.mytuner.mobi/media/tvos_radios/652/radio-disney-costa-rica.d297c76c.jpg', url: 'https://26673.live.streamtheworld.com/DISNEY_CRI_SJ_ADP/HLS/031b1ae7-b742-4bf3-8001-31b8478440ef/0/playlist.m3u8' },
+            { id: 'cr-wao', title: 'WAO 92.3 FM', group: 'Urbano / Reggaeton', image: 'https://placehold.co/300x300/fd7e14/ffffff?text=WAO', url: 'https://icecasthd.teletica.com/wao' },
+            { id: 'cr-musical', title: 'Radio Musical 97.5 FM', group: 'Romántica / Latina', image: 'https://static.mytuner.mobi/media/tvos_radios/085/radio-musical.fea3e089.jpg', url: 'https://live.turadio.stream:7005/stream/1/' }
         ];
-
-        const AudioVisualizerBanner = ({ isPlaying, stationTitle, mode, setMode, isOpen, setIsOpen }) => {
-            const canvasRef = useRef(null);
-            const animIdRef = useRef(null);
-            const capsRef = useRef([]);
-            const particlesRef = useRef([]);
-
-            // Inicializar partículas para el modo Aura
-            useEffect(() => {
-                const particles = [];
-                for (let i = 0; i < 40; i++) {
-                    particles.push({
-                        x: Math.random(),
-                        y: Math.random(),
-                        radius: Math.random() * 2 + 1,
-                        angle: Math.random() * Math.PI * 2,
-                        speed: Math.random() * 0.02 + 0.005,
-                        color: ['#10B981', '#06B6D4', '#EC4899', '#F97316', '#8B5CF6'][Math.floor(Math.random() * 5)]
-                    });
-                }
-                particlesRef.current = particles;
-            }, []);
-
-            useEffect(() => {
-                const canvas = canvasRef.current;
-                if (!canvas) return;
-                const ctx = canvas.getContext('2d');
-                let phase = Math.random() * 10;
-
-                const draw = () => {
-                    animIdRef.current = requestAnimationFrame(draw);
-                    const width = canvas.width;
-                    const height = canvas.height;
-
-                    ctx.clearRect(0, 0, width, height);
-
-                    if (isPlaying) phase += 0.08;
-
-                    if (mode === 'espectro') {
-                        // MODO ESPECTRO NEÓN ESTILIZADO (64 Barras ultrafinas y elegantes)
-                        const barCount = 64;
-                        const gap = 2;
-                        const barWidth = Math.max(2, (width - (barCount * gap)) / barCount);
-
-                        // Degradado Multicolor Neón Profesional (Esmeralda -> Cian -> Magenta -> Naranja)
-                        const gradient = ctx.createLinearGradient(0, height, width, 0);
-                        gradient.addColorStop(0.0, '#10B981'); // Esmeralda Spotify
-                        gradient.addColorStop(0.25, '#06B6D4'); // Cian Eléctrico
-                        gradient.addColorStop(0.60, '#EC4899'); // Rosa Neón
-                        gradient.addColorStop(0.85, '#F97316'); // Naranja Fuego
-                        gradient.addColorStop(1.0, '#8B5CF6'); // Púrpura
-
-                        for (let i = 0; i < barCount; i++) {
-                            let amplitude = 0.04;
-                            if (isPlaying) {
-                                const sin1 = Math.sin(phase + i * 0.25);
-                                const sin2 = Math.cos(phase * 0.85 + i * 0.18);
-                                const sin3 = Math.sin(phase * 1.5 + i * 0.4);
-                                amplitude = Math.abs(sin1 * 0.45 + sin2 * 0.35 + sin3 * 0.2) * (0.3 + (i % 7) * 0.1) + Math.random() * 0.06;
-                                amplitude = Math.min(1.0, Math.max(0.04, amplitude));
-                            }
-
-                            const barHeight = Math.max(2, amplitude * (height - 6));
-                            const x = i * (barWidth + gap) + gap;
-                            const y = height - barHeight;
-
-                            ctx.fillStyle = gradient;
-                            ctx.shadowBlur = isPlaying ? 10 : 0;
-                            ctx.shadowColor = '#06B6D4';
-
-                            ctx.beginPath();
-                            if (ctx.roundRect) {
-                                ctx.roundRect(x, y, barWidth, barHeight, [2, 2, 0, 0]);
-                            } else {
-                                ctx.rect(x, y, barWidth, barHeight);
-                            }
-                            ctx.fill();
-
-                            // Puntas flotantes (Drop Caps) con física de caída libre
-                            if (!capsRef.current[i]) capsRef.current[i] = 0;
-                            if (barHeight > capsRef.current[i]) {
-                                capsRef.current[i] = barHeight;
-                            } else {
-                                capsRef.current[i] = Math.max(0, capsRef.current[i] - 0.8);
-                            }
-
-                            const capY = height - capsRef.current[i] - 2;
-                            ctx.fillStyle = '#FFFFFF';
-                            ctx.shadowBlur = isPlaying ? 5 : 0;
-                            ctx.shadowColor = '#FFFFFF';
-                            ctx.fillRect(x, Math.max(0, capY), barWidth, 1.5);
-                        }
-                    } else if (mode === 'osciloscopio') {
-                        // MODO OSCILOSCOPIO LÁSER MULTICOLOR
-                        ctx.shadowBlur = isPlaying ? 12 : 0;
-                        ctx.shadowColor = '#10B981';
-                        ctx.lineWidth = 2.2;
-
-                        // Línea principal Verde/Cian
-                        ctx.strokeStyle = '#10B981';
-                        ctx.beginPath();
-                        const centerY = height / 2;
-                        for (let x = 0; x < width; x += 2) {
-                            const normX = x / width;
-                            const amp = isPlaying ? Math.sin(phase * 2 + normX * 14) * 16 * Math.sin(normX * Math.PI) : 0;
-                            const y = centerY + amp;
-                            if (x === 0) ctx.moveTo(x, y);
-                            else ctx.lineTo(x, y);
-                        }
-                        ctx.stroke();
-
-                        // Línea secundaria Magenta
-                        ctx.strokeStyle = '#EC4899';
-                        ctx.shadowColor = '#EC4899';
-                        ctx.lineWidth = 1.5;
-                        ctx.beginPath();
-                        for (let x = 0; x < width; x += 2) {
-                            const normX = x / width;
-                            const amp = isPlaying ? Math.cos(phase * 1.6 + normX * 10) * 12 * Math.sin(normX * Math.PI) : 0;
-                            const y = centerY + amp;
-                            if (x === 0) ctx.moveTo(x, y);
-                            else ctx.lineTo(x, y);
-                        }
-                        ctx.stroke();
-                    } else if (mode === 'aura') {
-                        // MODO AURA PULSANTE MULTICOLOR
-                        const centerX = width / 2;
-                        const centerY = height / 2;
-                        const pulse = isPlaying ? (Math.sin(phase * 3) * 0.35 + 0.65) : 0.2;
-
-                        for (let r = 3; r >= 1; r--) {
-                            const radius = (r * 12 + pulse * 12);
-                            const grad = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius);
-                            grad.addColorStop(0, r === 3 ? 'rgba(16, 185, 129, 0.6)' : r === 2 ? 'rgba(236, 72, 153, 0.4)' : 'rgba(6, 182, 212, 0.2)');
-                            grad.addColorStop(1, 'transparent');
-
-                            ctx.fillStyle = grad;
-                            ctx.beginPath();
-                            ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-                            ctx.fill();
-                        }
-
-                        particlesRef.current.forEach(p => {
-                            if (isPlaying) p.angle += p.speed;
-                            const px = centerX + Math.cos(p.angle) * (width * 0.42 * p.x);
-                            const py = centerY + Math.sin(p.angle) * (height * 0.38 * p.y);
-
-                            ctx.fillStyle = p.color;
-                            ctx.shadowBlur = isPlaying ? 6 : 0;
-                            ctx.shadowColor = p.color;
-                            ctx.beginPath();
-                            ctx.arc(px, py, p.radius, 0, Math.PI * 2);
-                            ctx.fill();
-                        });
-                    }
-                };
-
-                draw();
-
-                return () => {
-                    if (animIdRef.current) cancelAnimationFrame(animIdRef.current);
-                };
-            }, [isPlaying, mode]);
-
-            if (!isOpen) {
-                return (
-                    <button 
-                        onClick={() => setIsOpen(true)}
-                        className="fixed top-16 md:top-4 right-4 z-50 bg-[#171c26]/90 border border-white/10 px-3 py-1.5 rounded-full text-xs font-bold text-white shadow-xl flex items-center gap-2 hover:bg-[#E50914] transition-all backdrop-blur-md animate-fade-in"
-                    >
-                        <span className="w-2 h-2 rounded-full bg-[#10B981] animate-ping"></span>
-                        <span>Ver Animación Neón</span>
-                    </button>
-                );
-            }
-
-            return (
-                <div className="w-full bg-[#0b0f19]/95 border-b border-white/10 p-3 shadow-2xl backdrop-blur-xl animate-slide-up relative z-40">
-                    <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
-                        <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-start">
-                            <div className="flex items-center gap-2">
-                                <div className="p-1.5 bg-[#10B981]/20 rounded-lg text-[#10B981] border border-[#10B981]/30">
-                                    <Icon name="music" size={16} />
-                                </div>
-                                <div className="flex flex-col">
-                                    <span className="text-[10px] uppercase tracking-widest text-[#10B981] font-black flex items-center gap-1">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-pulse"></span>
-                                        ECUALIZADOR NEÓN
-                                    </span>
-                                    <span className="text-xs font-bold text-white truncate max-w-[200px] sm:max-w-[300px]">{stationTitle || "Radio En Vivo"}</span>
-                                </div>
-                            </div>
-
-                            {/* Selector de Modos */}
-                            <div className="flex items-center gap-1 bg-[#1f2937]/80 p-1 rounded-xl border border-white/10 text-[10px] font-bold">
-                                <button 
-                                    onClick={() => setMode('espectro')} 
-                                    className={`px-2.5 py-1 rounded-lg transition-all ${mode === 'espectro' ? 'bg-[#10B981] text-black shadow font-extrabold' : 'text-gray-400 hover:text-white'}`}
-                                >
-                                    Espectro
-                                </button>
-                                <button 
-                                    onClick={() => setMode('osciloscopio')} 
-                                    className={`px-2.5 py-1 rounded-lg transition-all ${mode === 'osciloscopio' ? 'bg-[#10B981] text-black shadow font-extrabold' : 'text-gray-400 hover:text-white'}`}
-                                >
-                                    Osciloscopio
-                                </button>
-                                <button 
-                                    onClick={() => setMode('aura')} 
-                                    className={`px-2.5 py-1 rounded-lg transition-all ${mode === 'aura' ? 'bg-[#10B981] text-black shadow font-extrabold' : 'text-gray-400 hover:text-white'}`}
-                                >
-                                    Aura
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Lienzo del Canvas Neón Ultrafino */}
-                        <div className="w-full md:flex-1 h-12 bg-black/60 border border-white/10 rounded-xl overflow-hidden p-1 backdrop-blur-md flex items-center justify-center">
-                            <canvas 
-                                ref={canvasRef} 
-                                width={600} 
-                                height={44} 
-                                className="w-full h-full block"
-                            />
-                        </div>
-
-                        <button 
-                            onClick={() => setIsOpen(false)}
-                            className="text-gray-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors hidden md:block"
-                            title="Minimizar animación"
-                        >
-                            <Icon name="x" size={18} />
-                        </button>
-                    </div>
-                </div>
-            );
-        };
 
         const convertUrl = (url) => {
             if (!url) return '';
@@ -362,10 +130,33 @@
             return url;
         };
 
+        const fetchSmart = async (localUrl, rawUrl, isJson = true) => {
+            const cacheBust = `?t=${Date.now()}`;
+            try {
+                const res = await fetch(localUrl + cacheBust);
+                if (res.ok) {
+                    const text = await res.text();
+                    if (!text.trim().startsWith('<!DOCTYPE html') && !text.trim().startsWith('<html')) {
+                        return isJson ? JSON.parse(text) : text;
+                    }
+                }
+            } catch (e) {}
+
+            try {
+                const resRaw = await fetch(rawUrl + cacheBust);
+                if (resRaw.ok) {
+                    return isJson ? await resRaw.json() : await resRaw.text();
+                }
+            } catch (e) {}
+
+            return null;
+        };
+
         const App = () => {
             const [showIntro, setShowIntro] = useState(true);
             const [activeTab, setActiveTab] = useState('home');
             const [content, setContent] = useState({ tv: [], series: [], movies: [], animados: [] });
+            const [radioStations, setRadioStations] = useState(DEFAULT_RADIO_STATIONS);
             const [search, setSearch] = useState('');
             const [selectedItem, setSelectedItem] = useState(null);
             const [selectedEpisode, setSelectedEpisode] = useState(null);
@@ -373,8 +164,8 @@
             const [favorites, setFavorites] = useState([]);
             const [loading, setLoading] = useState(true);
             const [expandedSeason, setExpandedSeason] = useState(0);
+            const [showQrModal, setShowQrModal] = useState(false);
 
-            // Estados de Radio
             const [currentRadioStation, setCurrentRadioStation] = useState(null);
             const [isRadioPlaying, setIsRadioPlaying] = useState(false);
             const [radioFavorites, setRadioFavorites] = useState([]);
@@ -382,17 +173,8 @@
             const [streamError, setStreamError] = useState(false);
             const [isLoadingRadio, setIsLoadingRadio] = useState(false);
             const [radioSearch, setRadioSearch] = useState('');
-            const [visMode, setVisMode] = useState('espectro');
-            const [isVisOpen, setIsVisOpen] = useState(true);
             const audioRef = useRef(null);
             const hlsRef = useRef(null);
-
-            // Auto-activación del visualizador cuando comience el audio
-            useEffect(() => {
-                if (isRadioPlaying) {
-                    setIsVisOpen(true);
-                }
-            }, [isRadioPlaying, currentRadioStation]);
 
             const navTabs = [
                 { id: 'home', icon: 'search', label: 'Inicio' }, 
@@ -402,113 +184,95 @@
                 { id: 'tv', icon: 'tv', label: 'TV' }, 
                 { id: 'radio', icon: 'radio', label: 'Radio' }, 
                 { id: 'jorgeflix', icon: 'compass', label: 'JorgeFlix' },
-                { id: 'spotify', icon: 'music', label: 'Música', isExternal: true, url: 'https://sejo48.github.io/Spotify-local/' },
+                { id: 'spotify', icon: 'music', label: 'Música', isExternal: true, url: './spotify.html' },
                 { id: 'favorites', icon: 'heart', label: 'Favs' }
             ];
-
-            // Función auxiliar para intentar cargar desde array de URLs con fallback inteligente
-            const fetchResourceWithFallback = async (urls) => {
-                for (const u of urls) {
-                    try {
-                        const res = await fetch(u);
-                        if (res && res.ok) return res;
-                    } catch (e) { }
-                }
-                return null;
-            };
 
             useEffect(() => {
                 const init = async () => {
                     try {
                         setLoading(true);
-                        const [resTV, resMovies, resSeries, resAnimados] = await Promise.all([ 
-                            fetchResourceWithFallback(URLS.TV),
-                            fetchResourceWithFallback(URLS.MOVIES),
-                            fetchResourceWithFallback(URLS.SERIES),
-                            fetchResourceWithFallback(URLS.ANIMADOS)
+                        const [dataTV, dataMovies, dataSeries, dataAnimados, dataRadios] = await Promise.all([ 
+                            fetchSmart(URLS.TV, RAW_URLS.TV, false),
+                            fetchSmart(URLS.MOVIES, RAW_URLS.MOVIES, true),
+                            fetchSmart(URLS.SERIES, RAW_URLS.SERIES, true),
+                            fetchSmart(URLS.ANIMADOS, RAW_URLS.ANIMADOS, true),
+                            fetchSmart(URLS.RADIOS, RAW_URLS.RADIOS, true)
                         ]);
 
                         let tvChannels = [];
-                        if (resTV) {
-                            const textTV = await resTV.text();
-                            tvChannels = parseM3U(textTV);
+                        if (dataTV) {
+                            tvChannels = parseM3U(dataTV);
                         }
-                        if (!tvChannels.length) tvChannels = DEMO_TV;
 
                         let moviesList = [];
-                        if (resMovies) {
-                            try {
-                                const jsonMovies = await resMovies.json();
-                                const rawMovies = Array.isArray(jsonMovies) ? jsonMovies : (jsonMovies.peliculas || jsonMovies.content || []);
-                                moviesList = rawMovies.map((m, idx) => ({ 
-                                    ...m, 
-                                    id: `mov-${idx}`, 
-                                    type: 'movies', 
-                                    title: m.titulo || m.title || m.name, 
-                                    description: m.descripcion || m.sinopsis || m.plot, 
-                                    image: m.imagen || m.poster || m.image, 
-                                    url: convertUrl(m.urlDrive || m.url),
-                                    rawUrl: m.urlDrive || m.url
-                                }));
-                            } catch (e) {}
+                        if (dataMovies) {
+                            const rawMovies = Array.isArray(dataMovies) ? dataMovies : (dataMovies.peliculas || dataMovies.content || []);
+                            moviesList = rawMovies.map((m, idx) => ({ 
+                                ...m, 
+                                id: `mov-${idx}`, 
+                                type: 'movies', 
+                                title: m.titulo || m.title || m.name, 
+                                description: m.descripcion || m.sinopsis || m.plot, 
+                                image: m.imagen || m.poster || m.image, 
+                                url: convertUrl(m.urlDrive || m.url),
+                                rawUrl: m.urlDrive || m.url
+                            }));
                         }
-                        if (!moviesList.length) moviesList = DEMO_MOVIES;
 
                         let seriesList = [];
-                        if (resSeries) {
-                            try {
-                                const jsonSeries = await resSeries.json();
-                                const rawSeries = Array.isArray(jsonSeries) ? jsonSeries : [];
-                                seriesList = rawSeries.map((s, idx) => ({
-                                    ...s,
-                                    id: `serie-${idx}`,
-                                    type: 'series',
-                                    title: s.tituloSerie || s.titulo || s.title || s.name,
-                                    description: s.descripcion || s.sinopsis,
-                                    image: s.imagen || s.poster || s.image,
-                                    seasons: (s.temporadas || []).map((t, tIdx) => ({
-                                        seasonNumber: t.numeroTemporada || (tIdx + 1),
-                                        episodes: (t.episodios || []).map((ep, eIdx) => ({
-                                            id: `ep-${idx}-${tIdx}-${eIdx}`,
-                                            title: ep.tituloEpisodio || ep.titulo || `Episodio ${eIdx + 1}`,
-                                            url: convertUrl(ep.urlDrive || ep.url)
-                                        }))
+                        if (dataSeries) {
+                            const rawSeries = Array.isArray(dataSeries) ? dataSeries : (dataSeries.series || []);
+                            seriesList = rawSeries.map((s, idx) => ({
+                                ...s,
+                                id: `serie-${idx}`,
+                                type: 'series',
+                                title: s.tituloSerie || s.titulo || s.title || s.name,
+                                description: s.descripcion || s.sinopsis,
+                                image: s.imagen || s.poster || s.image,
+                                seasons: (s.temporadas || []).map((t, tIdx) => ({
+                                    seasonNumber: t.numeroTemporada || (tIdx + 1),
+                                    episodes: (t.episodios || []).map((ep, eIdx) => ({
+                                        id: `ep-${idx}-${tIdx}-${eIdx}`,
+                                        title: ep.tituloEpisodio || ep.titulo || `Episodio ${eIdx + 1}`,
+                                        url: convertUrl(ep.urlDrive || ep.url)
                                     }))
-                                }));
-                            } catch(e) {}
+                                }))
+                            }));
                         }
-                        if (!seriesList.length) seriesList = DEMO_SERIES;
 
                         let animadosList = [];
-                        if (resAnimados) {
-                            try {
-                                const jsonAnimados = await resAnimados.json();
-                                const rawAnimados = Array.isArray(jsonAnimados) ? jsonAnimados : (jsonAnimados.animados || []);
-                                animadosList = rawAnimados.map((a, idx) => ({
-                                    ...a,
-                                    id: `anim-${idx}`,
-                                    type: 'animados',
-                                    title: a.titulo || a.tituloSerie || a.title || a.name,
-                                    description: a.descripcion || a.sinopsis,
-                                    image: a.imagen || a.poster || a.image,
-                                    url: convertUrl(a.urlDrive || a.url),
-                                    seasons: (a.temporadas || []).map((t, tIdx) => ({
-                                        seasonNumber: t.numeroTemporada || (tIdx + 1),
-                                        episodes: (t.episodios || []).map((ep, eIdx) => ({
-                                            id: `ep-anim-${idx}-${tIdx}-${eIdx}`,
-                                            title: ep.tituloEpisodio || ep.titulo || `Episodio ${eIdx + 1}`,
-                                            url: convertUrl(ep.urlDrive || ep.url)
-                                        }))
+                        if (dataAnimados) {
+                            const rawAnimados = Array.isArray(dataAnimados) ? dataAnimados : (dataAnimados.animados || []);
+                            animadosList = rawAnimados.map((a, idx) => ({
+                                ...a,
+                                id: `anim-${idx}`,
+                                type: 'animados',
+                                title: a.titulo || a.tituloSerie || a.title || a.name,
+                                description: a.descripcion || a.sinopsis,
+                                image: a.imagen || a.poster || a.image,
+                                url: convertUrl(a.urlDrive || a.url),
+                                seasons: (a.temporadas || []).map((t, tIdx) => ({
+                                    seasonNumber: t.numeroTemporada || (tIdx + 1),
+                                    episodes: (t.episodios || []).map((ep, eIdx) => ({
+                                        id: `ep-anim-${idx}-${tIdx}-${eIdx}`,
+                                        title: ep.tituloEpisodio || ep.titulo || `Episodio ${eIdx + 1}`,
+                                        url: convertUrl(ep.urlDrive || ep.url)
                                     }))
-                                }));
-                            } catch(e) {}
+                                }))
+                            }));
                         }
-                        if (!animadosList.length) animadosList = DEMO_ANIMADOS;
+
+                        if (dataRadios) {
+                            const list = Array.isArray(dataRadios) ? dataRadios : (dataRadios.radios || dataRadios.emisoras || []);
+                            if (list.length > 0) {
+                                setRadioStations(list);
+                            }
+                        }
 
                         setContent({ tv: tvChannels, movies: moviesList, series: seriesList, animados: animadosList });
                     } catch (err) {
-                        console.error("Error en inicialización, aplicando respaldo demo", err);
-                        setContent({ tv: DEMO_TV, movies: DEMO_MOVIES, series: DEMO_SERIES, animados: DEMO_ANIMADOS });
+                        console.error("Error cargando contenido", err);
                     } finally {
                         setLoading(false);
                     }
@@ -526,9 +290,9 @@
             useEffect(() => {
                 if (!audioRef.current) {
                     audioRef.current = new Audio();
+                    audioRef.current.crossOrigin = "anonymous";
                     
-                    audioRef.current.addEventListener('error', (e) => {
-                        console.error("Error stream radio:", e);
+                    audioRef.current.addEventListener('error', () => {
                         setIsRadioPlaying(false);
                         setStreamError(true);
                         setIsLoadingRadio(false);
@@ -538,7 +302,6 @@
                     audioRef.current.addEventListener('playing', () => {
                         setIsLoadingRadio(false);
                         setStreamError(false);
-                        setIsRadioPlaying(true);
                     });
                     audioRef.current.addEventListener('canplay', () => {
                         setIsLoadingRadio(false);
@@ -553,8 +316,7 @@
                     const playAudio = () => {
                         const playPromise = audio.play();
                         if (playPromise !== undefined) {
-                            playPromise.catch(e => {
-                                console.error("Error autoplay radio:", e);
+                            playPromise.catch(() => {
                                 setIsRadioPlaying(false);
                                 setStreamError(true);
                                 setIsLoadingRadio(false);
@@ -687,7 +449,7 @@
 
             return (
                 <div className="min-h-screen bg-[#111827] text-white font-sans flex flex-col md:flex-row relative">
-                    {/* Sidebar para Escritorio */}
+                    {/* DESKTOP SIDEBAR WITH QR CODE AT BOTTOM LEFT */}
                     <aside className="hidden md:flex w-24 flex-col items-center py-6 bg-[#0f1115] border-r border-[#1f2937] fixed h-full z-50">
                         <div className="mb-6 p-2 bg-[#E50914] rounded-xl shadow-lg cursor-pointer" onClick={() => handleTabClick(navTabs[0])}><Icon name="play" size={24} fill="white" className="text-white"/></div>
                         <div className="flex flex-col gap-1 w-full items-center">
@@ -697,12 +459,18 @@
                                 </button>
                             ))}
                         </div>
-                        <div className="mt-auto flex flex-col items-center gap-4 mb-4">
+
+                        {/* BOTTOM LEFT QR CODE & PROFILE BADGE */}
+                        <div className="mt-auto flex flex-col items-center gap-3 mb-4">
+                            <div onClick={() => setShowQrModal(true)} className="group cursor-pointer flex flex-col items-center p-1.5 bg-[#171c26] hover:bg-[#222938] rounded-xl border border-white/10 transition-all hover:scale-105 shadow-md text-center" title="Escanear QR para Compartir">
+                                <img src="./mi-qr-pro.png" alt="QR Code" className="w-12 h-12 rounded-lg object-contain bg-white p-0.5" onError={(e) => { e.target.src = 'mi-qr-pro.png'; }} />
+                                <span className="text-[8px] font-bold text-gray-400 group-hover:text-white mt-1 uppercase tracking-tighter">Compartir</span>
+                            </div>
                             <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-yellow-400 to-yellow-600 flex items-center justify-center font-serif font-bold text-black text-xs border border-white/20">J</div>
                         </div>
                     </aside>
 
-                    {/* Barra de Navegación Móvil Superior */}
+                    {/* MOBILE TOP BAR */}
                     <div className="md:hidden fixed top-0 w-full bg-[#111827]/95 backdrop-blur z-50 px-3 py-2.5 flex items-center justify-between border-b border-[#1f2937] gap-2">
                         <div className="flex items-center gap-1.5 font-black text-base tracking-tighter cursor-pointer flex-shrink-0" onClick={() => handleTabClick(navTabs[0])}>
                             <span className="text-[#E50914]">MAGIS</span> TUBE
@@ -723,6 +491,14 @@
                                 <Icon name="compass" size={15} />
                                 <span>JorgeFlix</span>
                             </button>
+                            <button
+                                onClick={() => setShowQrModal(true)}
+                                className="flex items-center gap-1 px-2 py-1 rounded-xl bg-[#171c26] text-white border border-white/10 text-xs font-bold transition-all flex-shrink-0"
+                                title="Código QR"
+                            >
+                                <Icon name="qr" size={15} />
+                                <span>QR</span>
+                            </button>
                         </div>
 
                         <button onClick={() => handleTabClick(navTabs.find(t=>t.id==='favorites'))} className={`flex-shrink-0 transition-colors active:scale-90 p-1 ${activeTab === 'favorites' ? 'text-[#E50914]' : 'text-gray-400 hover:text-white'}`} aria-label="Favoritos">
@@ -730,7 +506,6 @@
                         </button>
                     </div>
 
-                    {/* Barra Inferior Móvil */}
                     <div className="md:hidden fixed bottom-0 w-full bg-[#0f1115] border-t border-[#1f2937] z-50 flex py-2 pb-safe px-2 overflow-x-auto no-scrollbar snap-x items-center justify-around shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
                         {navTabs.filter(t => !['jorgeflix', 'favorites', 'radio'].includes(t.id)).map(tab => (
                             <button key={tab.id} onClick={() => handleTabClick(tab)} className={`flex flex-col items-center justify-center flex-shrink-0 min-w-[56px] py-1 gap-1 snap-start transition-all active:scale-95 rounded-lg ${activeTab === tab.id && !tab.isExternal ? 'text-[#E50914] bg-white/5' : 'text-gray-400 hover:text-white'}`}>
@@ -740,23 +515,11 @@
                         ))}
                     </div>
 
-                    {/* Contenido Principal */}
+                    {}
                     <main className="flex-1 md:ml-24 min-h-screen pt-14 md:pt-0 pb-36 md:pb-0 relative z-10">
-                        {/* Banner Visualizador Neón Multimodo Persistente */}
-                        {currentRadioStation && (
-                            <AudioVisualizerBanner 
-                                isPlaying={isRadioPlaying && !streamError}
-                                stationTitle={currentRadioStation.title}
-                                mode={visMode}
-                                setMode={setVisMode}
-                                isOpen={isVisOpen}
-                                setIsOpen={setIsVisOpen}
-                            />
-                        )}
-
                         {activeTab === 'radio' ? (
                             <RadioSection 
-                                stations={RADIO_STATIONS} 
+                                stations={radioStations} 
                                 currentStation={currentRadioStation}
                                 isPlaying={isRadioPlaying}
                                 onPlayStation={handlePlayRadioStation}
@@ -815,22 +578,6 @@
                                     </div>
                                     {isLocked ? (
                                         <LockScreen correctCode={selectedItem.codigo || selectedItem.password || selectedItem.pin} onUnlock={() => setIsLocked(false)} onCancel={() => {setSelectedItem(null); setIsLocked(false);}} />
-                                    ) : (selectedItem.type === 'movies' || selectedItem.type === 'movie') && selectedItem.url && selectedItem.url.includes('ok.ru') ? (
-                                        <div className="relative w-full h-full flex flex-col items-center justify-center bg-[#090d16] p-6 text-center overflow-hidden">
-                                            <img src={selectedItem.imagen || selectedItem.image} className="absolute inset-0 w-full h-full object-cover opacity-15 filter blur-xl" />
-                                            <div className="relative z-10 max-w-lg bg-[#111827]/90 border border-white/10 p-6 sm:p-8 rounded-2xl backdrop-blur-md shadow-2xl flex flex-col items-center">
-                                                <div className="w-14 h-14 bg-orange-600/20 text-orange-500 rounded-full flex items-center justify-center mb-4 border border-orange-500/30">
-                                                    <Icon name="play" size={28} fill="currentColor"/>
-                                                </div>
-                                                <h2 className="text-xl sm:text-2xl font-black mb-2 text-white">{selectedItem.titulo || selectedItem.title}</h2>
-                                                <p className="text-gray-400 text-xs sm:text-sm mb-6 leading-relaxed">
-                                                    Esta película está alojada en OK.ru. Presiona el botón para iniciar la reproducción directamente en el servidor seguro.
-                                                </p>
-                                                <a href={selectedItem.rawUrl || selectedItem.url} target="_blank" rel="noopener noreferrer" className="w-full bg-[#E50914] hover:bg-red-700 text-white font-extrabold px-6 py-3.5 rounded-xl shadow-xl transition-transform active:scale-95 flex items-center justify-center gap-2 text-sm">
-                                                    <span>▶ REPRODUCIR EN OK.RU</span>
-                                                </a>
-                                            </div>
-                                        </div>
                                     ) : (
                                         <iframe src={convertUrl((selectedItem.type === 'series' || selectedItem.type === 'animados') && selectedEpisode ? selectedEpisode.url : selectedItem.url)} className="w-full h-full border-0" allow="autoplay; encrypted-media; fullscreen" allowFullScreen></iframe>
                                     )}
@@ -942,11 +689,40 @@
                                 </div>
                             </div>
 
-                            <div className="flex items-center justify-end gap-3 w-1/3">
-                                {/* Visualizador Canvas de Espectro Neón */}
-                                <CanvasSpectrum isPlaying={isRadioPlaying && !streamError} />
-                                <Icon name="volume" size={18} className="text-gray-400 hidden lg:block ml-2" />
-                                <input type="range" min="0" max="1" step="0.01" value={radioVolume} onChange={(e) => setRadioVolume(parseFloat(e.target.value))} className="w-20 accent-[#E50914] hidden lg:block"/>
+                            <div className="flex items-center justify-end gap-4 w-1/3">
+                                <div className="hidden sm:flex items-end h-6 gap-1 mr-4">
+                                    {[1,2,3,4,5].map(i => (<div key={i} className={`bar ${!isRadioPlaying ? 'paused-bar' : ''}`}></div>))}
+                                </div>
+                                <Icon name="volume" size={18} className="text-gray-400 hidden lg:block" />
+                                <input type="range" min="0" max="1" step="0.01" value={radioVolume} onChange={(e) => setRadioVolume(parseFloat(e.target.value))} className="w-24 accent-[#E50914] hidden lg:block"/>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* MODAL QR PARA COMPARTIR */}
+                    {showQrModal && (
+                        <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
+                            <div className="bg-[#171c26] border border-white/10 rounded-2xl p-6 max-w-xs w-full text-center relative shadow-2xl space-y-4">
+                                <button onClick={() => setShowQrModal(false)} className="absolute top-3 right-3 text-gray-400 hover:text-white p-1 rounded-full bg-black/40">
+                                    <Icon name="x" size={18} />
+                                </button>
+                                
+                                <div className="p-3 bg-[#E50914]/10 rounded-2xl border border-[#E50914]/30 inline-block">
+                                    <span className="text-xs font-black uppercase text-[#E50914] tracking-widest">Escanea y Comparte</span>
+                                </div>
+
+                                <div className="bg-white p-3 rounded-xl shadow-inner flex justify-center items-center">
+                                    <img src="./mi-qr-pro.png" alt="MAGIS Tube QR Code" className="w-48 h-48 object-contain" onError={(e) => { e.target.src = 'mi-qr-pro.png'; }} />
+                                </div>
+
+                                <div>
+                                    <h3 className="font-extrabold text-base text-white">MAGIS <span className="text-[#E50914]">Tube</span></h3>
+                                    <p className="text-xs text-gray-400 mt-1 leading-relaxed">Apunta con la cámara de tu teléfono para abrir la aplicación al instante.</p>
+                                </div>
+
+                                <button onClick={() => setShowQrModal(false)} className="w-full bg-[#E50914] text-white py-2.5 rounded-xl font-bold text-xs hover:bg-red-700 transition-colors shadow-lg">
+                                    Cerrar
+                                </button>
                             </div>
                         </div>
                     )}
@@ -1051,7 +827,7 @@
             const startVoice = () => {
                 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
                 if (!SpeechRecognition) {
-                    setVoiceStatus("❌ El reconocimiento de voz no está disponible en este navegador.");
+                    setVoiceStatus("❌ Reconocimiento de voz no soportado en este navegador.");
                     return;
                 }
                 const r = new SpeechRecognition();
@@ -1068,7 +844,7 @@
                 r.onerror = (e) => {
                     let msg = "No se pudo usar el micrófono.";
                     if (e.error === "not-allowed") msg = "❌ Permiso de micrófono bloqueado.";
-                    if (e.error === "no-speech") msg = "🎤 No detecté voz. Inténtelo nuevamente.";
+                    if (e.error === "no-speech") msg = "🎤 No se detectó voz.";
                     setVoiceStatus(msg);
                 };
                 r.onend = () => {
@@ -1192,7 +968,7 @@
 
                         <button onClick={handleSearch} className="w-full bg-[#E50914] text-white py-3.5 rounded-xl font-bold text-sm hover:bg-red-700 transition-colors shadow-lg flex items-center justify-center gap-2">
                             <Icon name="search" size={18} fill="none" className="text-white" />
-                            <span>Buscar ahora en {engine === 'yandex' ? 'Yandex' : engine === 'okru' ? 'OK.ru' : engine === 'bing' ? 'Bing' : 'Google'}</span>
+                            <span>Buscar con {engine === 'yandex' ? 'Yandex' : engine === 'okru' ? 'OK.ru' : engine === 'bing' ? 'Bing' : 'Google'}</span>
                         </button>
                     </div>
 
@@ -1233,8 +1009,6 @@
             const imgSource = item.imagen || item.image || item.poster;
             const titleSource = item.titulo || item.title || item.name;
             const descSource = item.descripcion || item.sinopsis || item.plot;
-            const isMovie = item.type === 'movies' || item.type === 'movie';
-            const isExternalMovie = isMovie && item.url && (item.url.includes('ok.ru') || item.url.includes('youtube.com') || item.url.includes('youtu.be'));
             
             return (
                 <div className="relative w-full h-[320px] sm:h-[380px] bg-[#0b0f19] overflow-hidden rounded-3xl mb-8 group animate-fade-in shadow-2xl border border-white/5 flex items-center">
@@ -1246,7 +1020,6 @@
                     <div className="relative z-10 w-full h-full flex flex-col sm:flex-row items-center justify-start px-6 sm:px-12 max-w-7xl mx-auto gap-8">
                         <div className="w-32 sm:w-44 aspect-[2/3] rounded-xl overflow-hidden shadow-2xl border border-white/20 flex-shrink-0 bg-black/50 transform group-hover:scale-105 transition-transform duration-300 relative">
                             <img src={imgSource} alt={titleSource} className="w-full h-full object-cover" onError={(e) => e.target.src='https://placehold.co/300x450/1f2937/ffffff?text=Poster'} />
-                            {isExternalMovie && (<span className="absolute bottom-2 right-2 bg-black/80 text-orange-400 text-[9px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1 shadow border border-orange-500/30">🌐 Externo</span>)}
                         </div>
                         <div className="flex-1 flex flex-col gap-2 items-start max-w-xl">
                             <span className="bg-[#E50914] text-white text-[9px] font-extrabold px-2.5 py-1 rounded uppercase tracking-wider shadow">Destacado</span>
@@ -1254,7 +1027,7 @@
                             <p className="text-gray-100 text-xs sm:text-sm line-clamp-3 leading-relaxed drop-shadow">{descSource || "Disfruta del mejor contenido seleccionado para ti."}</p>
                             <div className="flex gap-3 mt-3">
                                 <button onClick={() => onPlay(item)} className="bg-white text-black px-6 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-2 active:scale-95 transition-transform shadow-lg hover:bg-gray-200">
-                                    <Icon name="play" size={16} fill="black"/> {isExternalMovie ? "Ver en OK.ru" : "Reproducir"}
+                                    <Icon name="play" size={16} fill="black"/> Reproducir
                                 </button>
                                 <button onClick={() => onToggleFavorite(item)} className="bg-white/20 text-white p-2.5 rounded-xl flex items-center justify-center backdrop-blur-md border border-white/30 hover:bg-white/40">
                                     <Icon name="heart" size={18} className={isFavorite ? "text-[#E50914] fill-[#E50914]" : "text-white"} fill={isFavorite ? "#E50914" : "none"} />
@@ -1285,8 +1058,6 @@
             const isTv = item.type === 'tv'; 
             const hasLock = item.codigo || item.password || item.pin; 
             const isKids = item.isKids || item.type === 'animados';
-            const isMovie = item.type === 'movies' || item.type === 'movie';
-            const isExternalMovie = isMovie && item.url && (item.url.includes('ok.ru') || item.url.includes('youtube.com') || item.url.includes('youtu.be'));
             const imgSource = item.imagen || item.image || item.poster || item.logo;
             const titleSource = item.titulo || item.title || item.name;
             return ( 
@@ -1298,8 +1069,7 @@
                         </button> 
                         <div className="absolute bottom-1.5 left-1.5 flex gap-1 flex-wrap"> 
                             {isTv && <span className="bg-[#E50914] text-white text-[8px] font-bold px-1.5 py-0.5 rounded shadow">LIVE</span>} 
-                            {isKids && <span className="bg-blue-600 text-white text-[8px] font-bold px-1.5 py-0.5 rounded shadow">KIDS</span>}
-                            {isExternalMovie && <span className="bg-orange-600 text-white text-[8px] font-bold px-1.5 py-0.5 rounded shadow flex items-center gap-0.5">🌐 Externo</span>}
+                            {isKids && <span className="bg-blue-600 text-white text-[8px] font-bold px-1.5 py-0.5 rounded shadow">KIDS</span>} 
                             {hasLock && <span className="bg-yellow-500 text-black text-[8px] font-bold px-1.5 py-0.5 rounded shadow flex items-center gap-0.5"><Icon name="lock" size={7}/> PIN</span>} 
                         </div> 
                     </div> 
@@ -1318,15 +1088,14 @@
                 pause: <path d="M6 4h4v16H6zM14 4h4v16h-4z" />,
                 heart: <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />,
                 arrowLeft: <path d="M19 12H5m7 7l-7-7 7-7" />,
-                chevronDown: <path d="M6 9l6 6 6-6" />,
-                chevronUp: <path d="M18 15l-6-6-6 6" />,
                 clapperboard: <g><path d="M20.2 6 3 11l-.9-2.4c-.5-1.1.2-2.3 1.3-2.8l3.2-1.4c1.1-.5 2.3.2 2.8 1.3l.9 2.4l7.9-3l2 4.5Z"/><path d="M4 11v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-9"/></g>,
                 lock: <path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a7 7 0 00-14 0v2" />,
                 smile: <g><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></g>,
                 compass: <g><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></g>,
                 music: <g><path d="M9 18V5l12-2v13"></path><path d="M9 9l12-2"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></g>,
                 radio: <path d="M2 12a10 10 0 0110-10 10 10 0 0110 10M6 12a6 6 0 016-6 6 6 0 016 6M10 12a2 2 0 012-2 2 2 0 012 2v8a2 2 0 01-2 2 2 2 0 01-2-2v-8z" />,
-                volume: <path d="M11 5L6 9H2v6h4l5 4V5z M15.54 8.46a5 5 0 010 7.07 M19.07 4.93a10 10 0 010 14.14" />
+                volume: <path d="M11 5L6 9H2v6h4l5 4V5z M15.54 8.46a5 5 0 010 7.07 M19.07 4.93a10 10 0 010 14.14" />,
+                qr: <g><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="3" height="3"></rect><rect x="18" y="18" width="3" height="3"></rect><rect x="14" y="18" width="3" height="3"></rect><rect x="18" y="14" width="3" height="3"></rect></g>
             };
             return (
                 <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
