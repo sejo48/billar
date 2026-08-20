@@ -98,6 +98,8 @@
             RADIOS: 'https://raw.githubusercontent.com/sejo48/StreamTube-V20/main/radios.json'
         };
 
+        const QR_IMAGE_URL = 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgsPiFVGiGuwJ3smwIQGJ-25kEkpEZpmR4PNZLdRF0_3LVfWAj2xhWSHiK7pY-C3jera3PD_XpmEtNy0kaCW1m8dayT9ebTV3YNBmbzMZeHF_oIf2XlniVGt6pj6BqtTyWEaUts1Ll_vYx2RuJvlrF9rqIwWcYcwMkTcdLCI-bShcR_KhhoILWEkdJ4Z4w/s1600/mi-qr-pro.png';
+
         const DEFAULT_RADIO_STATIONS = [
             { id: 'cr-sinfonola', title: 'Radio Sinfonola 90.3 FM', group: 'Romántica / Clásicos', image: 'https://static.mytuner.mobi/media/tvos_radios/415/radio-sinfonola.79d5c3e6.png', url: 'https://live.turadio.stream:7006/;' },
             { id: 'cr-hit', title: 'Hit 104.7 FM', group: 'Juvenil / Pop', image: 'https://static.mytuner.mobi/media/tvos_radios/164/radio-hit-1047-fm.1180f4a3.jpg', url: 'https://live.turadio.stream:7004/stream?nocache=596&type=http' },
@@ -150,6 +152,19 @@
             } catch (e) {}
 
             return null;
+        };
+
+        const handleQrError = (e) => {
+            if (!e.target.dataset.triedBlogger) {
+                e.target.dataset.triedBlogger = "true";
+                e.target.src = QR_IMAGE_URL;
+            } else if (!e.target.dataset.triedRaw) {
+                e.target.dataset.triedRaw = "true";
+                e.target.src = 'https://raw.githubusercontent.com/sejo48/StreamTube-V20/main/mi-qr-pro.png';
+            } else if (!e.target.dataset.triedApi) {
+                e.target.dataset.triedApi = "true";
+                e.target.src = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' + encodeURIComponent(window.location.href || 'https://sejo48.github.io/StreamTube-V20/');
+            }
         };
 
         const App = () => {
@@ -463,7 +478,7 @@
                         {/* BOTTOM LEFT QR CODE & PROFILE BADGE */}
                         <div className="mt-auto flex flex-col items-center gap-3 mb-4">
                             <div onClick={() => setShowQrModal(true)} className="group cursor-pointer flex flex-col items-center p-1.5 bg-[#171c26] hover:bg-[#222938] rounded-xl border border-white/10 transition-all hover:scale-105 shadow-md text-center" title="Escanear QR para Compartir">
-                                <img src="./mi-qr-pro.png" alt="QR Code" className="w-12 h-12 rounded-lg object-contain bg-white p-0.5" onError={(e) => { e.target.src = 'mi-qr-pro.png'; }} />
+                                <img src="./mi-qr-pro.png" alt="QR Code" className="w-12 h-12 rounded-lg object-contain bg-white p-0.5" onError={handleQrError} />
                                 <span className="text-[8px] font-bold text-gray-400 group-hover:text-white mt-1 uppercase tracking-tighter">Compartir</span>
                             </div>
                             <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-yellow-400 to-yellow-600 flex items-center justify-center font-serif font-bold text-black text-xs border border-white/20">J</div>
@@ -515,7 +530,6 @@
                         ))}
                     </div>
 
-                    {}
                     <main className="flex-1 md:ml-24 min-h-screen pt-14 md:pt-0 pb-36 md:pb-0 relative z-10">
                         {activeTab === 'radio' ? (
                             <RadioSection 
@@ -654,7 +668,7 @@
                         )}
                     </main>
 
-                    {}
+                    {/* RADIO BOTTOM PLAYER */}
                     {currentRadioStation && (
                         <div className="fixed bottom-[55px] md:bottom-0 left-0 md:left-24 right-0 bg-[#171c26]/95 backdrop-blur-xl border-t border-[#1f2937] p-3 sm:p-4 z-50 flex items-center justify-between shadow-[0_-10px_30px_rgba(0,0,0,0.5)] animate-slide-up">
                             <div className="flex items-center gap-3 w-1/3 min-w-[120px]">
@@ -712,7 +726,7 @@
                                 </div>
 
                                 <div className="bg-white p-3 rounded-xl shadow-inner flex justify-center items-center">
-                                    <img src="./mi-qr-pro.png" alt="MAGIS Tube QR Code" className="w-48 h-48 object-contain" onError={(e) => { e.target.src = 'mi-qr-pro.png'; }} />
+                                    <img src="./mi-qr-pro.png" alt="MAGIS Tube QR Code" className="w-48 h-48 object-contain" onError={handleQrError} />
                                 </div>
 
                                 <div>
