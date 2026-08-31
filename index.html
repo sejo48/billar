@@ -70,6 +70,12 @@
         }
         .animate-pulse-glow { animation: pulseGlow 2s ease-in-out infinite; }
 
+        @keyframes attentionBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+        }
+        .animate-attention { animation: attentionBounce 2s ease-in-out infinite; }
+
         .glass-z {
             background: rgba(18, 20, 32, 0.82);
             backdrop-filter: blur(20px);
@@ -268,6 +274,7 @@
             const [radioVolume, setRadioVolume] = useState(0.8);
             const [showQrModal, setShowQrModal] = useState(false);
             const [showAuthorModal, setShowAuthorModal] = useState(false);
+            const [showCtrlDTooltip, setShowCtrlDTooltip] = useState(false);
             const [loading, setLoading] = useState(true);
 
             const [content, setContent] = useState({
@@ -510,6 +517,28 @@
                             </nav>
                         </div>
                         <div className="flex items-center gap-3">
+                            {/* Ctrl + D Bookmark Reminder Button */}
+                            <div className="relative">
+                                <button 
+                                    onClick={() => setShowCtrlDTooltip(!showCtrlDTooltip)} 
+                                    onMouseEnter={() => setShowCtrlDTooltip(true)}
+                                    onMouseLeave={() => setShowCtrlDTooltip(false)}
+                                    className="px-3 py-2 rounded-xl bg-gradient-to-r from-zpink/20 to-purple-600/20 hover:from-zpink/30 hover:to-purple-600/30 border border-zpink/40 text-white text-xs font-bold flex items-center gap-2 transition-all shadow-[0_0_15px_rgba(255,45,85,0.3)] animate-attention"
+                                >
+                                    <i className="ph-fill ph-bookmark-simple text-zpink text-sm animate-pulse"></i>
+                                    <span className="hidden sm:inline">Guardar</span>
+                                    <span className="bg-zpink text-white text-[10px] px-1.5 py-0.5 rounded font-mono font-black">Ctrl+D</span>
+                                </button>
+                                {showCtrlDTooltip && (
+                                    <div className="absolute right-0 top-12 w-64 glass-z p-3 rounded-2xl border border-white/20 shadow-2xl text-xs text-gray-200 z-50 animate-z-fade">
+                                        <div className="font-bold text-zpink mb-1 flex items-center gap-1.5">
+                                            <i className="ph-fill ph-star"></i> Añadir a Favoritos
+                                        </div>
+                                        Presiona <kbd className="bg-zcard px-1.5 py-0.5 rounded border border-white/20 font-mono font-bold text-zpink">Ctrl + D</kbd> en tu teclado para guardar esta página web en los marcadores de tu navegador.
+                                    </div>
+                                )}
+                            </div>
+
                             <button onClick={() => setShowQrModal(true)} className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white transition-all">
                                 <i className="ph ph-qr-code text-xl"></i>
                             </button>
@@ -666,7 +695,6 @@
 
             return (
                 <div className="space-y-12 animate-z-fade">
-                    {/* Featured Movie Banner with Random 10 Pool and Soft Float Animation */}
                     {featured && (
                         <div className="relative rounded-3xl overflow-hidden glass-z border border-white/10 p-6 sm:p-12 flex flex-col md:flex-row items-center gap-8 shadow-2xl">
                             <div className="absolute inset-0 z-0">
@@ -700,8 +728,7 @@
                                     </button>
                                 </div>
 
-                                {/* Enhanced, Visible & Animated Smart View Reminder */}
-                                <div className="pt-2 flex items-center justify-center md:justify-start gap-3 bg-zpink/15 border border-zpink/30 px-4 py-2.5 rounded-2xl max-w-md shadow-lg">
+                                <div className="pt-2 flex items-center justify-center md:justify-start gap-3 bg-zpink/15 border border-zpink/30 px-4 py-3 rounded-2xl shadow-lg max-w-md">
                                     <i className="ph-fill ph-cast text-zpink text-xl animate-pulse-glow flex-shrink-0"></i>
                                     <span className="text-xs sm:text-sm text-gray-200 font-medium leading-snug">
                                         💡 Puedes transmitir y ver esta película en tu televisor usando <strong className="text-white font-bold underline decoration-zpink decoration-2">Smart View</strong>.
@@ -711,7 +738,6 @@
                         </div>
                     )}
 
-                    {/* Películas Section */}
                     <div>
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="font-outfit text-xl sm:text-2xl font-extrabold text-white">Películas en Tendencia</h2>
@@ -744,7 +770,6 @@
                         </div>
                     </div>
 
-                    {/* Series Section */}
                     <div>
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="font-outfit text-xl sm:text-2xl font-extrabold text-white">Series de Televisión</h2>
@@ -774,7 +799,6 @@
                         </div>
                     </div>
 
-                    {/* Animados Section */}
                     <div>
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="font-outfit text-xl sm:text-2xl font-extrabold text-white">Animados & Kids</h2>
@@ -1122,7 +1146,6 @@
                             <h1 className="font-outfit text-2xl sm:text-4xl font-black text-white">{media.title}</h1>
                             <p className="text-xs sm:text-sm text-gray-300 leading-relaxed">{media.description || media.sinopsis || "Disfruta de esta transmisión exclusiva en Magic TV 2.0."}</p>
                             
-                            {/* Enhanced, Visible & Animated Smart View Reminder */}
                             <div className="pt-2 flex items-center gap-3 bg-zpink/15 border border-zpink/30 px-4 py-3 rounded-2xl shadow-lg mt-4">
                                 <i className="ph-fill ph-cast text-zpink text-xl animate-pulse-glow flex-shrink-0"></i>
                                 <span className="text-xs sm:text-sm text-gray-200 font-medium leading-snug">
