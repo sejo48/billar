@@ -1,451 +1,403 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MAGIS Tube Ultimate - Jorge</title>
+    <title>Magic TV 2.0 Ultimate - Jorge Arturo Hernández Méndez</title>
     
-    <!-- Librerías Externas -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        magis: {
+                            50: '#fef2f2',
+                            500: '#ef4444',
+                            600: '#dc2626',
+                            700: '#b91c1c',
+                            900: '#7f1d1d',
+                            dark: '#030712',
+                            card: '#0f172a',
+                            border: '#1e293b'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Outfit:wght@700;900&family=Cinzel:wght@700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background-color: #111827; color: white; font-family: 'Inter', sans-serif; overflow-x: hidden; }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #1f2937; }
-        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 3px; }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #030712;
+            color: #ffffff;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .brand-font { font-family: 'Outfit', sans-serif; }
+        .gold-font { font-family: 'Cinzel', serif; }
+        
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #030712; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb:hover { background: #ef4444; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(229, 9, 20, 0.4); border-radius: 3px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #E50914; }
         
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .animate-fade-in { animation: fadeIn 0.4s ease-out; }
-        .animate-slide-up { animation: slideUp 0.5s ease-out; }
-        .text-gold-gradient { background: linear-gradient(to right, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.4); }
+            50% { box-shadow: 0 0 35px rgba(239, 68, 68, 0.7); }
+        }
+        .glow-effect { animation: pulseGlow 3s infinite ease-in-out; }
+        
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .text-gold-gradient {
+            background: linear-gradient(to right, #FFD700, #FFF8DC, #DAA520, #FFFACD, #FFD700);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 2px 10px rgba(218, 165, 32, 0.3);
+        }
+
+        @keyframes fadeIn { 
+            from { opacity: 0; transform: translateY(12px) scale(0.98); } 
+            to { opacity: 1; transform: translateY(0) scale(1); } 
+        }
+        .animate-fade-in { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        
+        @keyframes floatAnim {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+        .animate-float { animation: floatAnim 4s infinite ease-in-out; }
+
         .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
 
-        .video-container {
-            width: 100%;
-            height: 100%;
-            position: relative;
-            background: #000;
-            overflow: hidden;
-        }
-
-        .video-container iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100% !important;
-            height: 100% !important;
-            border: none !important;
-        }
-
-        .video-container:-webkit-full-screen { width: 100vw !important; height: 100vh !important; }
-        .video-container:fullscreen { width: 100vw !important; height: 100vh !important; }
-
-        @media (orientation: landscape) {
-            .video-container { height: 100vh !important; width: 100vw !important; }
-            .video-container iframe { width: 100vw !important; height: 100vh !important; }
-        }
-
-        .bar {
-            width: 4px;
-            background-color: #E50914;
+        .equalizer-bar {
+            width: 3px;
+            background-color: #ef4444;
             border-radius: 2px;
             animation: equalize 1s infinite alternate;
             transform-origin: bottom;
         }
-        .bar:nth-child(1) { animation-delay: -0.2s; }
-        .bar:nth-child(2) { animation-delay: -0.4s; }
-        .bar:nth-child(3) { animation-delay: -0.6s; }
-        .bar:nth-child(4) { animation-delay: -0.8s; }
-        .bar:nth-child(5) { animation-delay: -1.0s; }
-
+        .equalizer-bar:nth-child(1) { animation-delay: -0.2s; }
+        .equalizer-bar:nth-child(2) { animation-delay: -0.4s; }
+        .equalizer-bar:nth-child(3) { animation-delay: -0.6s; }
+        .equalizer-bar:nth-child(4) { animation-delay: -0.8s; }
+        
         @keyframes equalize {
             0% { transform: scaleY(0.2); opacity: 0.5; }
             100% { transform: scaleY(1); opacity: 1; }
         }
-        .paused-bar { transform: scaleY(0.2) !important; animation: none !important; opacity: 0.5; }
 
-        button:focus, div[tabindex="0"]:focus, input:focus, select:focus { outline: none; }
-
-        .loader-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            width: 100vw;
-            background: #111827;
-            color: white;
-            font-family: 'Inter', sans-serif;
+        /* High contrast text utilities for maximum visibility */
+        .text-high-contrast {
+            color: #ffffff;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
         }
-
-        .loader-spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid #1f2937;
-            border-top: 4px solid #E50914;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
+        .text-subtitle-contrast {
+            color: #e2e8f0;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
         }
-
-        .loader-text {
-            font-size: 14px;
-            color: #9ca3af;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
-
-        .loader-subtext {
-            font-size: 11px;
-            color: #4b5563;
-            margin-top: 8px;
-            letter-spacing: 1px;
-        }
-
-        @keyframes spin { 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body>
+<body class="bg-magis-dark text-white min-h-screen selection:bg-magis-500 selection:text-white">
+
     <div id="root">
-        <div class="loader-container">
-            <div class="loader-spinner"></div>
-            <div class="loader-text">MAGIS Tube Ultimate</div>
-            <div class="loader-subtext">Jorge Arturo Hernández Méndez</div>
+        <div class="flex h-screen w-screen items-center justify-center bg-magis-dark flex-col">
+            <div class="relative w-16 h-16 mb-4">
+                <div class="absolute inset-0 rounded-full border-4 border-magis-500/20 animate-ping"></div>
+                <div class="absolute inset-0 rounded-full border-4 border-magis-500 border-t-transparent animate-spin"></div>
+            </div>
+            <h2 class="brand-font text-xl font-black tracking-wider text-white">MAGIC TV <span class="text-magis-500">2.0</span></h2>
+            <p class="text-xs text-gray-300 mt-1 font-semibold">Cargando experiencia definitiva...</p>
         </div>
     </div>
 
-    <script type="text/babel" data-presets="react-classic">
-        const { useState, useEffect, useRef, useMemo, useCallback } = React;
-
-        // ============================================
-        // DATOS DE EJEMPLO - TODOS LOS DATOS ESTÁN AQUÍ
-        // No necesita archivos externos
-        // ============================================
-        
-        const CANALES_TV = [
-            { id: 'tv-1', title: 'Telerred 2025', group: 'Noticias', image: 'https://img.utdstc.com/icon/3b6/477/3b64776de1ee9825a1b6b57a2af0a738f387574536d87cac87c135d460f2d683:200', url: 'https://www.youtube.com/embed/5BZR8NqBlO8?autoplay=1' },
-            { id: 'tv-2', title: 'Canal 6 Noticias', group: 'Noticias', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Repretel_Canal_6_Logo_2024.png/200px-Repretel_Canal_6_Logo_2024.png', url: 'https://www.youtube.com/embed/6Dix6mZZPM8?autoplay=1' },
-            { id: 'tv-3', title: 'Repretel Canal 11', group: 'General', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Teletica_logo.svg/200px-Teletica_logo.svg.png', url: 'https://www.youtube.com/embed/TV1Bv9_ivCw?autoplay=1' },
-            { id: 'tv-4', title: 'CNN en Español', group: 'Noticias', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/06/CNN_en_Espa%C3%B1ol_logo.svg/200px-CNN_en_Espa%C3%B1ol_logo.svg.png', url: 'https://www.youtube.com/embed/1CnF4cbnXlA?autoplay=1' },
-            { id: 'tv-5', title: 'Discovery Channel', group: 'Documentales', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/Discovery_Channel_logo_2019.svg/200px-Discovery_Channel_logo_2019.svg.png', url: 'https://www.youtube.com/embed/o9C7EavQwdc?autoplay=1' },
-            { id: 'tv-6', title: 'National Geographic', group: 'Documentales', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/National_Geographic_logo.svg/200px-National_Geographic_logo.svg.png', url: 'https://www.youtube.com/embed/NgPdNVXhBLA?autoplay=1' },
-            { id: 'tv-7', title: 'Cartoon Network', group: 'Infantil', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Cartoon_Network_2010_logo.svg/200px-Cartoon_Network_2010_logo.svg.png', url: 'https://www.youtube.com/embed/8vCuw1h7SCU?autoplay=1' },
-            { id: 'tv-8', title: 'Disney Channel', group: 'Infantil', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Disney_Channel_2024.svg/200px-Disney_Channel_2024.svg.png', url: 'https://www.youtube.com/embed/3JZ_D3ELwOQ?autoplay=1' },
-            { id: 'tv-9', title: 'MTV', group: 'Música', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/MTV_2021_%28brand%29.svg/200px-MTV_2021_%28brand%29.svg.png', url: 'https://www.youtube.com/embed/hTWKbfoikeg?autoplay=1' },
-            { id: 'tv-10', title: 'VH1', group: 'Música', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/VH1_logo.svg/200px-VH1_logo.svg.png', url: 'https://www.youtube.com/embed/7qQ4rMqhJQU?autoplay=1' },
-            { id: 'tv-11', title: 'ESPN', group: 'Deportes', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/ESPN_wordmark.svg/200px-ESPN_wordmark.svg.png', url: 'https://www.youtube.com/embed/6Dix6mZZPM8?autoplay=1' },
-            { id: 'tv-12', title: 'Fox Sports', group: 'Deportes', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/Fox_Sports_1_Logo.svg/200px-Fox_Sports_1_Logo.svg.png', url: 'https://www.youtube.com/embed/5BZR8NqBlO8?autoplay=1' },
-        ];
-
-        const PELICULAS = [
-            { id: 'mov-1', title: 'The Last Dance', type: 'movies', image: 'https://m.media-amazon.com/images/M/MV5BYWUzZjAwY2EtMGFhYy00MjUxLTkwZDUtYzg5NzY0YzYzYmEyXkEyXkFqcGc@._V1_.jpg', description: 'Documental sobre la carrera de Michael Jordan', url: 'https://www.youtube.com/embed/g51nZX8b0Ro?autoplay=1' },
-            { id: 'mov-2', title: 'Inception - Origen', type: 'movies', image: 'https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_.jpg', description: 'Un ladrón que roba secretos del subconsciente', url: 'https://www.youtube.com/embed/YoHD9XEInc0?autoplay=1' },
-            { id: 'mov-3', title: 'The Matrix', type: 'movies', image: 'https://m.media-amazon.com/images/M/MV5BNzQzOTk3OTAtNDQ0Zi00ZTVkLWI0MTEtMDllZjNkYzNjNTc4L2ltYWdlXkEyXkFqcGc@._V1_.jpg', description: 'Un hacker descubre la verdad sobre la realidad', url: 'https://www.youtube.com/embed/vKQi3bBA1y8?autoplay=1' },
-            { id: 'mov-4', title: 'Interestelar', type: 'movies', image: 'https://m.media-amazon.com/images/M/MV5BZjdkOTU3MDktN2IxOS00OGEyLWFmMjktY2FiMmZkNWIyODZiXkEyXkFqcGc@._V1_.jpg', description: 'Un viaje espacial en busca de un nuevo hogar', url: 'https://www.youtube.com/embed/zSWdZVtXT7E?autoplay=1' },
-            { id: 'mov-5', title: 'Gladiator', type: 'movies', image: 'https://m.media-amazon.com/images/M/MV5BMDliMmNhNDItODA0MC00ZTE4LWJjOTctYzRiYzE4OTU4Y2U4XkEyXkFqcGc@._V1_.jpg', description: 'Un general romano busca venganza', url: 'https://www.youtube.com/embed/owK1qxDselE?autoplay=1' },
-            { id: 'mov-6', title: 'El Padrino', type: 'movies', image: 'https://m.media-amazon.com/images/M/MV5BM2MyNjYxNmUtYTAwNi00MTYxLWJmNWYtYzZlODY3ZTk3OTFlXkEyXkFqcGc@._V1_.jpg', description: 'La historia de la familia Corleone', url: 'https://www.youtube.com/embed/1CnF4cbnXlA?autoplay=1' },
-            { id: 'mov-7', title: 'Pulp Fiction', type: 'movies', image: 'https://m.media-amazon.com/images/M/MV5BNGNhMDIzZTUtNTBlZi00MTRlLWFjM2ItYzViMjE3YzI1MjNhXkEyXkFqcGc@._V1_.jpg', description: 'Historias entrelazadas de crimen', url: 'https://www.youtube.com/embed/5BZR8NqBlO8?autoplay=1' },
-        ];
-
-        const SERIES = [
-            { 
-                id: 'serie-1', 
-                title: 'Stranger Things', 
-                type: 'series',
-                image: 'https://m.media-amazon.com/images/M/MV5BMDZkYmVhNjMtNWU4MC00MDQxLWE3MjYtZGMzZWI1ZjZlOWZlXkEyXkFqcGc@._V1_.jpg',
-                description: 'Un grupo de niños enfrenta fuerzas sobrenaturales en los años 80',
-                seasons: [
-                    { seasonNumber: 1, episodes: [
-                        { id: 'ep-1-1', title: 'Capítulo Uno: La desaparición de Will Byers', url: 'https://www.youtube.com/embed/b9EkMc79ZSU?autoplay=1' },
-                        { id: 'ep-1-2', title: 'Capítulo Dos: La extraña en Maple Street', url: 'https://www.youtube.com/embed/9tNUTDDVkk0?autoplay=1' },
-                    ]},
-                    { seasonNumber: 2, episodes: [
-                        { id: 'ep-2-1', title: 'Capítulo Uno: Madmax', url: 'https://www.youtube.com/embed/R1iLmWz3k9c?autoplay=1' },
-                        { id: 'ep-2-2', title: 'Capítulo Dos: El vecino de al lado', url: 'https://www.youtube.com/embed/2OcoLhTy5rE?autoplay=1' },
-                    ]}
-                ]
-            },
-            { 
-                id: 'serie-2', 
-                title: 'The Crown', 
-                type: 'series',
-                image: 'https://m.media-amazon.com/images/M/MV5BN2FhYmE4YjktNDJhYS00MmE5LWI4ZTItZjFlZDAyMTVlYzI2XkEyXkFqcGc@._V1_.jpg',
-                description: 'La historia de la Reina Isabel II de Inglaterra',
-                seasons: [
-                    { seasonNumber: 1, episodes: [
-                        { id: 'ep-crown-1', title: 'Wolferton Splash', url: 'https://www.youtube.com/embed/JWtnJjn6ng0?autoplay=1' },
-                        { id: 'ep-crown-2', title: 'Hyde Park Corner', url: 'https://www.youtube.com/embed/5JJeOZae0DE?autoplay=1' },
-                    ]}
-                ]
-            },
-            { 
-                id: 'serie-3', 
-                title: 'Game of Thrones', 
-                type: 'series',
-                image: 'https://m.media-amazon.com/images/M/MV5BN2IzYzBiOTQtNGZmMi00NDI5LTgxMzMtN2EzYmQxMTAyNGU4XkEyXkFqcGc@._V1_.jpg',
-                description: 'La lucha por el Trono de Hierro en los Siete Reinos',
-                seasons: [
-                    { seasonNumber: 1, episodes: [
-                        { id: 'ep-got-1', title: 'Winter is Coming', url: 'https://www.youtube.com/embed/KPLWWIOCOOQ?autoplay=1' },
-                        { id: 'ep-got-2', title: 'The Kingsroad', url: 'https://www.youtube.com/embed/3uBgVYdG9Vo?autoplay=1' },
-                    ]}
-                ]
-            }
-        ];
-
-        const ANIMADOS = [
-            { 
-                id: 'anim-1', 
-                title: 'Bob Esponja', 
-                type: 'animados',
-                image: 'https://m.media-amazon.com/images/M/MV5BMTI5MzQyMjYxN15BMl5BanBnXkFtZTcwODE5NTI4MQ@@._V1_.jpg',
-                description: 'Las aventuras de una esponja marina en el fondo del océano',
-                seasons: [
-                    { seasonNumber: 1, episodes: [
-                        { id: 'ep-bob-1', title: 'Ayuda / Arrecife', url: 'https://www.youtube.com/embed/MTv-DUGzGjU?autoplay=1' },
-                        { id: 'ep-bob-2', title: 'Burbujas / La rasgadura', url: 'https://www.youtube.com/embed/UqlPJNa9S70?autoplay=1' },
-                    ]}
-                ]
-            },
-            { 
-                id: 'anim-2', 
-                title: 'Los Simpson', 
-                type: 'animados',
-                image: 'https://m.media-amazon.com/images/M/MV5BYjFkMTlkYWUtZWFhNy00M2FmLThiOTYtYTRiYjVlZWYxNmJkXkEyXkFqcGc@._V1_.jpg',
-                description: 'La familia más famosa de Springfield',
-                seasons: [
-                    { seasonNumber: 1, episodes: [
-                        { id: 'ep-simpson-1', title: 'Los Simpson en Navidad', url: 'https://www.youtube.com/embed/CnV_yeH9U-0?autoplay=1' },
-                        { id: 'ep-simpson-2', title: 'Bart el genio', url: 'https://www.youtube.com/embed/1v8NqobDQow?autoplay=1' },
-                    ]}
-                ]
-            },
-            { 
-                id: 'anim-3', 
-                title: 'Dragon Ball Z', 
-                type: 'animados',
-                image: 'https://m.media-amazon.com/images/M/MV5BMGMyOThjMGUtZmQzOS00MDI5LTk3ZTYtMGI4ODI3ZWM1YzUyXkEyXkFqcGc@._V1_.jpg',
-                description: 'Las aventuras de Goku y sus amigos',
-                seasons: [
-                    { seasonNumber: 1, episodes: [
-                        { id: 'ep-dbz-1', title: 'El misterioso guerrero', url: 'https://www.youtube.com/embed/1S3T5NYbkXg?autoplay=1' },
-                        { id: 'ep-dbz-2', title: 'El poder de Goku', url: 'https://www.youtube.com/embed/R1iLmWz3k9c?autoplay=1' },
-                    ]}
-                ]
-            }
-        ];
-
-        const RADIOS = [
-            { id: 'cr-sinfonola', title: 'Radio Sinfonola 90.3 FM', group: 'Romántica / Clásicos', image: 'https://static.mytuner.mobi/media/tvos_radios/415/radio-sinfonola.79d5c3e6.png', url: 'https://live.turadio.stream:7006/;' },
-            { id: 'cr-hit', title: 'Hit 104.7 FM', group: 'Juvenil / Pop', image: 'https://static.mytuner.mobi/media/tvos_radios/164/radio-hit-1047-fm.1180f4a3.jpg', url: 'https://live.turadio.stream:7004/stream?nocache=596&type=http' },
-            { id: 'cr-crc', title: 'CRC 94.7 FM', group: 'Alternativo / Rock', image: 'https://static.mytuner.mobi/media/tvos_radios/nAwNLxJbnm.png', url: 'https://23263.live.streamtheworld.com/CRC_947AAC_SC' },
-            { id: 'cr-zeta', title: 'Zeta FM 95.1', group: 'Tropical / Latina', image: 'https://static.mytuner.mobi/media/tvos_radios/879/zeta-fm.feb3fb70.png', url: 'https://d5g44yionyslb.cloudfront.net/medialist_14854753276708185244_hls.m3u8' },
-            { id: 'cr-monumental', title: 'Radio Monumental 93.5 FM', group: 'Noticias / Deportes', image: 'https://static.mytuner.mobi/media/tvos_radios/574/radio-monumental.7303764d.png', url: 'https://d26gdpbozqq700.cloudfront.net/medialist_14854753276708185244_hls.m3u8' },
-            { id: 'cr-mejor', title: 'La Mejor 99.1 FM', group: 'Regional / Latina', image: 'https://static.mytuner.mobi/media/tvos_radios/575/la-mejor-991.95c72890.png', url: 'https://d3svz5xnvdysyz.cloudfront.net/medialist_14854753276708185244_hls.m3u8' },
-            { id: 'cr-los40', title: 'Los 40 Costa Rica 104.3 FM', group: 'Éxitos / Urbano', image: 'https://static.mytuner.mobi/media/tvos_radios/652/radio-disney-costa-rica.d297c76c.jpg', url: 'https://icecasthd.teletica.com/los40' },
-            { id: 'cr-disney', title: 'Radio Disney 101.1 FM', group: 'Pop / Éxitos', image: 'https://static.mytuner.mobi/media/tvos_radios/652/radio-disney-costa-rica.d297c76c.jpg', url: 'https://26673.live.streamtheworld.com/DISNEY_CRI_SJ_ADP/HLS/031b1ae7-b742-4bf3-8001-31b8478440ef/0/playlist.m3u8' },
-        ];
-
-        // ============================================
-        // COMPONENTES
-        // ============================================
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useMemo } = React;
 
         const safeStorage = {
             getItem: (key) => { try { return localStorage.getItem(key); } catch (e) { return null; } },
             setItem: (key, value) => { try { localStorage.setItem(key, value); } catch (e) { } }
         };
 
+        const URLS = {
+            TV: './listaoficial.m3u',
+            SERIES: './playlist.json',
+            MOVIES: ['./peliculas.json', './peliculas2.json'],
+            ANIMADOS: './animados.json',
+            RADIOS: './radios.json'
+        };
+
+        const RAW_URLS = {
+            TV: 'https://raw.githubusercontent.com/sejo48/StreamTube-V20/main/listaoficial.m3u',
+            SERIES: 'https://raw.githubusercontent.com/sejo48/StreamTube-V20/main/playlist.json',
+            MOVIES: ['https://raw.githubusercontent.com/sejo48/StreamTube-V20/main/peliculas.json', 'https://raw.githubusercontent.com/sejo48/StreamTube-V20/main/peliculas2.json'],
+            ANIMADOS: 'https://raw.githubusercontent.com/sejo48/StreamTube-V20/main/animados.json',
+            RADIOS: 'https://raw.githubusercontent.com/sejo48/StreamTube-V20/main/radios.json'
+        };
+
+        const QR_IMAGE_URL = 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgsPiFVGiGuwJ3smwIQGJ-25kEkpEZpmR4PNZLdRF0_3LVfWAj2xhWSHiK7pY-C3jera3PD_XpmEtNy0kaCW1m8dayT9ebTV3YNBmbzMZeHF_oIf2XlniVGt6pj6BqtTyWEaUts1Ll_vYx2RuJvlrF9rqIwWcYcwMkTcdLCI-bShcR_KhhoILWEkdJ4Z4w/s1600/mi-qr-pro.png';
+
+        const DEFAULT_RADIO_STATIONS = [
+            { id: 'cr-sinfonola', title: 'Radio Sinfonola 90.3 FM', group: 'Romántica / Clásicos', image: 'https://static.mytuner.mobi/media/tvos_radios/415/radio-sinfonola.79d5c3e6.png', url: 'https://live.turadio.stream:7006/;' },
+            { id: 'cr-hit', title: 'Hit 104.7 FM', group: 'Juvenil / Pop', image: 'https://static.mytuner.mobi/media/tvos_radios/164/radio-hit-1047-fm.1180f4a3.jpg', url: 'https://live.turadio.stream:7004/stream?nocache=596&type=http' },
+            { id: 'cr-crc', title: 'CRC 94.7 FM', group: 'Alternativo / Rock', image: 'https://static.mytuner.mobi/media/tvos_radios/nAwNLxJbnm.png', url: 'https://23263.live.streamtheworld.com/CRC_947AAC_SC' },
+            { id: 'cr-zeta', title: 'Zeta FM 95.1', group: 'Tropical / Latina', image: 'https://static.mytuner.mobi/media/tvos_radios/879/zeta-fm.feb3fb70.png', url: 'https://d5g44yionyslb.cloudfront.net/medialist_14854753276708185244_hls.m3u8' },
+            { id: 'cr-monumental', title: 'Radio Monumental 93.5 FM', group: 'Noticias / Deportes', image: 'https://static.mytuner.mobi/media/tvos_radios/574/radio-monumental.7303764d.png', url: 'https://d26gdpbozqq700.cloudfront.net/medialist_14854753276708185244_hls.m3u8' },
+            { id: 'cr-mejor', title: 'La Mejor 99.1 FM', group: 'Regional / Latina', image: 'https://static.mytuner.mobi/media/tvos_radios/575/la-mejor-991.95c72890.png', url: 'https://d3svz5xnvdysyz.cloudfront.net/medialist_14854753276708185244_hls.m3u8' },
+            { id: 'cr-r2', title: 'Radio Dos 99.5 FM', group: 'Clásicos / Rock', image: 'https://placehold.co/300x300/0033a0/ffffff?text=R2', url: 'https://icecasthd.teletica.com/radiodos' },
+            { id: 'cr-los40', title: 'Los 40 Costa Rica 104.3 FM', group: 'Éxitos / Urbano', image: 'https://placehold.co/300x300/ffcc00/000000?text=Los40', url: 'https://icecasthd.teletica.com/los40' },
+            { id: 'cr-disney', title: 'Radio Disney 101.1 FM', group: 'Pop / Éxitos', image: 'https://static.mytuner.mobi/media/tvos_radios/652/radio-disney-costa-rica.d297c76c.jpg', url: 'https://26673.live.streamtheworld.com/DISNEY_CRI_SJ_ADP/HLS/031b1ae7-b742-4bf3-8001-31b8478440ef/0/playlist.m3u8' },
+            { id: 'cr-wao', title: 'WAO 92.3 FM', group: 'Urbano / Reggaeton', image: 'https://placehold.co/300x300/fd7e14/ffffff?text=WAO', url: 'https://icecasthd.teletica.com/wao' },
+            { id: 'cr-musical', title: 'Radio Musical 97.5 FM', group: 'Romántica / Latina', image: 'https://static.mytuner.mobi/media/tvos_radios/085/radio-musical.fea3e089.jpg', url: 'https://live.turadio.stream:7005/stream/1/' }
+        ];
+
         const convertUrl = (url) => {
             if (!url) return '';
-            if (url.includes('youtube.com/watch')) {
-                const videoId = url.split('v=')[1]?.split('&')[0];
-                if (videoId) return `https://www.youtube.com/embed/${videoId}?autoplay=1`;
-            }
-            if (url.includes('youtu.be/')) {
-                const videoId = url.split('youtu.be/')[1]?.split('?')[0];
-                if (videoId) return `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+            if (url.includes('ok.ru/video/search') || url.includes('ok.ru/search')) return url;
+            if (url.includes('ok.ru/video/')) return url.replace('ok.ru/video/', 'ok.ru/videoembed/');
+            if (url.includes('drive.google.com')) {
+                let fileId = '';
+                if (url.includes('/file/d/')) {
+                    const parts = url.split('/file/d/');
+                    if (parts[1]) fileId = parts[1].split('/')[0];
+                } else if (url.includes('id=')) {
+                    const parts = url.split('id=');
+                    if (parts[1]) fileId = parts[1].split('&')[0];
+                }
+                if (fileId) return `https://drive.google.com/file/d/${fileId}/preview`;
             }
             return url;
         };
 
-        const VideoPlayer = ({ src, onFullscreenChange }) => {
-            const iframeRef = useRef(null);
-            const containerRef = useRef(null);
-            const [isFullscreen, setIsFullscreen] = useState(false);
-
-            useEffect(() => {
-                const handleFullscreenChange = () => {
-                    const fullscreen = document.fullscreenElement || document.webkitFullscreenElement;
-                    const isFS = !!fullscreen;
-                    setIsFullscreen(isFS);
-                    if (onFullscreenChange) onFullscreenChange(isFS);
-                };
-
-                document.addEventListener('fullscreenchange', handleFullscreenChange);
-                document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
-                
-                return () => {
-                    document.removeEventListener('fullscreenchange', handleFullscreenChange);
-                    document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
-                };
-            }, [onFullscreenChange]);
-
-            useEffect(() => {
-                const handleOrientationChange = () => {
-                    if (iframeRef.current) {
-                        const iframe = iframeRef.current;
-                        const src = iframe.src;
-                        iframe.src = '';
-                        setTimeout(() => { iframe.src = src; }, 100);
-                    }
-                };
-
-                if (screen.orientation) {
-                    screen.orientation.addEventListener('change', handleOrientationChange);
-                }
-                window.addEventListener('resize', handleOrientationChange);
-
-                return () => {
-                    if (screen.orientation) {
-                        screen.orientation.removeEventListener('change', handleOrientationChange);
-                    }
-                    window.removeEventListener('resize', handleOrientationChange);
-                };
-            }, []);
-
-            const toggleFullscreen = useCallback(() => {
-                const container = containerRef.current;
-                if (container) {
-                    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-                        if (container.requestFullscreen) {
-                            container.requestFullscreen();
-                        } else if (container.webkitRequestFullscreen) {
-                            container.webkitRequestFullscreen();
-                        }
-                    } else {
-                        if (document.exitFullscreen) {
-                            document.exitFullscreen();
-                        } else if (document.webkitExitFullscreen) {
-                            document.webkitExitFullscreen();
-                        }
+        const fetchSmart = async (localUrl, rawUrl, isJson = true) => {
+            const cacheBust = `?t=${Date.now()}`;
+            try {
+                const res = await fetch(localUrl + cacheBust);
+                if (res.ok) {
+                    const text = await res.text();
+                    if (!text.trim().startsWith('<!DOCTYPE html') && !text.trim().startsWith('<html')) {
+                        return isJson ? JSON.parse(text) : text;
                     }
                 }
-            }, []);
+            } catch (e) {}
 
-            useEffect(() => {
-                if (iframeRef.current && src) {
-                    iframeRef.current.src = src;
+            try {
+                const resRaw = await fetch(rawUrl + cacheBust);
+                if (resRaw.ok) {
+                    return isJson ? await resRaw.json() : await resRaw.text();
                 }
-            }, [src]);
+            } catch (e) {}
 
-            return (
-                <div ref={containerRef} className="video-container" style={{ width: '100%', height: '100%', position: 'relative', background: '#000', overflow: 'hidden' }}>
-                    <iframe
-                        ref={iframeRef}
-                        src={src}
-                        allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
-                        allowFullScreen
-                        webkitallowfullscreen="true"
-                        mozallowfullscreen="true"
-                        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none', display: 'block' }}
-                        title="Video Player"
-                    />
-                    <button onClick={toggleFullscreen} className="absolute bottom-4 right-4 z-20 bg-black/60 hover:bg-black/80 text-white p-2.5 rounded-full backdrop-blur-md border border-white/20 transition-all shadow-lg" style={{ touchAction: 'manipulation' }} aria-label="Pantalla completa">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            {isFullscreen ? (
-                                <>
-                                    <path d="M8 3v3a2 2 0 0 1-2 2H3" />
-                                    <path d="M21 8h-3a2 2 0 0 1-2-2V3" />
-                                    <path d="M3 16h3a2 2 0 0 1 2 2v3" />
-                                    <path d="M16 21v-3a2 2 0 0 1 2-2h3" />
-                                </>
-                            ) : (
-                                <>
-                                    <path d="M8 3H5a2 2 0 0 0-2 2v3" />
-                                    <path d="M21 8V5a2 2 0 0 0-2-2h-3" />
-                                    <path d="M3 16v3a2 2 0 0 0 2 2h3" />
-                                    <path d="M16 21h3a2 2 0 0 0 2-2v-3" />
-                                </>
-                            )}
-                        </svg>
-                    </button>
-                </div>
-            );
+            return null;
+        };
+
+        const parseM3U = (data) => {
+            const lines = data.split('\n');
+            const channels = [];
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (line.startsWith('#EXTINF:')) {
+                    let title = 'Canal en Vivo';
+                    const url = lines[i + 1] ? lines[i + 1].trim() : '';
+                    if (url && url.startsWith('http')) {
+                        const logoMatch = line.match(/tvg-logo="([^"]*)"/);
+                        const logo = logoMatch ? logoMatch[1] : '';
+                        const groupMatch = line.match(/group-title="([^"]*)"/);
+                        const group = groupMatch ? groupMatch[1] : 'Nacionales';
+                        const commaIndex = line.lastIndexOf(',');
+                        if (commaIndex !== -1) title = line.substring(commaIndex + 1).trim();
+                        channels.push({ 
+                            id: `tv-${i}`, 
+                            title, 
+                            image: logo || 'https://placehold.co/300x200/ef4444/ffffff?text=Magic+Live', 
+                            group, 
+                            url, 
+                            type: 'tv' 
+                        });
+                    }
+                }
+            }
+            return channels;
         };
 
         const App = () => {
-            const [showIntro, setShowIntro] = useState(true);
-            const [activeTab, setActiveTab] = useState('home');
-            const [search, setSearch] = useState('');
-            const [selectedItem, setSelectedItem] = useState(null);
-            const [selectedEpisode, setSelectedEpisode] = useState(null);
-            const [isLocked, setIsLocked] = useState(false);
+            const [currentTab, setCurrentTab] = useState('home');
+            const [searchQuery, setSearchQuery] = useState('');
+            const [activeMedia, setActiveMedia] = useState(null);
             const [favorites, setFavorites] = useState([]);
-            const [expandedSeason, setExpandedSeason] = useState(0);
-            const [showQrModal, setShowQrModal] = useState(false);
-            const [tvGroupFilter, setTvGroupFilter] = useState('ALL');
-            const [radioFavorites, setRadioFavorites] = useState([]);
-            const [radioSearch, setRadioSearch] = useState('');
-            const [isFullscreen, setIsFullscreen] = useState(false);
-
-            const [currentRadioStation, setCurrentRadioStation] = useState(null);
-            const [isRadioPlaying, setIsRadioPlaying] = useState(false);
+            const [activeRadio, setActiveRadio] = useState(null);
+            const [isPlayingRadio, setIsPlayingRadio] = useState(false);
             const [radioVolume, setRadioVolume] = useState(0.8);
             const [streamError, setStreamError] = useState(false);
             const [isLoadingRadio, setIsLoadingRadio] = useState(false);
+            const [showQrModal, setShowQrModal] = useState(false);
+            const [showAuthorModal, setShowAuthorModal] = useState(false);
+            const [loading, setLoading] = useState(true);
+
+            const [content, setContent] = useState({
+                tv: [],
+                movies: [],
+                series: [],
+                animados: [],
+                radios: DEFAULT_RADIO_STATIONS
+            });
+
             const audioRef = useRef(null);
+            const hlsRef = useRef(null);
 
-            const navTabs = [
-                { id: 'home', icon: 'home', label: 'Inicio' },
-                { id: 'movies', icon: 'clapperboard', label: 'Cine' },
-                { id: 'series', icon: 'film', label: 'Series' },
-                { id: 'animados', icon: 'smile', label: 'Animados' },
-                { id: 'tv', icon: 'tv', label: 'TV' },
-                { id: 'radio', icon: 'radio', label: 'Radio' },
-                { id: 'community', icon: 'chat', label: 'Comunidad' },
-                { id: 'favorites', icon: 'heart', label: 'Favs' }
-            ];
-
-            // Cargar favoritos
             useEffect(() => {
-                const storedFavs = safeStorage.getItem('magistube_favs');
-                if (storedFavs) { try { setFavorites(JSON.parse(storedFavs)); } catch(e) {} }
-                const storedRadioFavs = safeStorage.getItem('magis_radio_favs');
-                if (storedRadioFavs) { try { setRadioFavorites(JSON.parse(storedRadioFavs)); } catch(e) {} }
+                const loadData = async () => {
+                    try {
+                        setLoading(true);
+                        const moviePromises = URLS.MOVIES.map((localPath, idx) => 
+                            fetchSmart(localPath, RAW_URLS.MOVIES[idx], true)
+                        );
+
+                        const [dataTV, dataSeries, dataAnimados, dataRadios, ...moviesResults] = await Promise.all([
+                            fetchSmart(URLS.TV, RAW_URLS.TV, false),
+                            fetchSmart(URLS.SERIES, RAW_URLS.SERIES, true),
+                            fetchSmart(URLS.ANIMADOS, RAW_URLS.ANIMADOS, true),
+                            fetchSmart(URLS.RADIOS, RAW_URLS.RADIOS, true),
+                            ...moviePromises
+                        ]);
+
+                        let tvChannels = dataTV ? parseM3U(dataTV) : [];
+                        
+                        let moviesList = [];
+                        moviesResults.forEach((dataMovies, fileIdx) => {
+                            if (dataMovies) {
+                                const rawMovies = Array.isArray(dataMovies) ? dataMovies : (dataMovies.peliculas || dataMovies.content || []);
+                                const mapped = rawMovies.map((m, idx) => ({
+                                    ...m,
+                                    id: `mov-${fileIdx}-${idx}`,
+                                    type: 'movies',
+                                    title: m.titulo || m.title || m.name,
+                                    description: m.descripcion || m.sinopsis || m.plot,
+                                    image: m.imagen || m.poster || m.image,
+                                    url: convertUrl(m.urlDrive || m.url || m.urlOkRu),
+                                    group: 'Cine y Estrenos',
+                                    rating: m.rating || '8.9'
+                                }));
+                                moviesList = [...moviesList, ...mapped];
+                            }
+                        });
+
+                        let seriesList = [];
+                        if (dataSeries) {
+                            const rawSeries = Array.isArray(dataSeries) ? dataSeries : (dataSeries.series || []);
+                            seriesList = rawSeries.map((s, idx) => ({
+                                ...s,
+                                id: `serie-${idx}`,
+                                type: 'series',
+                                title: s.tituloSerie || s.titulo || s.title || s.name,
+                                description: s.descripcion || s.sinopsis,
+                                image: s.imagen || s.poster || s.image,
+                                group: 'Series TV',
+                                seasons: (s.temporadas || []).map((t, tIdx) => ({
+                                    seasonNumber: t.numeroTemporada || (tIdx + 1),
+                                    episodes: (t.episodios || []).map((ep, eIdx) => ({
+                                        id: `ep-${idx}-${tIdx}-${eIdx}`,
+                                        title: ep.tituloEpisodio || ep.titulo || `Episodio ${eIdx + 1}`,
+                                        url: convertUrl(ep.urlDrive || ep.url)
+                                    }))
+                                }))
+                            }));
+                        }
+
+                        let animadosList = [];
+                        if (dataAnimados) {
+                            const rawAnimados = Array.isArray(dataAnimados) ? dataAnimados : (dataAnimados.animados || []);
+                            animadosList = rawAnimados.map((a, idx) => ({
+                                ...a,
+                                id: `anim-${idx}`,
+                                type: 'animados',
+                                title: a.titulo || a.tituloSerie || a.title || a.name,
+                                description: a.descripcion || a.sinopsis,
+                                image: a.imagen || a.poster || a.image,
+                                group: 'Animados / Kids',
+                                seasons: (a.temporadas || []).map((t, tIdx) => ({
+                                    seasonNumber: t.numeroTemporada || (tIdx + 1),
+                                    episodes: (t.episodios || []).map((ep, eIdx) => ({
+                                        id: `ep-anim-${idx}-${tIdx}-${eIdx}`,
+                                        title: ep.tituloEpisodio || ep.titulo || `Episodio ${eIdx + 1}`,
+                                        url: convertUrl(ep.urlDrive || ep.url)
+                                    }))
+                                }))
+                            }));
+                        }
+
+                        let radioList = DEFAULT_RADIO_STATIONS;
+                        if (dataRadios) {
+                            const list = Array.isArray(dataRadios) ? dataRadios : (dataRadios.radios || dataRadios.emisoras || []);
+                            if (list.length > 0) radioList = list;
+                        }
+
+                        setContent({
+                            tv: tvChannels,
+                            movies: moviesList,
+                            series: seriesList,
+                            animados: animadosList,
+                            radios: radioList
+                        });
+                    } catch (e) {
+                        console.error("Error loading Magic TV 2.0 content", e);
+                    } finally {
+                        setLoading(false);
+                    }
+                };
+
+                loadData();
+
+                const savedFavs = safeStorage.getItem('magistv2_favs');
+                if (savedFavs) {
+                    try { setFavorites(JSON.parse(savedFavs)); } catch(e) {}
+                }
             }, []);
 
-            useEffect(() => {
-                if (activeTab === 'tv' && CANALES_TV.length > 0) {
-                    if (!selectedItem || selectedItem.type !== 'tv') {
-                        const telerredChannel = CANALES_TV.find(c => 
-                            (c.title || '').toLowerCase().includes('telerred')
-                        ) || CANALES_TV[0];
-                        if (telerredChannel) setSelectedItem(telerredChannel);
-                    }
-                }
-            }, [activeTab]);
+            const toggleFavorite = (item) => {
+                const itemId = item.id || item.title;
+                const updated = favorites.some(f => (f.id || f.title) === itemId) 
+                    ? favorites.filter(f => (f.id || f.title) !== itemId) 
+                    : [...favorites, item];
+                setFavorites(updated);
+                safeStorage.setItem('magistv2_favs', JSON.stringify(updated));
+            };
 
-            // Audio para radio
             useEffect(() => {
                 if (!audioRef.current) {
                     audioRef.current = new Audio();
                     audioRef.current.crossOrigin = "anonymous";
+                    
                     audioRef.current.addEventListener('error', () => {
-                        setIsRadioPlaying(false);
+                        setIsPlayingRadio(false);
                         setStreamError(true);
                         setIsLoadingRadio(false);
                     });
+                    audioRef.current.addEventListener('waiting', () => setIsLoadingRadio(true));
                     audioRef.current.addEventListener('playing', () => {
+                        setIsLoadingRadio(false);
+                        setStreamError(false);
+                    });
+                    audioRef.current.addEventListener('canplay', () => {
                         setIsLoadingRadio(false);
                         setStreamError(false);
                     });
@@ -454,593 +406,238 @@
                 const audio = audioRef.current;
                 audio.volume = radioVolume;
 
-                if (currentRadioStation) {
-                    if (audio.dataset.currentUrl !== currentRadioStation.url) {
+                if (activeRadio) {
+                    const playAudio = () => {
+                        audio.play().catch(() => {
+                            setIsPlayingRadio(false);
+                            setStreamError(true);
+                            setIsLoadingRadio(false);
+                        });
+                    };
+
+                    if (audio.dataset.currentUrl !== activeRadio.url) {
                         setIsLoadingRadio(true);
                         setStreamError(false);
-                        audio.dataset.currentUrl = currentRadioStation.url;
-                        audio.src = currentRadioStation.url;
-                        audio.load();
-                        if (isRadioPlaying) {
-                            audio.play().catch(() => {
-                                setIsRadioPlaying(false);
-                                setStreamError(true);
-                                setIsLoadingRadio(false);
-                            });
+                        audio.dataset.currentUrl = activeRadio.url;
+
+                        if (hlsRef.current) {
+                            hlsRef.current.destroy();
+                            hlsRef.current = null;
                         }
-                    } else {
-                        if (isRadioPlaying) {
-                            audio.play().catch(() => {
-                                setIsRadioPlaying(false);
-                                setStreamError(true);
+
+                        if (activeRadio.url.includes('.m3u8') && typeof Hls !== 'undefined' && Hls.isSupported()) {
+                            const hls = new Hls();
+                            hlsRef.current = hls;
+                            hls.loadSource(activeRadio.url);
+                            hls.attachMedia(audio);
+                            hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                                if (isPlayingRadio) playAudio();
                             });
                         } else {
-                            audio.pause();
+                            audio.src = activeRadio.url;
+                            audio.load();
+                            if (isPlayingRadio) playAudio();
                         }
-                    }
-                }
-            }, [currentRadioStation, isRadioPlaying, radioVolume]);
-
-            const toggleFavorite = (item) => {
-                if (!item) return;
-                const itemId = item.id || item.title;
-                const isFav = favorites.some(f => (f.id || f.title) === itemId);
-                const newFavs = isFav ? favorites.filter(f => (f.id || f.title) !== itemId) : [item, ...favorites];
-                setFavorites(newFavs);
-                safeStorage.setItem('magistube_favs', JSON.stringify(newFavs));
-            };
-
-            const toggleRadioFavorite = (station, e) => {
-                if (e) e.stopPropagation();
-                if (!station) return;
-                const isFav = radioFavorites.some(f => f.id === station.id);
-                const newFavs = isFav ? radioFavorites.filter(f => f.id !== station.id) : [station, ...radioFavorites];
-                setRadioFavorites(newFavs);
-                safeStorage.setItem('magis_radio_favs', JSON.stringify(newFavs));
-            };
-
-            const handlePlay = (item) => {
-                if (!item) return;
-                const code = item.codigo || item.password || item.pin;
-                if (code) { setSelectedItem(item); setIsLocked(true); }
-                else { setSelectedItem(item); setIsLocked(false); }
-                setExpandedSeason(0);
-                if (item.type === 'series' || item.type === 'animados') {
-                    const seasons = item.seasons || [];
-                    const episodes = seasons[0]?.episodes || [];
-                    setSelectedEpisode(episodes[0] || null);
-                } else {
-                    setSelectedEpisode(null);
-                }
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            };
-
-            const handlePlayRadioStation = (station) => {
-                if (!station) return;
-                if (currentRadioStation?.id === station.id) {
-                    setIsRadioPlaying(!isRadioPlaying);
-                } else {
-                    setCurrentRadioStation(station);
-                    setIsRadioPlaying(true);
-                }
-            };
-
-            const handleTabClick = (tab) => {
-                if (!tab) return;
-                setActiveTab(tab.id);
-                setSearch('');
-                setIsLocked(false);
-                if (tab.id === 'tv') {
-                    if (!selectedItem || selectedItem.type !== 'tv') {
-                        const telerredChannel = CANALES_TV.find(c => 
-                            (c.title || '').toLowerCase().includes('telerred')
-                        ) || CANALES_TV[0];
-                        if (telerredChannel) setSelectedItem(telerredChannel);
-                    }
-                } else if (tab.id !== 'community') {
-                    setSelectedItem(null);
-                }
-            };
-
-            const toggleFullscreenPlayer = () => {
-                const container = document.querySelector('.video-container');
-                if (container) {
-                    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-                        if (container.requestFullscreen) container.requestFullscreen();
-                        else if (container.webkitRequestFullscreen) container.webkitRequestFullscreen();
                     } else {
-                        if (document.exitFullscreen) document.exitFullscreen();
-                        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+                        if (isPlayingRadio) playAudio();
+                        else audio.pause();
                     }
                 }
-            };
+            }, [activeRadio, isPlayingRadio]);
 
-            const getDisplayContent = () => {
-                let list = [];
-                if (activeTab === 'home') {
-                    list = [...PELICULAS, ...SERIES, ...ANIMADOS, ...CANALES_TV.slice(0, 10)];
-                } else if (activeTab === 'favorites') {
-                    list = favorites;
-                } else if (activeTab === 'movies') {
-                    list = PELICULAS;
-                } else if (activeTab === 'series') {
-                    list = SERIES;
-                } else if (activeTab === 'animados') {
-                    list = ANIMADOS;
-                } else if (activeTab === 'tv') {
-                    list = CANALES_TV;
+            useEffect(() => {
+                if (audioRef.current) audioRef.current.volume = radioVolume;
+            }, [radioVolume]);
+
+            const handlePlayStation = (station) => {
+                if (activeRadio?.id === station.id) {
+                    setIsPlayingRadio(!isPlayingRadio);
                 } else {
-                    list = [];
+                    setActiveRadio(station);
+                    setIsPlayingRadio(true);
                 }
-
-                if (search && activeTab !== 'tv' && activeTab !== 'community') {
-                    const searchLower = search.toLowerCase();
-                    return list.filter(i => {
-                        const title = i.title || i.name || i.titulo || '';
-                        return title.toLowerCase().includes(searchLower);
-                    });
-                }
-                return list;
             };
-
-            const displayedItems = getDisplayContent();
-            const heroItem = PELICULAS.length ? PELICULAS[Math.floor(Math.random() * PELICULAS.length)] : null;
-
-            const tvGroups = useMemo(() => {
-                const groups = new Set(CANALES_TV.map(c => c.group || 'General'));
-                return ['ALL', ...Array.from(groups)];
-            }, []);
-
-            if (showIntro) {
-                return (
-                    <div className="fixed inset-0 z-[100] bg-[#111827] flex items-center justify-center overflow-hidden font-sans p-4">
-                        <div className="absolute inset-0"><img src="https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?q=80&w=1000&auto=format&fit=crop" className="w-full h-full object-cover opacity-10" /><div className="absolute inset-0 bg-gradient-to-b from-[#111827] via-[#111827]/90 to-[#111827]"></div></div>
-                        <div className="relative z-10 text-center max-w-sm w-full animate-slide-up">
-                            <div className="mb-3 inline-block bg-[#E50914] px-2.5 py-0.5 rounded text-[10px] font-bold tracking-widest uppercase text-white">Premium Access</div>
-                            <h1 className="text-5xl font-black text-white mb-2 tracking-tighter">MAGIS<span className="text-[#E50914]">Tube</span></h1>
-                            <p className="text-sm text-gray-400 font-light mb-6 italic">"Donde la nostalgia se encuentra con la tecnología."</p>
-                            <button onClick={() => setShowIntro(false)} className="w-full bg-white text-black py-3.5 rounded-full font-bold text-base shadow-lg flex items-center justify-center gap-2 mb-8 active:scale-95 transition-transform">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="black" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                                <span>Comenzar a Ver</span>
-                            </button>
-                            <div className="opacity-80">
-                                <p className="text-[9px] text-gray-500 uppercase tracking-widest mb-0.5">DISEÑADO Y PROGRAMADO POR</p>
-                                <h3 className="text-base font-serif text-gold-gradient font-bold mb-1">JORGE ARTURO HERNÁNDEZ MÉNDEZ</h3>
-                            </div>
-                        </div>
-                    </div>
-                );
-            }
 
             return (
-                <div className="min-h-screen bg-[#111827] text-white font-sans flex flex-col md:flex-row relative">
-                    {/* Sidebar Desktop */}
-                    <aside className="hidden md:flex w-24 flex-col items-center py-6 bg-[#0f1115] border-r border-[#1f2937] fixed h-full z-50">
-                        <div className="mb-6 p-2 bg-[#E50914] rounded-xl shadow-lg cursor-pointer" onClick={() => handleTabClick(navTabs[0])}>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                <div className="flex flex-col md:flex-row min-h-screen bg-[#030712] relative">
+                    
+                    <aside className="hidden md:flex w-24 flex-col items-center py-8 glass-panel border-r border-white/10 fixed h-full z-45 shadow-2xl">
+                        <div className="mb-6 p-3 bg-gradient-to-tr from-magis-600 to-red-500 rounded-2xl shadow-xl glow-effect cursor-pointer transform hover:scale-105 transition-all" onClick={() => { setCurrentTab('home'); setActiveMedia(null); }}>
+                            <i className="ph-fill ph-magic-wand text-2xl text-white"></i>
                         </div>
-                        <div className="flex flex-col gap-1 w-full items-center">
-                            {navTabs.map(tab => (
-                                <button key={tab.id} onClick={() => handleTabClick(tab)} className={`flex flex-col items-center gap-1 transition-all w-full py-2.5 ${activeTab === tab.id ? 'text-[#E50914] bg-white/5 font-bold border-l-4 border-[#E50914]' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
-                                    <Icon name={tab.icon} size={20} className={activeTab === tab.id ? 'text-[#E50914]' : 'text-gray-400'}/>
-                                    <span className="text-[10px] tracking-tight">{tab.label}</span>
+                        
+                        <div className="flex flex-col gap-2.5 w-full items-center">
+                            {[
+                                { id: 'home', icon: 'ph-house', label: 'Inicio' },
+                                { id: 'tv', icon: 'ph-television', label: 'TV Live' },
+                                { id: 'movies', icon: 'ph-film-strip', label: 'Cine' },
+                                { id: 'series', icon: 'ph-video', label: 'Series' },
+                                { id: 'animados', icon: 'ph-smiley', label: 'Kids' },
+                                { id: 'radio', icon: 'ph-radio', label: 'Radio' },
+                                { id: 'favorites', icon: 'ph-heart', label: 'Favs' }
+                            ].map(tab => (
+                                <button 
+                                    key={tab.id}
+                                    onClick={() => { setCurrentTab(tab.id); setActiveMedia(null); }}
+                                    className={`flex flex-col items-center gap-1 py-3 w-full transition-all relative group ${currentTab === tab.id ? 'text-magis-500 font-extrabold bg-white/10' : 'text-gray-300 hover:text-white hover:bg-white/5'}`}
+                                >
+                                    {currentTab === tab.id && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-7 bg-magis-500 rounded-r-full shadow-lg shadow-red-500/50"></div>}
+                                    <i className={`${tab.icon} text-xl group-hover:scale-125 transition-transform`}></i>
+                                    <span className="text-[10px] tracking-tight font-semibold">{tab.label}</span>
                                 </button>
                             ))}
                         </div>
-                        <div className="mt-auto flex flex-col items-center gap-3 mb-4">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-yellow-400 to-yellow-600 flex items-center justify-center font-serif font-bold text-black text-xs border border-white/20">J</div>
+
+                        <div className="mt-auto pb-4 flex flex-col items-center gap-3">
+                            <div onClick={() => setShowQrModal(true)} className="group cursor-pointer flex flex-col items-center p-2 bg-slate-900/90 hover:bg-slate-800 rounded-2xl border border-white/15 transition-all shadow-lg text-center transform hover:scale-105" title="Compartir App">
+                                <img src={QR_IMAGE_URL} alt="QR" className="w-10 h-10 rounded-lg object-contain bg-white p-0.5 shadow" />
+                                <span className="text-[9px] font-black text-white mt-1">QR</span>
+                            </div>
+                            <div onClick={() => setShowAuthorModal(true)} className="w-10 h-10 rounded-full bg-gradient-to-tr from-amber-400 to-amber-600 flex items-center gold-font font-black text-black text-sm shadow-xl border border-white/30 cursor-pointer hover:scale-110 transition-transform" title="Créditos del Autor">
+                                J
+                            </div>
                         </div>
                     </aside>
 
-                    {/* Mobile Header */}
-                    <div className="md:hidden fixed top-0 w-full bg-[#111827]/95 backdrop-blur z-50 px-3 py-2.5 flex items-center justify-between border-b border-[#1f2937] gap-2">
-                        <div className="flex items-center gap-1.5 font-black text-base tracking-tighter cursor-pointer flex-shrink-0" onClick={() => handleTabClick(navTabs[0])}>
-                            <span className="text-[#E50914]">MAGIS</span> TUBE
+                    <header className="md:hidden fixed top-0 w-full glass-panel z-40 px-4 py-3 flex items-center justify-between border-b border-white/10 shadow-lg">
+                        <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => { setCurrentTab('home'); setActiveMedia(null); }}>
+                            <div className="p-2 bg-magis-500 rounded-xl text-white shadow-lg shadow-red-500/40">
+                                <i className="ph-fill ph-magic-wand text-lg"></i>
+                            </div>
+                            <span className="brand-font font-black text-base tracking-tight text-white">MAGIC <span className="text-magis-500">TV 2.0</span></span>
                         </div>
-                        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
-                            <button onClick={() => handleTabClick(navTabs.find(t=>t.id==='radio'))} className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl border text-xs font-bold flex-shrink-0 ${activeTab === 'radio' ? 'bg-[#E50914] text-white border-[#E50914]' : 'bg-[#1f2937] text-gray-300 border-white/10'}`}>
-                                <Icon name="radio" size={15}/><span>Radio</span>
+                        <div className="flex items-center gap-2">
+                            <button onClick={() => setShowAuthorModal(true)} className="px-2.5 py-1 rounded-xl bg-amber-500/20 text-amber-300 text-[11px] font-bold border border-amber-500/40 shadow">
+                                Jorge ⚡
                             </button>
-                            <button onClick={() => handleTabClick(navTabs.find(t=>t.id==='community'))} className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl border text-xs font-bold flex-shrink-0 ${activeTab === 'community' ? 'bg-[#E50914] text-white border-[#E50914]' : 'bg-[#1f2937] text-gray-300 border-white/10'}`}>
-                                <Icon name="chat" size={15}/><span>Chat</span>
+                            <button onClick={() => setShowQrModal(true)} className="p-2 rounded-xl bg-white/10 text-white hover:bg-white/20">
+                                <i className="ph ph-qr-code text-xl"></i>
                             </button>
                         </div>
-                        <button onClick={() => handleTabClick(navTabs.find(t=>t.id==='favorites'))} className={`flex-shrink-0 transition-colors active:scale-90 p-1 ${activeTab === 'favorites' ? 'text-[#E50914]' : 'text-gray-400 hover:text-white'}`}>
-                            <Icon name="heart" size={22} fill={activeTab === 'favorites' ? 'currentColor' : 'none'}/>
-                        </button>
-                    </div>
+                    </header>
 
-                    {/* Mobile Bottom Nav */}
-                    <div className="md:hidden fixed bottom-0 w-full bg-[#0f1115] border-t border-[#1f2937] z-50 flex py-2 pb-safe px-2 overflow-x-auto no-scrollbar snap-x items-center justify-around shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
-                        {navTabs.filter(t => !['favorites', 'radio', 'community'].includes(t.id)).map(tab => (
-                            <button key={tab.id} onClick={() => handleTabClick(tab)} className={`flex flex-col items-center justify-center flex-shrink-0 min-w-[56px] py-1 gap-1 snap-start transition-all active:scale-95 rounded-lg ${activeTab === tab.id ? 'text-[#E50914] bg-white/5' : 'text-gray-400 hover:text-white'}`}>
-                                <Icon name={tab.icon} size={18}/>
-                                <span className="text-[9px] font-medium tracking-wide">{tab.label}</span>
+                    <nav className="md:hidden fixed bottom-0 w-full glass-panel border-t border-white/10 z-40 flex items-center justify-around py-2.5 px-1 pb-safe shadow-2xl">
+                        {[
+                            { id: 'home', icon: 'ph-house', label: 'Inicio' },
+                            { id: 'tv', icon: 'ph-television', label: 'TV' },
+                            { id: 'movies', icon: 'ph-film-strip', label: 'Cine' },
+                            { id: 'series', icon: 'ph-video', label: 'Series' },
+                            { id: 'radio', icon: 'ph-radio', label: 'Radio' },
+                            { id: 'favorites', icon: 'ph-heart', label: 'Favs' }
+                        ].map(tab => (
+                            <button 
+                                key={tab.id}
+                                onClick={() => { setCurrentTab(tab.id); setActiveMedia(null); }}
+                                className={`flex flex-col items-center gap-1 transition-all px-2.5 py-1.5 rounded-xl ${currentTab === tab.id ? 'text-magis-500 bg-magis-500/20 font-bold scale-105' : 'text-gray-300 hover:text-white'}`}
+                            >
+                                <i className={`${tab.icon} text-lg`}></i>
+                                <span className="text-[10px] font-semibold">{tab.label}</span>
                             </button>
                         ))}
-                    </div>
+                    </nav>
 
-                    <main className="flex-1 md:ml-24 min-h-screen pt-14 md:pt-0 pb-36 md:pb-0 relative z-10">
-                        {activeTab === 'radio' ? (
-                            <div className="max-w-7xl mx-auto p-4 sm:p-8 animate-fade-in text-white pb-32">
-                                <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4 border-b border-white/10 pb-4">
-                                    <div>
-                                        <h1 className="text-2xl sm:text-3xl font-black flex items-center gap-2.5">
-                                            <span className="p-2 bg-[#E50914]/20 rounded-xl text-[#E50914]"><Icon name="radio" size={24}/></span>
-                                            MAGIS <span className="text-[#E50914]">RADIO</span>
-                                        </h1>
-                                        <p className="text-xs sm:text-sm text-gray-400 mt-1">Disfruta de las mejores emisoras de Costa Rica en vivo.</p>
-                                    </div>
-                                </div>
-                                <div className="mb-6">
-                                    <div className="flex bg-[#1f2937] border border-[#374151] rounded-full px-4 py-2.5 w-full max-w-md items-center focus-within:border-[#E50914] transition-colors">
-                                        <Icon className="text-gray-400 w-4 h-4 mr-3" name="search"/>
-                                        <input type="text" placeholder="Buscar emisora..." className="bg-transparent w-full outline-none text-xs sm:text-sm placeholder-gray-500 text-white" value={radioSearch} onChange={(e) => setRadioSearch(e.target.value)}/>
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                                    {RADIOS.filter(s => (s.title || '').toLowerCase().includes(radioSearch.toLowerCase()) || (s.group || '').toLowerCase().includes(radioSearch.toLowerCase())).map(station => {
-                                        const isCurrentPlaying = currentRadioStation?.id === station.id && isRadioPlaying;
-                                        const isFav = radioFavorites.some(f => f.id === station.id);
-                                        return (
-                                            <div key={station.id} onClick={() => handlePlayRadioStation(station)} className={`group bg-[#1f2937]/80 hover:bg-[#273244] border rounded-2xl p-4 cursor-pointer transition-all ${currentRadioStation?.id === station.id ? 'border-[#E50914] shadow-[0_0_15px_rgba(229,9,20,0.25)]' : 'border-white/5'}`}>
-                                                <div className="relative aspect-square rounded-xl overflow-hidden mb-3 bg-black">
-                                                    <img src={station.image} alt={station.title} className="w-full h-full object-cover" onError={(e) => e.target.src='https://placehold.co/300x300/111827/ffffff?text=Radio'}/>
-                                                    <button onClick={(e) => toggleRadioFavorite(station, e)} className="absolute top-2 right-2 p-1.5 bg-black/60 rounded-full text-white backdrop-blur-sm z-20">
-                                                        <Icon name="heart" size={16} fill={isFav ? '#E50914' : 'none'} className={isFav ? 'text-[#E50914]' : 'text-white'}/>
-                                                    </button>
-                                                    <div className={`absolute inset-0 flex items-center justify-center bg-black/40 transition-opacity z-10 ${isCurrentPlaying ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
-                                                        <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white ${isCurrentPlaying ? 'bg-[#E50914] shadow-[0_0_15px_#E50914]' : 'bg-white/20 backdrop-blur-md border border-white/40'}`}>
-                                                            <Icon name={isCurrentPlaying ? "pause" : "play"} size={22} fill="currentColor"/>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <h3 className="font-bold text-sm text-white truncate">{station.title}</h3>
-                                                <p className="text-xs text-gray-400 truncate mt-0.5">{station.group}</p>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        ) : activeTab === 'community' ? (
-                            <div className="max-w-5xl mx-auto p-4 sm:p-8 animate-fade-in text-white pb-28">
-                                <div className="mb-6 border-b border-white/10 pb-4">
-                                    <h1 className="text-2xl sm:text-3xl font-black flex items-center gap-2.5">
-                                        <span className="p-2 bg-[#E50914]/20 rounded-xl text-[#E50914]"><Icon name="chat" size={24}/></span>
-                                        Comunidad <span className="text-[#E50914]">MAGISTUBE</span>
-                                    </h1>
-                                </div>
-                                <div className="bg-[#171c26] border border-white/10 rounded-2xl p-4 shadow-2xl flex flex-col items-center">
-                                    <div className="w-full h-[550px] rounded-xl overflow-hidden bg-black/40 border border-white/10">
-                                        <iframe src="https://sejoflix.chatango.com/" width="100%" height="100%" frameBorder="0" scrolling="auto" className="w-full h-full bg-transparent"></iframe>
-                                    </div>
-                                </div>
-                            </div>
-                        ) : activeTab === 'favorites' && !selectedItem ? (
-                            <div className="p-4 sm:p-8 animate-fade-in">
-                                <div className="mb-6 flex items-center gap-3 border-b border-white/10 pb-3">
-                                    <div className="p-2 bg-[#E50914]/20 rounded-lg text-[#E50914]"><Icon fill="currentColor" name="heart" size={20}/></div>
-                                    <h2 className="text-xl font-bold text-white">Tus Favoritos</h2>
-                                </div>
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
-                                    {favorites.map((item, i) => (
-                                        <div key={i} className="group relative flex flex-col gap-1.5 cursor-pointer active:scale-95 transition-transform" onClick={() => handlePlay(item)}>
-                                            <div className="relative overflow-hidden rounded-lg bg-[#1f2937] shadow-md aspect-[2/3]">
-                                                <img src={item.image || 'https://placehold.co/300x450/1f2937/ffffff?text=Movie'} loading="lazy" className="w-full h-full object-cover" alt={item.title} />
-                                                <button onClick={(e) => { e.stopPropagation(); toggleFavorite(item); }} className="absolute top-1.5 right-1.5 p-1.5 bg-black/60 rounded-full text-white">
-                                                    <Icon name="heart" size={14} fill="#E50914" className="text-[#E50914]"/>
-                                                </button>
-                                            </div>
-                                            <h3 className="text-xs font-bold text-gray-200 truncate">{item.title || 'Sin título'}</h3>
-                                        </div>
-                                    ))}
-                                </div>
-                                {favorites.length === 0 && <div className="text-center py-20 text-gray-500 text-sm"><p>No tienes favoritos guardados aún.</p></div>}
-                            </div>
-                        ) : activeTab === 'tv' || (selectedItem && selectedItem.type === 'tv') ? (
-                            <div className="flex flex-col lg:flex-row min-h-[calc(100vh-3.5rem)] lg:h-screen lg:overflow-hidden bg-[#090b10]">
-                                <div className="w-full lg:w-96 bg-[#0f1117] border-r border-white/10 flex flex-col order-2 lg:order-1 h-auto lg:h-full z-20 shadow-2xl">
-                                    <div className="p-4 border-b border-white/10 bg-[#161a24] flex flex-col gap-3">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-2">
-                                                <div className="p-1.5 bg-[#E50914]/20 text-[#E50914] rounded-lg border border-[#E50914]/30"><Icon name="tv" size={18}/></div>
-                                                <h2 className="font-extrabold text-sm text-white tracking-wide">Canales TV</h2>
-                                            </div>
-                                            <span className="text-[10px] font-mono text-gray-400 bg-white/5 border border-white/10 px-2 py-0.5 rounded-full">{CANALES_TV.length} en vivo</span>
-                                        </div>
-                                        <div className="relative">
-                                            <input type="text" placeholder="Buscar canal..." className="w-full bg-[#0a0d13] border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white focus:border-[#E50914] outline-none pl-9 transition-colors placeholder-gray-500" value={search} onChange={(e) => setSearch(e.target.value)}/>
-                                            <Icon className="absolute left-3 top-2.5 text-gray-400" name="search" size={15}/>
-                                            {search && <button onClick={() => setSearch('')} className="absolute right-3 top-2.5 text-gray-400 hover:text-white"><Icon name="x" size={14}/></button>}
-                                        </div>
-                                        <select value={tvGroupFilter} onChange={(e) => setTvGroupFilter(e.target.value)} className="w-full bg-[#0a0d13] border border-white/10 rounded-xl px-3 py-1.5 text-xs text-gray-200 outline-none focus:border-[#E50914] cursor-pointer">
-                                            <option value="ALL">🌐 Todos los géneros</option>
-                                            {tvGroups.filter(g => g !== 'ALL').map((group, idx) => (<option key={idx} value={group}>{group}</option>))}
-                                        </select>
-                                    </div>
-                                    <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1.5 max-h-[50vh] lg:max-h-none">
-                                        {CANALES_TV.filter(c => {
-                                            const matchesSearch = !search || (c.title || '').toLowerCase().includes(search.toLowerCase());
-                                            const matchesGroup = tvGroupFilter === 'ALL' || c.group === tvGroupFilter;
-                                            return matchesSearch && matchesGroup;
-                                        }).map((channel, idx) => {
-                                            const isActive = selectedItem?.id === channel.id;
-                                            const isFav = favorites.some(f => f.id === channel.id);
-                                            return (
-                                                <div key={channel.id || idx} onClick={() => handlePlay(channel)} className={`group relative flex items-center gap-3 p-2.5 rounded-xl border cursor-pointer transition-all duration-200 ${isActive ? 'bg-[#E50914]/15 border-[#E50914] shadow-[0_0_15px_rgba(229,9,20,0.3)] border-l-4' : 'bg-[#141822]/80 hover:bg-[#1c2230] border-white/5 hover:border-white/15'}`}>
-                                                    <div className="w-12 h-9 rounded-lg bg-black/80 flex items-center justify-center overflow-hidden flex-shrink-0 border border-white/10 relative">
-                                                        {channel.image ? (<img src={channel.image} alt={channel.title} loading="lazy" className="w-full h-full object-contain p-0.5" />) : (<Icon className="text-gray-500" name="tv" size={16}/>)}
-                                                        {isActive && <div className="absolute inset-0 bg-[#E50914]/20 flex items-center justify-center"><div className="w-2 h-2 rounded-full bg-[#E50914] animate-ping"></div></div>}
-                                                    </div>
-                                                    <div className="flex-1 min-w-0">
-                                                        <h4 className={`text-xs font-bold truncate ${isActive ? 'text-[#E50914]' : 'text-white'}`}>{channel.title}</h4>
-                                                        <span className="text-[10px] text-gray-400 truncate block">{channel.group || 'General'}</span>
-                                                    </div>
-                                                    <button onClick={(e) => { e.stopPropagation(); toggleFavorite(channel); }} className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-white/10 transition-colors">
-                                                        <Icon name="heart" size={15} fill={isFav ? '#E50914' : 'none'} className={isFav ? 'text-[#E50914]' : 'text-gray-500'}/>
-                                                    </button>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                                <div className="flex-1 bg-[#05070a] relative flex flex-col justify-between overflow-hidden order-1 lg:order-2" style={{ minHeight: '100%' }}>
-                                    <div className="absolute top-3 left-3 z-20 pointer-events-none flex items-center gap-2 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 shadow-lg">
-                                        <div className="w-2 h-2 rounded-full bg-[#E50914] animate-pulse"></div>
-                                        <span className="text-xs font-black tracking-tight text-white">MAGIS<span className="text-[#E50914]">TV</span></span>
-                                    </div>
-                                    <div className="w-full flex-1 relative flex items-center justify-center bg-black overflow-hidden" style={{ minHeight: '300px', height: '100%' }}>
-                                        {selectedItem && selectedItem.type === 'tv' ? (
-                                            <VideoPlayer src={selectedItem.url} onFullscreenChange={setIsFullscreen} />
-                                        ) : (
-                                            <div className="flex flex-col items-center justify-center p-6 text-center max-w-sm space-y-3 animate-fade-in">
-                                                <div className="w-14 h-14 rounded-2xl bg-[#161a24] border border-white/10 flex items-center justify-center text-[#E50914] shadow-2xl"><Icon name="tv" size={32}/></div>
-                                                <div>
-                                                    <h3 className="text-sm font-bold text-white mb-1">Selecciona un canal</h3>
-                                                    <p className="text-[11px] text-gray-400">Elige una emisora para ver la transmisión en vivo.</p>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div className="bg-[#0e111a] border-t border-white/10 px-4 py-2.5 flex items-center justify-between z-20">
-                                        <div className="flex items-center gap-3 truncate max-w-md">
-                                            {selectedItem && selectedItem.type === 'tv' ? (
-                                                <>
-                                                    <div className="w-8 h-8 rounded-lg bg-black flex items-center justify-center overflow-hidden border border-white/10 flex-shrink-0">
-                                                        {selectedItem.image ? (<img src={selectedItem.image} alt={selectedItem.title} className="w-full h-full object-contain" />) : (<Icon className="text-gray-400" name="tv" size={14}/>)}
-                                                    </div>
-                                                    <div className="truncate">
-                                                        <h3 className="text-xs font-bold text-white truncate">{selectedItem.title}</h3>
-                                                        <span className="text-[10px] text-gray-400 truncate block">{selectedItem.group || 'En Directo'}</span>
-                                                    </div>
-                                                </>
-                                            ) : (<span className="text-xs text-gray-400 font-medium italic">Ningún canal seleccionado</span>)}
-                                        </div>
-                                        {selectedItem && selectedItem.type === 'tv' && (
-                                            <div className="flex items-center gap-2">
-                                                <button onClick={() => toggleFavorite(selectedItem)} className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white transition-colors">
-                                                    <Icon name="heart" size={16} className={favorites.some(f => f.id === selectedItem.id) ? "text-[#E50914] fill-[#E50914]" : "text-gray-300"}/>
-                                                </button>
-                                                <button onClick={toggleFullscreenPlayer} className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white transition-colors">
-                                                    <Icon name="clapperboard" size={16}/>
-                                                </button>
-                                                <button onClick={() => { setSelectedItem(null); }} className="p-2 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-400 transition-colors">
-                                                    <Icon name="x" size={16}/>
-                                                </button>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        ) : selectedItem ? (
-                            <div className="animate-fade-in flex flex-col min-h-screen">
-                                <div className="w-full bg-black relative flex items-center justify-center overflow-hidden" style={{ minHeight: '300px', height: '65vh' }}>
-                                    <div className="absolute top-3 left-3 z-30 flex gap-2">
-                                        <button onClick={() => {setSelectedItem(null); setIsLocked(false);}} className="bg-black/70 hover:bg-[#E50914] text-white px-3.5 py-1.5 rounded-full backdrop-blur-md flex items-center gap-1.5 text-xs transition-colors border border-white/15 shadow-lg">
-                                            <Icon name="arrowLeft" size={16}/> <span>Volver</span>
-                                        </button>
-                                    </div>
-                                    {isLocked ? (
-                                        <div className="absolute inset-0 z-50 bg-black/95 backdrop-blur-sm flex flex-col items-center justify-center p-4">
-                                            <div className="bg-[#1f2937] p-6 rounded-xl max-w-xs w-full text-center border border-white/10 shadow-2xl">
-                                                <div className="mb-4 flex justify-center"><div className="p-3 bg-red-500/20 rounded-full text-red-500 border border-red-500/30"><Icon name="lock" size={28}/></div></div>
-                                                <h2 className="text-base font-bold text-white mb-2">Contenido Protegido</h2>
-                                                <input type="password" maxLength="4" className="w-full bg-black/50 border border-white/20 rounded-lg px-4 py-2.5 text-center text-xl tracking-[0.4em] text-white focus:border-[#E50914] outline-none mb-3" placeholder="••••" autoFocus />
-                                                <div className="flex gap-2"><button onClick={() => {setSelectedItem(null); setIsLocked(false);}} className="flex-1 py-2 rounded-lg border border-white/10 text-gray-300 hover:bg-white/5 text-xs">Cancelar</button><button onClick={() => setIsLocked(false)} className="flex-1 py-2 rounded-lg bg-[#E50914] text-white font-bold hover:bg-red-700 text-xs">Acceder</button></div>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <VideoPlayer src={convertUrl((selectedItem.type === 'series' || selectedItem.type === 'animados') && selectedEpisode ? selectedEpisode.url : selectedItem.url)} onFullscreenChange={setIsFullscreen} />
-                                    )}
-                                </div>
-                                {!isLocked && (
-                                    <div className="p-4 sm:p-8 max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-3 gap-6 pb-24">
-                                        <div className="lg:col-span-2">
-                                            <div className="flex items-start justify-between mb-3">
-                                                <div>
-                                                    <h1 className="text-xl sm:text-2xl font-bold text-white mb-1">{selectedItem.titulo || selectedItem.title || selectedItem.name || 'Sin título'}</h1>
-                                                    <div className="flex items-center gap-2.5 text-xs text-gray-400">
-                                                        <span className="bg-[#1f2937] px-2 py-0.5 rounded text-white uppercase">{selectedItem.type || 'Contenido'}</span>
-                                                    </div>
-                                                </div>
-                                                <button onClick={() => toggleFavorite(selectedItem)} className="p-2.5 bg-[#1f2937] rounded-full hover:bg-[#2d3748]">
-                                                    <Icon name="heart" size={20} fill={favorites.some(f => (f.id||f.title) === (selectedItem.id||selectedItem.title)) ? "#E50914" : "none"} className={favorites.some(f => (f.id||f.title) === (selectedItem.id||selectedItem.title)) ? "text-[#E50914]" : "text-gray-400"} />
-                                                </button>
-                                            </div>
-                                            <p className="text-gray-300 text-xs sm:text-sm leading-relaxed mb-6">{selectedItem.descripcion || selectedItem.sinopsis || "Sin descripción disponible."}</p>
-                                        </div>
-                                        {((selectedItem.type === 'series' || selectedItem.type === 'animados') && selectedItem.seasons && selectedItem.seasons.length > 0) && (
-                                            <div className="bg-[#171c26] border border-white/10 rounded-2xl p-4 flex flex-col h-[500px]">
-                                                <h3 className="font-bold text-sm text-white mb-3">Episodios</h3>
-                                                <div className="flex gap-2 mb-3 overflow-x-auto pb-2 no-scrollbar">
-                                                    {selectedItem.seasons.map((season, sIdx) => (
-                                                        <button key={sIdx} onClick={() => setExpandedSeason(sIdx)} className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-colors ${expandedSeason === sIdx ? 'bg-[#E50914] text-white' : 'bg-black/40 text-gray-400 hover:text-white'}`}>
-                                                            Temporada {season.seasonNumber || sIdx + 1}
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                                <div className="flex-1 overflow-y-auto custom-scrollbar space-y-1 pr-1">
-                                                    {selectedItem.seasons[expandedSeason]?.episodes?.map((ep, eIdx) => (
-                                                        <div key={eIdx} onClick={() => setSelectedEpisode(ep)} className={`p-2.5 rounded-xl cursor-pointer flex items-center justify-between text-xs transition-colors ${selectedEpisode?.url === ep.url ? 'bg-[#E50914]/20 text-white border border-[#E50914]/50' : 'hover:bg-white/5 text-gray-300'}`}>
-                                                            <div className="flex items-center gap-2 truncate">
-                                                                <div className="w-6 flex justify-center shrink-0">
-                                                                    {selectedEpisode?.url === ep.url ? (
-                                                                        <div className="flex items-end h-3 gap-[2px]">
-                                                                            <div className="bar w-[2px]"></div><div className="bar w-[2px]"></div><div className="bar w-[2px]"></div><div className="bar w-[2px]"></div>
-                                                                        </div>
-                                                                    ) : (
-                                                                        <span className="text-gray-500 font-bold">{eIdx + 1}.</span>
-                                                                    )}
-                                                                </div>
-                                                                <span className="truncate">{ep.title || `Episodio ${eIdx + 1}`}</span>
-                                                            </div>
-                                                            <Icon name="play" size={14} fill={selectedEpisode?.url === ep.url ? "#E50914" : "none"} className={selectedEpisode?.url === ep.url ? "text-[#E50914]" : "text-gray-500"}/>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
-                        ) : (
-                            <>
-                                <div className="sticky top-14 md:top-0 z-40 bg-[#111827]/95 backdrop-blur py-3 px-4 sm:px-8 flex items-center justify-between border-b border-[#1f2937]">
-                                    <div className="flex bg-[#1f2937] border border-[#374151] rounded-full px-3 py-1.5 w-full max-w-md items-center focus-within:border-[#E50914] transition-colors">
-                                        <Icon className="text-gray-400 w-4 h-4 mr-2.5" name="search"/>
-                                        <input type="text" placeholder={`Buscar en ${activeTab === 'home' ? 'todo' : activeTab}...`} className="bg-transparent w-full outline-none text-xs sm:text-sm placeholder-gray-500 text-white" value={search} onChange={(e) => setSearch(e.target.value)}/>
-                                    </div>
-                                </div>
-                                {activeTab === 'home' && !search && heroItem && (
-                                    <div className="relative w-full h-[320px] sm:h-[380px] bg-[#0b0f19] overflow-hidden rounded-3xl mb-6 group animate-fade-in shadow-2xl border border-white/5 flex items-center max-w-7xl mx-auto px-4 sm:px-8">
-                                        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                                            <img src={heroItem.image} alt="Hero BG" className="w-full h-full object-cover filter blur-md opacity-75 scale-125" onError={(e) => e.target.style.display='none'} />
-                                            <div className="absolute inset-0 bg-gradient-to-r from-[#0b0f19]/90 via-[#0b0f19]/50 to-transparent"></div>
-                                            <div className="absolute inset-0 bg-gradient-to-t from-[#0b0f19] via-transparent to-transparent"></div>
-                                        </div>
-                                        <div className="relative z-10 w-full h-full flex flex-col sm:flex-row items-center justify-start gap-8 py-4">
-                                            <div className="w-32 sm:w-44 aspect-[2/3] rounded-xl overflow-hidden shadow-2xl border border-white/20 flex-shrink-0 bg-black/50">
-                                                <img src={heroItem.image} alt={heroItem.title} className="w-full h-full object-cover" onError={(e) => e.target.src='https://placehold.co/300x450/1f2937/ffffff?text=Poster'} />
-                                            </div>
-                                            <div className="flex-1 flex flex-col gap-2 items-start max-w-xl">
-                                                <span className="bg-[#E50914] text-white text-[9px] font-extrabold px-2.5 py-1 rounded uppercase tracking-wider shadow">Destacado del Día</span>
-                                                <h1 className="text-2xl sm:text-4xl font-black text-white leading-tight drop-shadow-md line-clamp-1">{heroItem.title || 'Sin título'}</h1>
-                                                <p className="text-gray-100 text-xs sm:text-sm line-clamp-3 leading-relaxed drop-shadow">{heroItem.description || "Disfruta del mejor contenido seleccionado para ti."}</p>
-                                                <div className="flex gap-3 mt-3">
-                                                    <button onClick={() => handlePlay(heroItem)} className="bg-white text-black px-6 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-2 active:scale-95 transition-transform shadow-lg hover:bg-gray-200">
-                                                        <Icon fill="black" name="play" size={16}/> Reproducir
-                                                    </button>
-                                                    <button onClick={() => toggleFavorite(heroItem)} className="bg-white/20 text-white p-2.5 rounded-xl flex items-center justify-center backdrop-blur-md border border-white/30 hover:bg-white/40">
-                                                        <Icon name="heart" size={18} fill={favorites.some(f => (f.id||f.title) === (heroItem.id||heroItem.title)) ? "#E50914" : "none"} className={favorites.some(f => (f.id||f.title) === (heroItem.id||heroItem.title)) ? "text-[#E50914]" : "text-white"}/>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-                                {activeTab === 'home' && !search && (
-                                    <div className="mb-8 px-4 sm:px-8 max-w-7xl mx-auto animate-fade-in">
-                                        <div className="mb-3 flex items-center justify-between">
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-1 h-5 bg-[#E50914] rounded-full"></div>
-                                                <h2 className="text-sm sm:text-base font-bold uppercase tracking-wider text-white">Acceso Rápido</h2>
-                                            </div>
-                                        </div>
-                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                            {[
-                                                { id: 'tv', title: 'Televisión en Vivo', desc: `${CANALES_TV.length} canales disponibles`, icon: 'tv', color: 'from-red-600/30 to-red-900/10 border-red-500/30', iconBg: 'bg-red-600', badge: 'EN VIVO' },
-                                                { id: 'movies', title: 'Estrenos de Cine', desc: `${PELICULAS.length} películas`, icon: 'clapperboard', color: 'from-blue-600/30 to-blue-900/10 border-blue-500/30', iconBg: 'bg-blue-600', badge: 'HD / 4K' },
-                                                { id: 'radio', title: 'Emisoras de Radio CR', desc: `${RADIOS.length} estaciones en vivo`, icon: 'radio', color: 'from-amber-600/30 to-amber-900/10 border-amber-500/30', iconBg: 'bg-amber-600', badge: 'AUDIO HD' },
-                                            ].map(c => (
-                                                <div key={c.id} onClick={() => handleTabClick({ id: c.id })} className={`group relative bg-gradient-to-br ${c.color} border rounded-2xl p-4 sm:p-5 cursor-pointer transition-all duration-300 hover:scale-[1.02] shadow-xl flex flex-col justify-between`}>
-                                                    <div className="flex items-start justify-between mb-3">
-                                                        <div className={`w-12 h-12 rounded-xl ${c.iconBg} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform`}>
-                                                            <Icon name={c.icon} size={24}/>
-                                                        </div>
-                                                        <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-white/10 backdrop-blur border border-white/20 text-white tracking-widest">{c.badge}</span>
-                                                    </div>
-                                                    <div>
-                                                        <h3 className="font-extrabold text-base text-white mb-1 group-hover:text-[#E50914] transition-colors">{c.title}</h3>
-                                                        <p className="text-xs text-gray-300 font-medium">{c.desc}</p>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-                                <div className="p-4 sm:p-8">
-                                    <div className="mb-4 flex items-center gap-2">
-                                        <div className="w-1 h-5 bg-[#E50914] rounded-full"></div>
-                                        <h2 className="text-base sm:text-lg font-bold uppercase tracking-wide">{activeTab === 'home' ? 'Tendencias y Novedades' : activeTab}</h2>
-                                    </div>
-                                    {displayedItems.length === 0 ? (
-                                        <div className="text-center py-16 text-gray-500 text-xs"><p>No hay contenido disponible.</p></div>
-                                    ) : (
-                                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 animate-slide-up">
-                                            {displayedItems.map((item, i) => {
-                                                const isFav = favorites.some(f => (f.id||f.title) === (item.id||item.title));
-                                                return (
-                                                    <div key={i} className="group relative flex flex-col gap-1.5 cursor-pointer active:scale-95 transition-transform" onClick={() => handlePlay(item)}>
-                                                        <div className="relative overflow-hidden rounded-lg bg-[#1f2937] shadow-md aspect-[2/3]">
-                                                            <img src={item.image || 'https://placehold.co/300x450/1f2937/ffffff?text=Content'} loading="lazy" className="w-full h-full object-cover" alt={item.title} />
-                                                            <button onClick={(e) => { e.stopPropagation(); toggleFavorite(item); }} className="absolute top-1.5 right-1.5 p-1.5 bg-black/60 rounded-full text-white">
-                                                                <Icon name="heart" size={14} fill={isFav ? "#E50914" : "none"} className={isFav ? "text-[#E50914]" : "text-white"}/>
-                                                            </button>
-                                                            {item.type === 'movies' && <span className="absolute bottom-1.5 left-1.5 bg-[#E50914] text-white text-[8px] font-bold px-1.5 py-0.5 rounded shadow">MOVIE</span>}
-                                                            {item.type === 'series' && <span className="absolute bottom-1.5 left-1.5 bg-blue-600 text-white text-[8px] font-bold px-1.5 py-0.5 rounded shadow">SERIE</span>}
-                                                            {item.type === 'animados' && <span className="absolute bottom-1.5 left-1.5 bg-green-600 text-white text-[8px] font-bold px-1.5 py-0.5 rounded shadow">ANIMADO</span>}
-                                                            {item.type === 'tv' && <span className="absolute bottom-1.5 left-1.5 bg-yellow-600 text-white text-[8px] font-bold px-1.5 py-0.5 rounded shadow">TV</span>}
-                                                        </div>
-                                                        <h3 className="text-xs font-bold text-gray-200 truncate">{item.title || 'Sin título'}</h3>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    )}
-                                </div>
-                            </>
-                        )}
+                    <main className="flex-1 md:ml-24 min-h-screen pt-16 md:pt-0 pb-36 md:pb-16 px-4 sm:px-8 relative z-10">
+                        {activeMedia ? (
+                            <MediaViewer media={activeMedia} onBack={() => setActiveMedia(null)} />
+                        ) : currentTab === 'home' ? (
+                            <HomeSection 
+                                content={content} 
+                                onSelect={(item) => setActiveMedia(item)} 
+                                searchQuery={searchQuery}
+                                setSearchQuery={setSearchQuery}
+                                onNavigate={(tab) => setCurrentTab(tab)}
+                                onOpenAuthor={() => setShowAuthorModal(true)}
+                            />
+                        ) : currentTab === 'tv' ? (
+                            <ChannelsSection channels={content.tv} onSelect={(item) => setActiveMedia(item)} favorites={favorites} onToggleFav={toggleFavorite} />
+                        ) : currentTab === 'movies' ? (
+                            <CategoryGridSection title="Cine Estreno HD" subtitle="Películas exclusivas listas para reproducir en alta calidad" items={content.movies} onSelect={(item) => setActiveMedia(item)} favorites={favorites} onToggleFav={toggleFavorite} />
+                        ) : currentTab === 'series' ? (
+                            <CategoryGridSection title="Series de Televisión" subtitle="Temporadas completas en alta definición" items={content.series} onSelect={(item) => setActiveMedia(item)} favorites={favorites} onToggleFav={toggleFavorite} />
+                        ) : currentTab === 'animados' ? (
+                            <CategoryGridSection title="Animados & Kids" subtitle="Divertidos dibujos animados y series infantiles" items={content.animados} onSelect={(item) => setActiveMedia(item)} favorites={favorites} onToggleFav={toggleFavorite} />
+                        ) : currentTab === 'radio' ? (
+                            <RadioSection stations={content.radios} activeRadio={activeRadio} isPlaying={isPlayingRadio} onPlayStation={handlePlayStation} favorites={favorites} />
+                        ) : currentTab === 'favorites' ? (
+                            <FavoritesSection favorites={favorites} onSelect={(item) => setActiveMedia(item)} onToggleFav={toggleFavorite} />
+                        ) : null}
                     </main>
 
-                    {/* Radio Player Dock */}
-                    {currentRadioStation && (
-                        <div className="fixed bottom-[55px] md:bottom-0 left-0 md:left-24 right-0 bg-[#171c26]/95 backdrop-blur-xl border-t border-[#1f2937] p-3 sm:p-4 z-50 flex items-center justify-between shadow-[0_-10px_30px_rgba(0,0,0,0.5)] animate-slide-up">
-                            <div className="flex items-center gap-3 w-1/3 min-w-[120px]">
-                                <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 border border-white/10 hidden sm:block">
-                                    <img src={currentRadioStation.image} alt={currentRadioStation.title} className="w-full h-full object-cover" />
-                                </div>
-                                <div className="flex flex-col truncate">
-                                    <span className="font-bold text-sm text-white truncate">{currentRadioStation.title}</span>
-                                    {streamError ? (
-                                        <span className="text-xs text-red-500 truncate flex items-center gap-1.5 mt-0.5"><span className="w-1.5 h-1.5 rounded-full bg-red-500"></span> ERROR DE CONEXIÓN</span>
-                                    ) : isLoadingRadio ? (
-                                        <span className="text-xs text-yellow-500 truncate flex items-center gap-1.5 mt-0.5"><span className="w-2.5 h-2.5 border-2 border-yellow-500 border-t-transparent rounded-full animate-spin"></span> CONECTANDO...</span>
-                                    ) : (
-                                        <span className="text-xs text-[#E50914] truncate flex items-center gap-1.5 mt-0.5"><span className="w-1.5 h-1.5 rounded-full bg-[#E50914] animate-pulse"></span> EN DIRECTO</span>
-                                    )}
+                    {}
+                    {activeRadio && (
+                        <div className="fixed bottom-[58px] md:bottom-0 left-0 md:left-24 right-0 glass-panel border-t border-white/20 p-3 sm:p-4 z-30 flex items-center justify-between shadow-[0_-10px_30px_rgba(0,0,0,0.8)] animate-fade-in">
+                            <div className="flex items-center gap-3">
+                                <img src={activeRadio.image} alt={activeRadio.title} className="w-12 h-12 rounded-xl object-cover border border-white/20 hidden sm:block shadow-md" />
+                                <div>
+                                    <h4 className="font-extrabold text-xs sm:text-sm text-high-contrast truncate">{activeRadio.title}</h4>
+                                    <span className="text-[11px] text-magis-500 flex items-center gap-1.5 font-bold mt-0.5">
+                                        <span className="w-2.5 h-2.5 rounded-full bg-magis-500 animate-pulse shadow-sm"></span> EN DIRECTO HD
+                                    </span>
                                 </div>
                             </div>
-                            <div className="flex flex-col items-center justify-center flex-1">
-                                <div className="flex items-center gap-4">
-                                    <button onClick={() => {
-                                        if (streamError) {
-                                            if (audioRef.current) audioRef.current.dataset.currentUrl = "";
-                                            setStreamError(false);
-                                            setIsRadioPlaying(true);
-                                        } else {
-                                            setIsRadioPlaying(!isRadioPlaying);
-                                        }
-                                    }} className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-transform active:scale-95 ${streamError ? 'bg-red-900/50 hover:bg-red-800 text-white border border-red-500' : 'bg-white hover:bg-gray-200 text-black'}`}>
-                                        <Icon name={!isRadioPlaying ? "play" : "pause"} size={24} fill="currentColor" className={!isRadioPlaying ? "ml-1" : ""}/>
-                                    </button>
+                            <div className="flex items-center gap-4">
+                                <div className="hidden sm:flex items-end h-6 gap-1 mr-2">
+                                    {[1,2,3,4].map(i => <div key={i} className={`equalizer-bar ${!isPlayingRadio ? 'opacity-40' : ''}`}></div>)}
                                 </div>
+                                <button onClick={() => setIsPlayingRadio(!isPlayingRadio)} className="w-12 h-12 rounded-full bg-magis-500 hover:bg-magis-600 text-white flex items-center justify-center shadow-lg shadow-red-500/50 transition-transform active:scale-95">
+                                    <i className={`ph-fill ${isPlayingRadio ? 'ph-pause' : 'ph-play text-xl ml-0.5'}`}></i>
+                                </button>
+                                <button onClick={() => setActiveRadio(null)} className="p-2 text-gray-300 hover:text-white">
+                                    <i className="ph ph-x text-xl"></i>
+                                </button>
                             </div>
-                            <div className="flex items-center justify-end gap-4 w-1/3">
-                                <div className="hidden sm:flex items-end h-6 gap-1 mr-4">
-                                    {[1,2,3,4,5].map(i => (<div key={i} className={`bar ${!isRadioPlaying ? 'paused-bar' : ''}`}></div>))}
+                        </div>
+                    )}
+
+                    {}
+                    {showQrModal && (
+                        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
+                            <div className="glass-panel rounded-3xl p-6 max-w-xs w-full text-center relative shadow-2xl space-y-4 border border-white/20">
+                                <button onClick={() => setShowQrModal(false)} className="absolute top-3 right-3 text-gray-300 hover:text-white p-1.5 rounded-full bg-white/10">
+                                    <i className="ph ph-x text-lg"></i>
+                                </button>
+                                <div className="p-2.5 bg-magis-500/20 rounded-2xl border border-magis-500/40 inline-block shadow">
+                                    <span className="text-xs font-black uppercase text-magis-500 tracking-widest">Comparte Magic TV 2.0</span>
                                 </div>
-                                <Icon className="text-gray-400 hidden lg:block" name="volume" size={18}/>
-                                <input type="range" min="0" max="1" step="0.01" value={radioVolume} onChange={(e) => setRadioVolume(parseFloat(e.target.value))} className="w-24 accent-[#E50914] hidden lg:block"/>
+                                <div className="bg-white p-3 rounded-2xl shadow-2xl flex justify-center items-center">
+                                    <img src={QR_IMAGE_URL} alt="QR Code" className="w-48 h-48 object-contain" />
+                                </div>
+                                <div>
+                                    <h3 className="brand-font font-black text-lg text-high-contrast">MAGIC <span className="text-magis-500">TV 2.0</span></h3>
+                                    <p className="text-xs text-subtitle-contrast mt-1 leading-relaxed font-medium">Escanea este código QR con tu móvil para abrir la experiencia completa al instante.</p>
+                                </div>
+                                <button onClick={() => setShowQrModal(false)} className="w-full bg-magis-500 hover:bg-magis-600 text-white py-3 rounded-2xl font-bold text-xs shadow-lg shadow-red-500/40 transition-transform active:scale-95">
+                                    Cerrar Ventana
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {}
+                    {showAuthorModal && (
+                        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
+                            <div className="glass-panel rounded-3xl p-6 sm:p-8 max-w-sm w-full text-center relative shadow-2xl space-y-5 border border-amber-500/40">
+                                <button onClick={() => setShowAuthorModal(false)} className="absolute top-3 right-3 text-gray-300 hover:text-white p-1.5 rounded-full bg-white/10">
+                                    <i className="ph ph-x text-lg"></i>
+                                </button>
+                                <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-400 to-amber-600 flex items-center justify-center mx-auto shadow-2xl gold-font text-black font-black text-2xl border border-amber-200/60 animate-float">
+                                    J
+                                </div>
+                                <div>
+                                    <span className="text-[10px] font-black uppercase text-amber-300 tracking-widest bg-amber-500/20 px-3.5 py-1 rounded-full border border-amber-500/30 shadow">Créditos Oficiales</span>
+                                    <h2 className="brand-font text-2xl font-black text-high-contrast mt-3">MAGIC TV <span className="text-magis-500">2.0</span></h2>
+                                </div>
+                                <div className="bg-slate-900/95 rounded-2xl p-4.5 border border-white/15 space-y-2.5 shadow-inner">
+                                    <p className="text-[10px] text-gray-400 uppercase tracking-widest font-extrabold">DISEÑADO Y PROGRAMADO POR</p>
+                                    <h3 className="gold-font font-bold text-base sm:text-lg text-gold-gradient">JORGE ARTURO HERNÁNDEZ MÉNDEZ</h3>
+                                    <div className="pt-2 border-t border-white/10 flex items-center justify-center gap-1.5 text-xs text-gray-200 font-bold">
+                                        <span>Potenciado por</span>
+                                        <span className="text-blue-400 font-black">Gemini AI ✨</span>
+                                    </div>
+                                </div>
+                                <button onClick={() => setShowAuthorModal(false)} className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-extrabold py-3 rounded-2xl text-xs shadow-xl transition-transform active:scale-95">
+                                    Cerrar Créditos
+                                </button>
                             </div>
                         </div>
                     )}
@@ -1048,48 +645,355 @@
             );
         };
 
-        // Icon component
-        const Icon = ({ name, size = 22, className, fill = "none" }) => {
-            const icons = {
-                home: <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1m-2 0h2"/>,
-                search: <path d="M21 21l-4.35-4.35m0 0a7.5 7.5 0 111.414-1.414 7.5 7.5 0 01-1.414 1.414z" />,
-                x: <path d="M6 18L18 6M6 6l12 12" />,
-                tv: <path d="M6 20.25h12m-7.5-3v3m3-3v3m-10.125-3h17.25c.621 0 1.125-.504 1.125-1.125V4.875c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125z" />,
-                film: <path d="M19.82 2H4.18C2.97 2 2 2.97 2 4.18v15.64C2 21.03 2.97 22 4.18 22h15.64c1.21 0 2.18-.97 2.18-2.18V4.18C22 2.97 21.03 2 19.82 2zM7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 7h5M17 17h5" />,
-                play: <path d="M5 3l14 9-14 9V3z" />,
-                pause: <path d="M6 4h4v16H6zM14 4h4v16h-4z" />,
-                heart: <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />,
-                arrowLeft: <path d="M19 12H5m7 7l-7-7 7-7" />,
-                clapperboard: <g><path d="M20.2 6 3 11l-.9-2.4c-.5-1.1.2-2.3 1.3-2.8l3.2-1.4c1.1-.5 2.3.2 2.8 1.3l.9 2.4l7.9-3l2 4.5Z"/><path d="M4 11v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-9"/></g>,
-                lock: <path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a7 7 0 00-14 0v2" />,
-                smile: <g><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></g>,
-                music: <g><path d="M9 18V5l12-2v13"></path><path d="M9 9l12-2"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></g>,
-                radio: <path d="M2 12a10 10 0 0110-10 10 10 0 0110 10M6 12a6 6 0 016-6 6 6 0 016 6M10 12a2 2 0 012-2 2 2 0 012 2v8a2 2 0 01-2 2 2 2 0 01-2-2v-8z" />,
-                volume: <path d="M11 5L6 9H2v6h4l5 4V5z M15.54 8.46a5 5 0 010 7.07 M19.07 4.93a10 10 0 010 14.14" />,
-                chat: <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-            };
+        const HomeSection = ({ content, onSelect, searchQuery, setSearchQuery, onNavigate, onOpenAuthor }) => {
+            const featured = content.movies[0] || content.series[0];
             return (
-                <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-                    {icons[name] || icons.home}
-                </svg>
+                <div className="max-w-7xl mx-auto py-6 space-y-8 animate-fade-in">
+                    <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                        <div>
+                            <div className="flex items-center gap-2 mb-1.5">
+                                <span className="px-3 py-1 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/35 text-[11px] font-bold cursor-pointer hover:bg-amber-500/30 transition-all shadow" onClick={onOpenAuthor}>
+                                    ⚡ Creado por Jorge Arturo Hernández Méndez
+                                </span>
+                            </div>
+                            <h1 className="brand-font text-3xl sm:text-5xl font-black tracking-tight text-high-contrast">Explora el <span className="text-magis-500">Universo Magic</span></h1>
+                            <p className="text-xs sm:text-sm text-subtitle-contrast mt-1.5 font-medium">Televisión en directo, estrenos de cine, series y radio HD con máxima calidad.</p>
+                        </div>
+                        <div className="w-full md:w-80 relative">
+                            <input 
+                                type="text" 
+                                placeholder="Buscar películas, canales..." 
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full bg-slate-900/90 border border-white/20 rounded-2xl px-4 py-3 pl-11 text-xs text-white placeholder-gray-400 focus:border-magis-500 outline-none transition-all shadow-inner font-medium"
+                            />
+                            <i className="ph ph-magnifying-glass absolute left-4 top-3.5 text-gray-300 text-lg"></i>
+                        </div>
+                    </div>
+
+                    {featured && (
+                        <div className="relative rounded-3xl overflow-hidden glass-panel border border-white/20 p-6 sm:p-10 flex flex-col md:flex-row items-center gap-8 shadow-2xl">
+                            <div className="absolute inset-0 z-0">
+                                <img src={featured.image} alt={featured.title} className="w-full h-full object-cover filter blur-xl opacity-35 scale-110" />
+                                <div className="absolute inset-0 bg-gradient-to-r from-magis-dark via-magis-dark/85 to-transparent"></div>
+                            </div>
+                            <div className="relative z-10 w-48 sm:w-60 aspect-[2/3] rounded-2xl overflow-hidden shadow-2xl border border-white/30 flex-shrink-0 animate-float">
+                                <img src={featured.image} alt={featured.title} className="w-full h-full object-cover" />
+                            </div>
+                            <div className="relative z-10 flex-1 space-y-3.5 text-center md:text-left">
+                                <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-magis-500/25 border border-magis-500/50 text-magis-500 text-xs font-black shadow">
+                                    <i className="ph-fill ph-star"><b>{featured.rating || '9.2'}</b> / 10 Éxito</i>
+                                </div>
+                                <h2 className="brand-font text-2xl sm:text-4xl font-black text-high-contrast drop-shadow">{featured.title}</h2>
+                                <p className="text-xs sm:text-sm text-subtitle-contrast leading-relaxed max-w-xl font-medium">{featured.description || "Disfruta de este contenido en alta definición."}</p>
+                                <div className="pt-2 flex flex-wrap justify-center md:justify-start gap-3">
+                                    <button onClick={() => onSelect(featured)} className="px-6 py-3.5 rounded-2xl bg-magis-500 hover:bg-magis-600 text-white font-extrabold text-xs sm:text-sm shadow-xl shadow-red-500/50 glow-effect flex items-center gap-2 transition-transform active:scale-95">
+                                        <i className="ph-fill ph-play text-lg"></i> Reproducir Ahora
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Hub Quick Access */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        {[
+                            { id: 'tv', title: 'TV en Vivo', icon: 'ph-television', count: `${content.tv.length} Canales`, color: 'from-red-600/30 to-red-900/10 border-red-500/30' },
+                            { id: 'movies', title: 'Cine Estreno', icon: 'ph-film-strip', count: `${content.movies.length} Películas`, color: 'from-blue-600/30 to-blue-900/10 border-blue-500/30' },
+                            { id: 'series', title: 'Series TV', icon: 'ph-video', count: `${content.series.length} Series`, color: 'from-purple-600/30 to-purple-900/10 border-purple-500/30' },
+                            { id: 'radio', title: 'Radio Nacional', icon: 'ph-radio', count: `${content.radios.length} Emisoras`, color: 'from-amber-600/30 to-amber-900/10 border-amber-500/30' }
+                        ].map(hub => (
+                            <div key={hub.id} onClick={() => onNavigate(hub.id)} className={`glass-panel rounded-2xl p-4 cursor-pointer hover:border-magis-500 transition-all bg-gradient-to-br ${hub.color} group shadow-xl`}>
+                                <div className="w-11 h-11 rounded-xl bg-white/15 flex items-center justify-center text-white mb-3 group-hover:scale-110 transition-transform shadow">
+                                    <i className={`${hub.icon} text-xl text-magis-500`}></i>
+                                </div>
+                                <h3 className="font-extrabold text-sm text-high-contrast">{hub.title}</h3>
+                                <span className="text-xs text-gray-300 font-semibold mt-1 block">{hub.count}</span>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Live TV Channels Quick Grid */}
+                    <div>
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="brand-font text-base sm:text-lg font-black uppercase tracking-wider flex items-center gap-2 text-high-contrast">
+                                <i className="ph-fill ph-television text-magis-500 text-xl"></i> Canales en Directo
+                            </h2>
+                            <button onClick={() => onNavigate('tv')} className="text-xs text-magis-500 font-extrabold hover:underline">Ver todos →</button>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+                            {content.tv.slice(0, 5).map(channel => (
+                                <div key={channel.id} onClick={() => onSelect(channel)} className="group glass-panel rounded-2xl p-3 cursor-pointer hover:border-magis-500 transition-all duration-300 hover:scale-[1.02] shadow-xl">
+                                    <div className="aspect-video rounded-xl bg-black/80 overflow-hidden relative mb-2.5 flex items-center justify-center border border-white/10">
+                                        <img src={channel.image} alt={channel.title} className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity" onError={(e) => e.target.src='https://placehold.co/300x200/ef4444/ffffff?text=TV'} />
+                                        <div className="absolute top-2 left-2 px-2 py-0.5 rounded bg-magis-600 text-white text-[9px] font-black uppercase tracking-widest shadow">LIVE</div>
+                                    </div>
+                                    <h3 className="font-extrabold text-xs text-high-contrast truncate">{channel.title}</h3>
+                                    <span className="text-[11px] text-gray-300 font-semibold block mt-0.5 truncate">{channel.group}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
             );
         };
 
-        // Iniciar la aplicación
-        try {
-            const root = ReactDOM.createRoot(document.getElementById('root'));
-            root.render(<App/>);
-        } catch (error) {
-            console.error('Error al iniciar la aplicación:', error);
-            document.getElementById('root').innerHTML = `
-                <div style="display:flex;height:100vh;width:100vw;align-items:center;justify-content:center;background:#111827;color:white;flex-direction:column;font-family:sans-serif;padding:20px;text-align:center;">
-                    <div style="font-size:48px;margin-bottom:16px;">⚠️</div>
-                    <h2 style="color:#ef4444;margin-bottom:8px;">Error al cargar la aplicación</h2>
-                    <p style="color:#9ca3af;font-size:14px;max-width:400px;">${error.message || 'Error desconocido'}</p>
-                    <button onclick="window.location.reload()" style="margin-top:20px;background:#E50914;border:none;color:white;padding:10px 32px;border-radius:8px;cursor:pointer;font-weight:bold;">Reintentar</button>
+        const ChannelsSection = ({ channels, onSelect, favorites, onToggleFav }) => {
+            const [filterGroup, setFilterGroup] = useState('ALL');
+            const groups = useMemo(() => ['ALL', ...Array.from(new Set(channels.map(c => c.group || 'Nacionales')))], [channels]);
+
+            const filtered = filterGroup === 'ALL' ? channels : channels.filter(c => c.group === filterGroup);
+
+            return (
+                <div className="max-w-7xl mx-auto py-6 space-y-6 animate-fade-in">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div>
+                            <h1 className="brand-font text-2xl sm:text-3xl font-black text-high-contrast">Televisión en Directo</h1>
+                            <p className="text-xs sm:text-sm text-subtitle-contrast mt-1 font-medium">{channels.length} canales disponibles en alta definición.</p>
+                        </div>
+                        <select 
+                            value={filterGroup} 
+                            onChange={(e) => setFilterGroup(e.target.value)}
+                            className="bg-slate-900 border border-white/20 rounded-xl px-4 py-2.5 text-xs text-white font-semibold outline-none focus:border-magis-500 shadow-inner"
+                        >
+                            {groups.map(g => <option key={g} value={g}>{g === 'ALL' ? 'Todos los géneros' : g}</option>)}
+                        </select>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                        {filtered.map(channel => {
+                            const isFav = favorites.some(f => f.id === channel.id);
+                            return (
+                                <div key={channel.id} onClick={() => onSelect(channel)} className="group glass-panel rounded-2xl p-3 cursor-pointer hover:border-magis-500 transition-all relative shadow-xl">
+                                    <div className="aspect-video rounded-xl bg-black overflow-hidden relative mb-2.5 flex items-center justify-center border border-white/10">
+                                        <img src={channel.image} alt={channel.title} className="w-full h-full object-contain p-2 opacity-90 group-hover:opacity-100 transition-opacity" onError={(e) => e.target.src='https://placehold.co/300x200/ef4444/ffffff?text=TV'} />
+                                        <button onClick={(e) => { e.stopPropagation(); onToggleFav(channel); }} className="absolute top-2 right-2 p-1.5 rounded-full bg-black/70 text-white backdrop-blur-md shadow">
+                                            <i className={`ph-fill ph-heart ${isFav ? 'text-magis-500' : 'text-white'}`}></i>
+                                        </button>
+                                        <div className="absolute top-2 left-2 px-2 py-0.5 rounded bg-magis-600 text-white text-[9px] font-black uppercase shadow">LIVE</div>
+                                    </div>
+                                    <h3 className="font-extrabold text-xs text-high-contrast truncate">{channel.title}</h3>
+                                    <span className="text-[11px] text-gray-300 font-semibold block mt-0.5 truncate">{channel.group}</span>
+                                </div>
+                            );
+                        })}
+                    </div>
                 </div>
-            `;
-        }
+            );
+        };
+
+        const CategoryGridSection = ({ title, subtitle, items, onSelect, favorites, onToggleFav }) => (
+            <div className="max-w-7xl mx-auto py-6 space-y-6 animate-fade-in">
+                <div>
+                    <h1 className="brand-font text-2xl sm:text-3xl font-black text-high-contrast">{title}</h1>
+                    <p className="text-xs sm:text-sm text-subtitle-contrast mt-1 font-medium">{subtitle}</p>
+                </div>
+                {items.length === 0 ? (
+                    <div className="text-center py-24 text-gray-400">
+                        <i className="ph ph-film-slate text-5xl mb-3 opacity-40"></i>
+                        <p className="text-sm font-semibold">No hay contenido disponible en esta categoría.</p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                        {items.map(item => {
+                            const isFav = favorites.some(f => (f.id || f.title) === (item.id || item.title));
+                            return (
+                                <div key={item.id || item.title} onClick={() => onSelect(item)} className="group glass-panel rounded-2xl p-3 cursor-pointer hover:border-magis-500 transition-all shadow-xl">
+                                    <div className="aspect-[2/3] rounded-xl bg-black overflow-hidden relative mb-2.5 border border-white/10">
+                                        <img src={item.image} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onError={(e) => e.target.src='https://placehold.co/300x450/1f2937/ffffff?text=Poster'} />
+                                        <button onClick={(e) => { e.stopPropagation(); onToggleFav(item); }} className="absolute top-2 right-2 p-1.5 rounded-full bg-black/70 text-white backdrop-blur-md shadow">
+                                            <i className={`ph-fill ph-heart ${isFav ? 'text-magis-500' : 'text-white'}`}></i>
+                                        </button>
+                                        {item.rating && (
+                                            <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-amber-500 text-black text-[9px] font-black uppercase shadow">
+                                                ★ {item.rating}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <h3 className="font-extrabold text-xs text-high-contrast truncate">{item.title}</h3>
+                                    <span className="text-[11px] text-gray-300 font-semibold block mt-0.5 truncate">{item.group || 'Estreno'}</span>
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
+            </div>
+        );
+
+        const RadioSection = ({ stations, activeRadio, isPlaying, onPlayStation, favorites }) => {
+            const [tab, setTab] = useState('all');
+            const list = tab === 'favs' ? favorites.filter(f => stations.some(s => s.id === f.id)) : stations;
+
+            return (
+                <div className="max-w-7xl mx-auto py-6 space-y-6 animate-fade-in">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h1 className="brand-font text-2xl sm:text-3xl font-black text-high-contrast">Magic Radio CR</h1>
+                            <p className="text-xs sm:text-sm text-subtitle-contrast mt-1 font-medium">Emisoras nacionales costarricenses en directo.</p>
+                        </div>
+                        <div className="flex gap-2">
+                            <button onClick={() => setTab('all')} className={`px-4 py-2 rounded-xl text-xs font-bold shadow ${tab === 'all' ? 'bg-magis-500 text-white' : 'bg-white/10 text-gray-200 hover:bg-white/20'}`}>Todas</button>
+                            <button onClick={() => setTab('favs')} className={`px-4 py-2 rounded-xl text-xs font-bold shadow ${tab === 'favs' ? 'bg-magis-500 text-white' : 'bg-white/10 text-gray-200 hover:bg-white/20'}`}>Favoritas</button>
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                        {list.map(station => {
+                            const active = activeRadio?.id === station.id && isPlaying;
+                            return (
+                                <div key={station.id} onClick={() => onPlayStation(station)} className={`glass-panel rounded-2xl p-4 cursor-pointer hover:border-magis-500 transition-all flex items-center gap-4 shadow-xl ${active ? 'border-magis-500 shadow-2xl glow-effect' : ''}`}>
+                                    <img src={station.image} alt={station.title} className="w-16 h-16 rounded-xl object-cover border border-white/20 flex-shrink-0 bg-black shadow" onError={(e) => e.target.src='https://placehold.co/300x300/111827/ffffff?text=Radio'} />
+                                    <div className="flex-1 min-w-0">
+                                        <h3 className="font-extrabold text-sm text-high-contrast truncate">{station.title}</h3>
+                                        <span className="text-xs text-gray-300 font-semibold block mt-1 truncate">{station.group}</span>
+                                    </div>
+                                    <div className={`w-11 h-11 rounded-full flex items-center justify-center text-white flex-shrink-0 shadow-lg ${active ? 'bg-magis-500 shadow-red-500/50' : 'bg-white/15'}`}>
+                                        <i className={`ph-fill ${active ? 'ph-pause' : 'ph-play ml-0.5 text-lg'}`}></i>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            );
+        };
+
+        const FavoritesSection = ({ favorites, onSelect, onToggleFav }) => (
+            <div className="max-w-7xl mx-auto py-6 space-y-6 animate-fade-in">
+                <div>
+                    <h1 className="brand-font text-2xl sm:text-3xl font-black text-high-contrast">Tus Favoritos</h1>
+                    <p className="text-xs sm:text-sm text-subtitle-contrast mt-1 font-medium">Acceso rápido a tus canales, series y películas guardadas.</p>
+                </div>
+                {favorites.length === 0 ? (
+                    <div className="text-center py-24 text-gray-400">
+                        <i className="ph ph-heart text-5xl mb-3 opacity-40"></i>
+                        <p className="text-sm font-semibold">No tienes favoritos guardados aún.</p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                        {favorites.map(item => (
+                            <div key={item.id || item.title} onClick={() => onSelect(item)} className="glass-panel rounded-2xl p-3 cursor-pointer hover:border-magis-500 transition-all relative shadow-xl">
+                                <div className="aspect-video rounded-xl bg-black overflow-hidden relative mb-2.5 flex items-center justify-center border border-white/10">
+                                    <img src={item.image} alt={item.title} className="w-full h-full object-cover" onError={(e) => e.target.src='https://placehold.co/300x200/ef4444/ffffff?text=Magic'} />
+                                    <button onClick={(e) => { e.stopPropagation(); onToggleFav(item); }} className="absolute top-2 right-2 p-1.5 rounded-full bg-black/70 text-white backdrop-blur-md shadow">
+                                        <i className="ph-fill ph-heart text-magis-500"></i>
+                                    </button>
+                                </div>
+                                <h3 className="font-extrabold text-xs text-high-contrast truncate">{item.title}</h3>
+                                <span className="text-[11px] text-gray-300 font-semibold block mt-0.5 truncate">{item.group || 'Favorito'}</span>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+        );
+
+        const MediaViewer = ({ media, onBack }) => {
+            const videoRef = useRef(null);
+            const [selectedSeason, setSelectedSeason] = useState(0);
+            const [selectedEpisode, setSelectedEpisode] = useState(
+                media.seasons?.[0]?.episodes?.[0] || null
+            );
+
+            useEffect(() => {
+                const video = videoRef.current;
+                if (!video) return;
+
+                const targetUrl = (media.type === 'series' || media.type === 'animados') && selectedEpisode 
+                    ? selectedEpisode.url 
+                    : media.url;
+
+                if (!targetUrl) return;
+
+                if (targetUrl.includes('.m3u8')) {
+                    if (Hls.isSupported()) {
+                        const hls = new Hls();
+                        hls.loadSource(targetUrl);
+                        hls.attachMedia(video);
+                    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                        video.src = targetUrl;
+                    }
+                } else {
+                    video.src = targetUrl;
+                }
+            }, [media, selectedEpisode]);
+
+            const isSeriesOrAnim = (media.type === 'series' || media.type === 'animados') && media.seasons && media.seasons.length > 0;
+            const activeUrl = isSeriesOrAnim && selectedEpisode ? selectedEpisode.url : media.url;
+            const isEmbed = activeUrl && (activeUrl.includes('drive.google.com') || activeUrl.includes('ok.ru'));
+
+            return (
+                <div className="max-w-6xl mx-auto py-4 space-y-6 animate-fade-in pb-32">
+                    <button onClick={onBack} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold border border-white/20 transition-all shadow">
+                        <i className="ph ph-arrow-left text-base"></i> Volver al Catálogo
+                    </button>
+
+                    <div className="w-full aspect-video bg-black rounded-3xl overflow-hidden shadow-2xl border border-white/20 relative">
+                        {isEmbed ? (
+                            <iframe 
+                                src={activeUrl} 
+                                className="w-full h-full border-0 absolute inset-0" 
+                                allow="autoplay; encrypted-media; fullscreen; picture-in-picture" 
+                                allowFullScreen
+                            ></iframe>
+                        ) : (
+                            <video 
+                                ref={videoRef}
+                                controls 
+                                autoPlay 
+                                playsInline
+                                className="w-full h-full object-contain"
+                            ></video>
+                        )}
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div className="lg:col-span-2 glass-panel rounded-3xl p-6 sm:p-8 space-y-3.5 border border-white/20 shadow-xl">
+                            <div className="flex items-center gap-2.5">
+                                <span className="px-3 py-1 rounded-full bg-magis-500/25 text-magis-500 text-[11px] font-black uppercase tracking-widest border border-magis-500/40">{media.group || media.type}</span>
+                                {media.year && <span className="text-xs text-gray-300 font-bold">{media.year}</span>}
+                            </div>
+                            <h1 className="brand-font text-2xl sm:text-4xl font-black text-high-contrast">{media.title}</h1>
+                            <p className="text-xs sm:text-sm text-subtitle-contrast leading-relaxed font-medium">{media.description || media.sinopsis || "Disfruta de esta transmisión exclusiva en alta definición desde Magic TV 2.0."}</p>
+                        </div>
+
+                        {isSeriesOrAnim && (
+                            <div className="glass-panel rounded-3xl p-6 space-y-4 border border-white/20 flex flex-col h-[420px] shadow-xl">
+                                <h3 className="brand-font font-black text-sm text-high-contrast uppercase tracking-wide">Temporadas y Episodios</h3>
+                                <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+                                    {media.seasons.map((season, sIdx) => (
+                                        <button 
+                                            key={sIdx} 
+                                            onClick={() => setSelectedSeason(sIdx)} 
+                                            className={`px-3 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap transition-all ${selectedSeason === sIdx ? 'bg-magis-500 text-white shadow-lg shadow-red-500/30' : 'bg-white/10 text-gray-300 hover:text-white hover:bg-white/20'}`}
+                                        >
+                                            Temporada {season.seasonNumber}
+                                        </button>
+                                    ))}
+                                </div>
+                                <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2.5 pr-1">
+                                    {media.seasons[selectedSeason]?.episodes?.map((ep, eIdx) => (
+                                        <div 
+                                            key={eIdx} 
+                                            onClick={() => setSelectedEpisode(ep)} 
+                                            className={`p-3 rounded-xl cursor-pointer flex items-center justify-between text-xs transition-all ${selectedEpisode?.url === ep.url ? 'bg-magis-500/25 text-white border border-magis-500/60 shadow-md font-bold' : 'bg-white/5 hover:bg-white/10 text-gray-200'}`}
+                                        >
+                                            <div className="flex items-center gap-3 truncate">
+                                                <span className="text-magis-500 font-black">{eIdx + 1}.</span>
+                                                <span className="truncate">{ep.title}</span>
+                                            </div>
+                                            <i className="ph-fill ph-play text-magis-500 text-sm"></i>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
     </script>
 </body>
 </html>
