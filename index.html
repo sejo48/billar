@@ -72,6 +72,7 @@
             align-items: flex-end;
             gap: 3px;
             height: 28px;
+            flex-shrink: 0;
         }
 
         .led-column {
@@ -588,7 +589,7 @@
                                 </div>
                             </div>
                             <div className="flex items-center gap-4">
-                                <div className="hidden sm:flex items-center mr-2">
+                                <div className="flex items-center mr-2">
                                     <LedEqualizer isPlaying={isPlayingRadio} />
                                 </div>
                                 <button onClick={() => setIsPlayingRadio(!isPlayingRadio)} className="w-12 h-12 rounded-full bg-zpink hover:bg-zpinkHover text-white flex items-center justify-center shadow-[0_0_20px_rgba(255,45,85,0.5)] transition-transform active:scale-95">
@@ -752,7 +753,7 @@
                             </div>
                             
                             <div className="relative z-10 w-48 sm:w-64 aspect-[2/3] sm:aspect-[4/5] rounded-2xl overflow-hidden shadow-2xl border border-white/20 flex-shrink-0 bg-black/40 flex items-center justify-center">
-                                <img src={featured.image} alt={featured.title} className="w-full h-full object-cover p-0" />
+                                <img src={featured.image} alt={featured.title} className="w-full h-full object-contain p-0" />
                             </div>
 
                             <div className="relative z-10 flex-1 space-y-4 text-center md:text-left">
@@ -791,7 +792,7 @@
                                 return (
                                     <div key={item.id} onClick={() => onSelect(item)} className="group glass-z rounded-2xl p-3 cursor-pointer hover:border-zpink transition-all duration-300 shadow-xl flex flex-col justify-between">
                                         <div className="aspect-[2/3] rounded-xl bg-black/80 overflow-hidden relative mb-3 border border-white/10 flex items-center justify-center">
-                                            <img src={item.image} alt={item.title} className="w-full h-full object-cover p-0 group-hover:scale-105 transition-transform duration-300" onError={(e) => e.target.src='https://placehold.co/300x450/121420/ff2d55?text=Poster'} />
+                                            <img src={item.image} alt={item.title} className="w-full h-full object-contain p-0 group-hover:scale-105 transition-transform duration-300" onError={(e) => e.target.src='https://placehold.co/300x450/121420/ff2d55?text=Poster'} />
                                             <button onClick={(e) => { e.stopPropagation(); onToggleFav(item); }} className="absolute top-2.5 right-2.5 p-2 rounded-full bg-black/60 text-white backdrop-blur-md shadow z-10">
                                                 <i className={`ph-fill ph-heart-straight ${isFav ? 'text-zpink' : 'text-white'}`}></i>
                                             </button>
@@ -819,6 +820,8 @@
             const [selectedChannel, setSelectedChannel] = useState(channels[0] || null);
             const [filterGroup, setFilterGroup] = useState('ALL');
             const [searchQuery, setSearchQuery] = useState('');
+            const playerRef = useRef(null);
+
             const groups = useMemo(() => ['ALL', ...Array.from(new Set(channels.map(c => c.group || 'Nacionales')))], [channels]);
 
             useEffect(() => {
@@ -826,6 +829,13 @@
                     setSelectedChannel(channels[0]);
                 }
             }, [channels]);
+
+            const handleSelectChannel = (channel) => {
+                setSelectedChannel(channel);
+                if (window.innerWidth < 1024 && playerRef.current) {
+                    playerRef.current.scrollIntoView({ behavior: 'smooth' });
+                }
+            };
 
             const filtered = channels.filter(c => {
                 const matchesGroup = filterGroup === 'ALL' || c.group === filterGroup;
@@ -836,64 +846,11 @@
             const isEmbed = selectedChannel?.url && (selectedChannel.url.includes('drive.google.com') || selectedChannel.url.includes('ok.ru'));
 
             return (
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-z-fade h-[calc(100vh-120px)]">
-                    {/* Left sidebar: Channel list */}
-                    <div className="glass-z rounded-3xl p-4 flex flex-col border border-white/10 shadow-2xl overflow-hidden h-full">
-                        <div className="p-2 border-b border-white/10 space-y-3">
-                            <div className="flex items-center justify-between">
-                                <h2 className="font-outfit font-black text-sm text-white flex items-center gap-2">
-                                    <i className="ph ph-television-simple text-zpink text-base"></i> Canales TV
-                                </h2>
-                                <span className="text-[10px] font-mono text-gray-400 bg-white/5 px-2.5 py-1 rounded-full border border-white/10">{channels.length} en vivo</span>
-                            </div>
-                            <div className="relative">
-                                <input 
-                                    type="text" 
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    placeholder="Buscar canal..."
-                                    className="w-full bg-zcard border border-white/15 rounded-xl px-3 py-2 text-xs text-white placeholder-gray-500 outline-none focus:border-zpink shadow-inner pl-9"
-                                />
-                                <i className="ph ph-magnifying-glass absolute left-3 top-2.5 text-gray-400 text-xs"></i>
-                            </div>
-                            <select 
-                                value={filterGroup} 
-                                onChange={(e) => setFilterGroup(e.target.value)}
-                                className="w-full bg-zcard border border-white/15 rounded-xl px-3 py-2 text-xs text-white font-bold outline-none focus:border-zpink shadow-inner cursor-pointer"
-                            >
-                                {groups.map(g => <option key={g} value={g}>{g === 'ALL' ? 'Todos los géneros / categorías' : g}</option>)}
-                            </select>
-                        </div>
-                        <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2 mt-3 pr-1">
-                            {filtered.map(channel => {
-                                const isActive = selectedChannel?.id === channel.id;
-                                const isFav = favorites.some(f => f.id === channel.id);
-                                return (
-                                    <div 
-                                        key={channel.id} 
-                                        onClick={() => setSelectedChannel(channel)} 
-                                        className={`group relative flex items-center gap-3 p-3 rounded-2xl cursor-pointer transition-all border ${isActive ? 'bg-zpink/20 border-zpink shadow-[0_0_15px_rgba(255,45,85,0.3)] border-l-4' : 'glass-z hover:bg-white/5 border-white/5'}`}
-                                    >
-                                        <div className="w-12 h-10 rounded-xl bg-black/80 flex items-center justify-center overflow-hidden flex-shrink-0 border border-white/10 relative">
-                                            <img src={channel.image} alt={channel.title} className="w-full h-full object-contain p-0.5" onError={(e) => e.target.src='https://placehold.co/300x300/121420/ff2d55?text=TV'} />
-                                            {isActive && <div className="absolute inset-0 bg-zpink/20 flex items-center justify-center"><div className="w-2 h-2 rounded-full bg-zpink animate-ping"></div></div>}
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <h4 className={`text-xs font-bold truncate transition-colors ${isActive ? 'text-zpink font-black' : 'text-white'}`}>{channel.title}</h4>
-                                            <span className="text-[10px] text-gray-400 truncate block mt-0.5">{channel.group || 'Nacionales'}</span>
-                                        </div>
-                                        <button onClick={(e) => { e.stopPropagation(); onToggleFav(channel); }} className="p-1.5 rounded-lg text-gray-400 hover:text-white transition-colors">
-                                            <i className={`ph-fill ph-heart-straight text-sm ${isFav ? 'text-zpink' : 'text-gray-500'}`}></i>
-                                        </button>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-
-                    {/* Right main area: Video player & info */}
-                    <div className="lg:col-span-2 flex flex-col gap-4 h-full">
-                        <div className="w-full aspect-video bg-black rounded-3xl overflow-hidden shadow-2xl border border-white/15 relative flex-1">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-z-fade">
+                    
+                    {/* Right main area: Video player & info (Prominent at top on mobile) */}
+                    <div className="lg:col-span-2 flex flex-col gap-4 order-1 lg:order-2" ref={playerRef}>
+                        <div className="w-full aspect-video bg-black rounded-3xl overflow-hidden shadow-2xl border border-white/15 relative">
                             {selectedChannel ? (
                                 isEmbed ? (
                                     <iframe src={selectedChannel.url} className="w-full h-full border-0 absolute inset-0" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowFullScreen></iframe>
@@ -926,6 +883,61 @@
                             </div>
                         )}
                     </div>
+
+                    {/* Left sidebar: Channel list (Below video on mobile, left on desktop) */}
+                    <div className="glass-z rounded-3xl p-4 flex flex-col border border-white/10 shadow-2xl overflow-hidden order-2 lg:order-1 h-[550px] lg:h-[calc(100vh-120px)]">
+                        <div className="p-2 border-b border-white/10 space-y-3">
+                            <div className="flex items-center justify-between">
+                                <h2 className="font-outfit font-black text-sm text-white flex items-center gap-2">
+                                    <i className="ph ph-television-simple text-zpink text-base"></i> Canales TV
+                                </h2>
+                                <span className="text-[10px] font-mono text-gray-400 bg-white/5 px-2.5 py-1 rounded-full border border-white/10">{channels.length} en vivo</span>
+                            </div>
+                            <div className="relative">
+                                <input 
+                                    type="text" 
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    placeholder="Buscar canal..."
+                                    className="w-full bg-zcard border border-white/15 rounded-xl px-3 py-2 text-xs text-white placeholder-gray-500 outline-none focus:border-zpink shadow-inner pl-9"
+                                />
+                                <i className="ph ph-magnifying-glass absolute left-3 top-2.5 text-gray-400 text-xs"></i>
+                            </div>
+                            <select 
+                                value={filterGroup} 
+                                onChange={(e) => setFilterGroup(e.target.value)}
+                                className="w-full bg-zcard border border-white/15 rounded-xl px-3 py-2 text-xs text-white font-bold outline-none focus:border-zpink shadow-inner cursor-pointer"
+                            >
+                                {groups.map(g => <option key={g} value={g}>{g === 'ALL' ? 'Todos los géneros / categorías' : g}</option>)}
+                            </select>
+                        </div>
+                        <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2 mt-3 pr-1">
+                            {filtered.map(channel => {
+                                const isActive = selectedChannel?.id === channel.id;
+                                const isFav = favorites.some(f => f.id === channel.id);
+                                return (
+                                    <div 
+                                        key={channel.id} 
+                                        onClick={() => handleSelectChannel(channel)} 
+                                        className={`group relative flex items-center gap-3 p-3 rounded-2xl cursor-pointer transition-all border ${isActive ? 'bg-zpink/20 border-zpink shadow-[0_0_15px_rgba(255,45,85,0.3)] border-l-4' : 'glass-z hover:bg-white/5 border-white/5'}`}
+                                    >
+                                        <div className="w-12 h-10 rounded-xl bg-black/80 flex items-center justify-center overflow-hidden flex-shrink-0 border border-white/10 relative">
+                                            <img src={channel.image} alt={channel.title} className="w-full h-full object-contain p-0.5" onError={(e) => e.target.src='https://placehold.co/300x300/121420/ff2d55?text=TV'} />
+                                            {isActive && <div className="absolute inset-0 bg-zpink/20 flex items-center justify-center"><div className="w-2 h-2 rounded-full bg-zpink animate-ping"></div></div>}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h4 className={`text-xs font-bold truncate transition-colors ${isActive ? 'text-zpink font-black' : 'text-white'}`}>{channel.title}</h4>
+                                            <span className="text-[10px] text-gray-400 truncate block mt-0.5">{channel.group || 'Nacionales'}</span>
+                                        </div>
+                                        <button onClick={(e) => { e.stopPropagation(); onToggleFav(channel); }} className="p-1.5 rounded-lg text-gray-400 hover:text-white transition-colors">
+                                            <i className={`ph-fill ph-heart-straight text-sm ${isFav ? 'text-zpink' : 'text-gray-500'}`}></i>
+                                        </button>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+
                 </div>
             );
         };
@@ -976,7 +988,7 @@
 
             return (
                 <div className="space-y-6 animate-z-fade">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                         <div>
                             <h1 className="font-outfit text-2xl sm:text-3xl font-black text-white">Radio HD Costa Rica</h1>
                             <p className="text-xs sm:text-sm text-gray-400 mt-1">Emisoras nacionales en directo con calidad cristalina.</p>
@@ -991,7 +1003,7 @@
                             const active = activeRadio?.id === station.id && isPlaying;
                             return (
                                 <div key={station.id} onClick={() => onPlayStation(station)} className={`group glass-z rounded-2xl p-4 cursor-pointer hover:border-zpink transition-all flex items-center justify-between shadow-xl ${active ? 'border-zpink shadow-[0_0_20px_rgba(255,45,85,0.3)] bg-zpink/10' : ''}`}>
-                                    <div className="flex items-center gap-3.5 min-w-0">
+                                    <div className="flex items-center gap-3.5 min-w-0 flex-1 pr-2">
                                         <div className="w-14 h-14 rounded-xl overflow-hidden bg-black border border-white/10 relative flex items-center justify-center flex-shrink-0">
                                             <img src={station.image} alt={station.title} className="w-full h-full object-cover" onError={(e) => e.target.src='https://placehold.co/300x300/121420/ffffff?text=Radio'} />
                                             {active && (
@@ -1000,12 +1012,17 @@
                                                 </div>
                                             )}
                                         </div>
-                                        <div className="min-w-0 pr-2">
+                                        <div className="min-w-0 flex-1">
                                             <h3 className="font-bold text-xs sm:text-sm text-white truncate">{station.title}</h3>
                                             <span className="text-[11px] text-gray-400 block truncate mt-0.5">{station.group}</span>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-2 flex-shrink-0">
+                                    <div className="flex items-center gap-3 flex-shrink-0">
+                                        {active && (
+                                            <div className="flex items-center">
+                                                <LedEqualizer isPlaying={true} />
+                                            </div>
+                                        )}
                                         <div className="w-10 h-10 rounded-full flex items-center justify-center text-white bg-white/10 group-hover:bg-zpink transition-all shadow">
                                             <i className={`ph-fill ${active ? 'ph-pause' : 'ph-play ml-0.5 text-base'}`}></i>
                                         </div>
@@ -1036,7 +1053,7 @@
                                 <div className="aspect-[2/3] rounded-xl bg-black/80 overflow-hidden relative mb-2.5 flex items-center justify-center border border-white/10">
                                     <img src={item.image} alt={item.title} className="w-full h-full object-contain p-0" onError={(e) => e.target.src='https://placehold.co/300x450/121420/ff2d55?text=Magic'} />
                                     <button onClick={(e) => { e.stopPropagation(); onToggleFav(item); }} className="absolute top-2 right-2 p-1.5 rounded-full bg-black/70 text-white backdrop-blur-md shadow z-10">
-                                        <i className="ph-fill ph-heart-straight text-zpink"></i>
+                                        <i className={`ph-fill ph-heart-straight text-zpink`}></i>
                                     </button>
                                 </div>
                                 <h3 className="font-bold text-xs text-white truncate">{item.title}</h3>
