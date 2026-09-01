@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="es" class="dark">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Magic TV 3.0 — Entretenimiento Sin Límites</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Magic TV 2.0 Z-Gen Ultimate - Jorge Arturo Hernández Méndez</title>
     
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -12,228 +13,139 @@
             theme: {
                 extend: {
                     colors: {
-                        bg: '#050508',
-                        surface: '#0F1018',
-                        card: '#181A28',
-                        accent: '#FF3B71',
-                        accentLight: '#FF6B9D',
-                        accentDark: '#E0245E',
-                        secondary: '#6366F1',
-                        secondaryLight: '#818CF8',
-                        neutral: '#27293D',
-                        border: 'rgba(255, 255, 255, 0.06)',
-                        textMain: '#F8F9FC',
-                        textMuted: '#9CA3AF'
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'Plus Jakarta Sans', 'system-ui', 'sans-serif'],
-                        display: ['Outfit', 'sans-serif']
-                    },
-                    boxShadow: {
-                        'glow': '0 0 20px rgba(255, 59, 113, 0.35)',
-                        'glow-soft': '0 0 40px rgba(99, 102, 241, 0.2)',
-                        'float': '0 8px 32px rgba(0,0,0,0.45)'
+                        zdark: '#0a0b10',
+                        zcard: '#121420',
+                        zpink: '#ff2d55',
+                        zpinkHover: '#e02446',
+                        zborder: 'rgba(255, 255, 255, 0.08)'
                     }
                 }
             }
         }
     </script>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-    <script src="https://unpkg.com/@phosphor-icons/web@2.1.1/dist/phosphor.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+    <!-- React 18 & Babel -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
+    <!-- Fonts & Phosphor Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@500;700;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
     <style>
-        * { box-sizing: border-box; }
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #050508;
-            color: #F8F9FC;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0a0b10;
+            color: #ffffff;
             overflow-x: hidden;
             -webkit-tap-highlight-color: transparent;
-            margin: 0;
-            padding-bottom: 80px;
         }
-        .font-display { font-family: 'Outfit', sans-serif; }
-        ::-webkit-scrollbar { width: 4px; height: 4px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { 
-            background: linear-gradient(180deg, #FF3B71, #6366F1); 
-            border-radius: 10px; 
-        }
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(24px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes float {
-            0%, 100% { transform: translateY(0) rotate(0deg); }
-            50% { transform: translateY(-10px) rotate(1deg); }
-        }
-        @keyframes pulse-slow {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        @keyframes spin-slow {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-        .animate-fade-up { animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        .animate-float { animation: float 6s ease-in-out infinite; }
-        .animate-pulse-slow { animation: pulse-slow 2.5s ease-in-out infinite; }
-        .stagger-1 { animation-delay: 0.1s; }
-        .stagger-2 { animation-delay: 0.2s; }
-        .stagger-3 { animation-delay: 0.3s; }
-        .glass {
-            background: rgba(24, 26, 40, 0.72);
-            backdrop-filter: blur(24px) saturate(180%);
-            -webkit-backdrop-filter: blur(24px) saturate(180%);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-        }
-        .glass-light {
-            background: rgba(255, 255, 255, 0.04);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-        }
-        .grid-bg {
-            background-image: 
-                radial-gradient(circle at top left, rgba(99, 102, 241, 0.10) 0%, transparent 55%),
-                radial-gradient(circle at bottom right, rgba(255, 59, 113, 0.07) 0%, transparent 55%),
-                radial-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px);
-            background-size: 100% 60%, 100% 60%, 40px 40px;
-            background-repeat: no-repeat, no-repeat, repeat;
-        }
-        .card-hover {
-            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .card-hover:active {
-            transform: scale(0.97);
-        }
-        .card-hover:hover {
-            transform: translateY(-4px) scale(1.01);
-            border-color: rgba(255, 59, 113, 0.4);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 0 30px rgba(255, 59, 113, 0.15);
-        }
-        /* Equalizer */
-        .eq-container {
-            display: flex;
-            align-items: flex-end;
-            justify-content: center;
-            gap: 3px;
-            height: 32px;
-            width: 100%;
-        }
-        .eq-bar {
-            width: 5px;
-            background: linear-gradient(180deg, #FF3B71, #6366F1);
-            border-radius: 3px;
-            transform-origin: bottom;
-            transition: transform 0.15s ease;
-            will-change: transform;
-            box-shadow: 0 0 8px rgba(255, 59, 113, 0.4);
-        }
-        .eq-playing .eq-bar:nth-child(1) { animation: eqBounce1 0.6s ease-in-out infinite alternate; }
-        .eq-playing .eq-bar:nth-child(2) { animation: eqBounce2 0.5s ease-in-out infinite alternate; }
-        .eq-playing .eq-bar:nth-child(3) { animation: eqBounce3 0.7s ease-in-out infinite alternate; }
-        .eq-playing .eq-bar:nth-child(4) { animation: eqBounce4 0.45s ease-in-out infinite alternate; }
-        .eq-playing .eq-bar:nth-child(5) { animation: eqBounce5 0.55s ease-in-out infinite alternate; }
+        .font-outfit { font-family: 'Outfit', sans-serif; }
 
-        @keyframes eqBounce1 {
-            0% { transform: scaleY(0.2); }
-            100% { transform: scaleY(1.0); }
-        }
-        @keyframes eqBounce2 {
-            0% { transform: scaleY(0.4); }
-            100% { transform: scaleY(0.9); }
-        }
-        @keyframes eqBounce3 {
-            0% { transform: scaleY(0.1); }
-            100% { transform: scaleY(1.1); }
-        }
-        @keyframes eqBounce4 {
-            0% { transform: scaleY(0.6); }
-            100% { transform: scaleY(0.8); }
-        }
-        @keyframes eqBounce5 {
-            0% { transform: scaleY(0.3); }
-            100% { transform: scaleY(1.0); }
-        }
-        .radio-active {
-            border-color: #FF3B71 !important;
-            box-shadow: 0 0 30px rgba(255, 59, 113, 0.25), inset 0 0 30px rgba(255, 59, 113, 0.05);
-        }
-        /* bottom nav */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            z-index: 50;
-            background: rgba(5, 5, 8, 0.92);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-top: 1px solid rgba(255, 255, 255, 0.06);
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            height: 68px;
-            padding-bottom: env(safe-area-inset-bottom);
-        }
-        .bottom-nav button {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            flex: 1;
-            padding: 4px 0;
-            gap: 2px;
-            font-size: 10px;
-            color: #9CA3AF;
-            transition: color 0.2s;
-            border: none;
-            background: transparent;
-            cursor: pointer;
-            -webkit-tap-highlight-color: transparent;
-        }
-        .bottom-nav button i {
-            font-size: 22px;
-            line-height: 1;
-        }
-        .bottom-nav button.active {
-            color: #FF3B71;
-        }
-        .bottom-nav button span {
-            font-weight: 500;
-            letter-spacing: 0.3px;
-        }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0a0b10; }
+        ::-webkit-scrollbar-thumb { background: #ff2d55; border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb:hover { background: #e02446; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        @media (max-width: 640px) {
-            .header-title { font-size: 0.9rem; }
-            .poster-grid { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
+
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: translateY(12px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
         }
-        @media (min-width: 641px) {
-            .bottom-nav { display: none; }
-            body { padding-bottom: 0; }
+        .animate-z-fade { animation: fadeInScale 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+        @keyframes softFloat {
+            0% { transform: translateY(0px) scale(1); }
+            50% { transform: translateY(-6px) scale(1.02); }
+            100% { transform: translateY(0px) scale(1); }
         }
-        .tv-list-scroll {
-            scroll-behavior: smooth;
+        .animate-soft-float { animation: softFloat 4s ease-in-out infinite; }
+
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.15); }
         }
-        .tv-channel-active {
-            background: rgba(255, 59, 113, 0.12) !important;
-            border: 1px solid rgba(255, 59, 113, 0.5) !important;
-            box-shadow: 0 0 20px rgba(255, 59, 113, 0.15);
-            transition: all 0.3s ease;
+        .animate-pulse-glow { animation: pulseGlow 2s ease-in-out infinite; }
+
+        @keyframes attentionBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+        }
+        .animate-attention { animation: attentionBounce 2s ease-in-out infinite; }
+
+        .glass-z {
+            background: rgba(18, 20, 32, 0.88);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+
+        .led-equalizer-container {
+            display: flex;
+            align-items: flex-end;
+            gap: 3px;
+            height: 28px;
+            flex-shrink: 0;
+        }
+
+        .led-column {
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 2px;
+            width: 5px;
+            height: 100%;
+        }
+
+        .led-block {
+            width: 100%;
+            height: 3px;
+            background-color: rgba(255, 45, 85, 0.15);
+            border-radius: 1px;
+            transition: background-color 0.15s ease;
+        }
+
+        .led-column.active .led-block:nth-child(1) { animation: ledPulse 0.6s infinite alternate; }
+        .led-column.active .led-block:nth-child(2) { animation: ledPulse 0.5s infinite alternate 0.1s; }
+        .led-column.active .led-block:nth-child(3) { animation: ledPulse 0.7s infinite alternate 0.2s; }
+        .led-column.active .led-block:nth-child(4) { animation: ledPulse 0.4s infinite alternate 0.15s; }
+        .led-column.active .led-block:nth-child(5) { animation: ledPulse 0.65s infinite alternate 0.25s; }
+        .led-column.active .led-block:nth-child(6) { animation: ledPulse 0.55s infinite alternate 0.05s; }
+        .led-column.active .led-block:nth-child(7) { animation: ledPulse 0.45s infinite alternate 0.3s; }
+
+        @keyframes ledPulse {
+            0% { background-color: rgba(255, 45, 85, 0.2); }
+            50% { background-color: #ff7396; }
+            100% { background-color: #ff2d55; box-shadow: 0 0 6px #ff2d55; }
+        }
+
+        .z-grid-bg {
+            background-image: radial-gradient(rgba(255, 45, 85, 0.08) 1px, transparent 1px);
+            background-size: 32px 32px;
         }
     </style>
 </head>
-<body class="bg-bg text-textMain min-h-screen grid-bg selection:bg-accent/30">
-    <div id="root"></div>
+<body class="bg-zdark text-white min-h-screen z-grid-bg selection:bg-zpink selection:text-white">
+
+    <div id="root">
+        <div class="flex h-screen w-screen items-center justify-center bg-zdark flex-col">
+            <div class="relative w-20 h-20 mb-6">
+                <div class="absolute inset-0 rounded-3xl border-2 border-zpink animate-ping opacity-40"></div>
+                <div class="absolute inset-0 rounded-3xl border-2 border-zpink border-t-transparent animate-spin"></div>
+                <div class="absolute inset-2 rounded-2xl bg-zcard flex items-center justify-center text-zpink font-outfit font-black text-xl">2.0</div>
+            </div>
+            <h2 class="font-outfit text-lg font-extrabold tracking-wider text-white">MAGIC TV <span class="text-zpink">2.0 ULTIMATE</span></h2>
+            <p class="text-xs text-gray-400 mt-2 font-mono tracking-wide">CARGANDO EXPERIENCIA MULTIMEDIA...</p>
+        </div>
+    </div>
+
     <script type="text/babel">
         const { useState, useEffect, useRef, useMemo } = React;
+
         const safeStorage = {
             getItem: (key) => { try { return localStorage.getItem(key); } catch (e) { return null; } },
             setItem: (key, value) => { try { localStorage.setItem(key, value); } catch (e) { } }
@@ -246,16 +158,15 @@
             ANIMADOS: './animados.json',
             RADIOS: './radios.json'
         };
+
         const RAW_URLS = {
             TV: 'https://raw.githubusercontent.com/sejo48/StreamTube-V20/main/listaoficial.m3u',
             SERIES: 'https://raw.githubusercontent.com/sejo48/StreamTube-V20/main/playlist.json',
-            MOVIES: [
-                'https://raw.githubusercontent.com/sejo48/StreamTube-V20/main/peliculas.json',
-                'https://raw.githubusercontent.com/sejo48/StreamTube-V20/main/peliculas2.json'
-            ],
-            ANIMADOS: 'https://raw.githubusercontent.com/sejo48/StreamTube-V20/main/animados.json',
+            MOVIES: ['https://raw.githubusercontent.com/sejo48/StreamTube-V20/main/peliculas.json', 'https://raw.githubusercontent.com/sejo48/StreamTube-V20/main/peliculas2.json'],
+            ANIMADOS: 'https://raw.githubusercontent.com/sejo48/billar/refs/heads/main/animados.json',
             RADIOS: 'https://raw.githubusercontent.com/sejo48/StreamTube-V20/main/radios.json'
         };
+
         const QR_IMAGE_URL = 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgsPiFVGiGuwJ3smwIQGJ-25kEkpEZpmR4PNZLdRF0_3LVfWAj2xhWSHiK7pY-C3jera3PD_XpmEtNy0kaCW1m8dayT9ebTV3YNBmbzMZeHF_oIf2XlniVGt6pj6BqtTyWEaUts1Ll_vYx2RuJvlrF9rqIwWcYcwMkTcdLCI-bShcR_KhhoILWEkdJ4Z4w/s1600/mi-qr-pro.png';
 
         const DEFAULT_RADIO_STATIONS = [
@@ -265,20 +176,26 @@
             { id: 'cr-zeta', title: 'Zeta FM 95.1', group: 'Tropical / Latina', image: 'https://static.mytuner.mobi/media/tvos_radios/879/zeta-fm.feb3fb70.png', url: 'https://d5g44yionyslb.cloudfront.net/medialist_14854753276708185244_hls.m3u8' },
             { id: 'cr-monumental', title: 'Radio Monumental 93.5 FM', group: 'Noticias / Deportes', image: 'https://static.mytuner.mobi/media/tvos_radios/574/radio-monumental.7303764d.png', url: 'https://d26gdpbozqq700.cloudfront.net/medialist_14854753276708185244_hls.m3u8' },
             { id: 'cr-mejor', title: 'La Mejor 99.1 FM', group: 'Regional / Latina', image: 'https://static.mytuner.mobi/media/tvos_radios/575/la-mejor-991.95c72890.png', url: 'https://d3svz5xnvdysyz.cloudfront.net/medialist_14854753276708185244_hls.m3u8' },
-            { id: 'cr-r2', title: 'Radio Dos 99.5 FM', group: 'Clásicos / Rock', image: 'https://placehold.co/300x300/6366F1/ffffff?text=R2', url: 'https://icecasthd.teletica.com/radiodos' },
-            { id: 'cr-los40', title: 'Los 40 Costa Rica 104.3 FM', group: 'Éxitos / Urbano', image: 'https://placehold.co/300x300/F59E0B/000000?text=LOS40', url: 'https://icecasthd.teletica.com/los40' },
+            { id: 'cr-r2', title: 'Radio Dos 99.5 FM', group: 'Clásicos / Rock', image: 'https://placehold.co/300x300/0033a0/ffffff?text=R2', url: 'https://icecasthd.teletica.com/radiodos' },
+            { id: 'cr-los40', title: 'Los 40 Costa Rica 104.3 FM', group: 'Éxitos / Urbano', image: 'https://placehold.co/300x300/ffcc00/000000?text=Los40', url: 'https://icecasthd.teletica.com/los40' },
             { id: 'cr-disney', title: 'Radio Disney 101.1 FM', group: 'Pop / Éxitos', image: 'https://static.mytuner.mobi/media/tvos_radios/652/radio-disney-costa-rica.d297c76c.jpg', url: 'https://26673.live.streamtheworld.com/DISNEY_CRI_SJ_ADP/HLS/031b1ae7-b742-4bf3-8001-31b8478440ef/0/playlist.m3u8' },
-            { id: 'cr-wao', title: 'WAO 92.3 FM', group: 'Urbano / Reggaeton', image: 'https://placehold.co/300x300/FF3B71/ffffff?text=WAO', url: 'https://icecasthd.teletica.com/wao' },
+            { id: 'cr-wao', title: 'WAO 92.3 FM', group: 'Urbano / Reggaeton', image: 'https://placehold.co/300x300/fd7e14/ffffff?text=WAO', url: 'https://icecasthd.teletica.com/wao' },
             { id: 'cr-musical', title: 'Radio Musical 97.5 FM', group: 'Romántica / Latina', image: 'https://static.mytuner.mobi/media/tvos_radios/085/radio-musical.fea3e089.jpg', url: 'https://live.turadio.stream:7005/stream/1/' }
         ];
 
         const convertUrl = (url) => {
             if (!url) return '';
+            if (url.includes('ok.ru/video/search') || url.includes('ok.ru/search')) return url;
             if (url.includes('ok.ru/video/')) return url.replace('ok.ru/video/', 'ok.ru/videoembed/');
             if (url.includes('drive.google.com')) {
                 let fileId = '';
-                if (url.includes('/file/d/')) fileId = url.split('/file/d/')[1]?.split('/')[0];
-                else if (url.includes('id=')) fileId = url.split('id=')[1]?.split('&')[0];
+                if (url.includes('/file/d/')) {
+                    const parts = url.split('/file/d/');
+                    if (parts[1]) fileId = parts[1].split('/')[0];
+                } else if (url.includes('id=')) {
+                    const parts = url.split('id=');
+                    if (parts[1]) fileId = parts[1].split('&')[0];
+                }
                 if (fileId) return `https://drive.google.com/file/d/${fileId}/preview`;
             }
             return url;
@@ -290,13 +207,19 @@
                 const res = await fetch(localUrl + cacheBust);
                 if (res.ok) {
                     const text = await res.text();
-                    if (!text.trim().startsWith('<!DOCTYPE')) return isJson ? JSON.parse(text) : text;
+                    if (!text.trim().startsWith('<!DOCTYPE html') && !text.trim().startsWith('<html')) {
+                        return isJson ? JSON.parse(text) : text;
+                    }
                 }
             } catch (e) {}
+
             try {
                 const resRaw = await fetch(rawUrl + cacheBust);
-                if (resRaw.ok) return isJson ? await resRaw.json() : await resRaw.text();
+                if (resRaw.ok) {
+                    return isJson ? await resRaw.json() : await resRaw.text();
+                }
             } catch (e) {}
+
             return null;
         };
 
@@ -306,46 +229,44 @@
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i].trim();
                 if (line.startsWith('#EXTINF:')) {
-                    const url = lines[i + 1]?.trim() || '';
-                    if (url.startsWith('http')) {
-                        const logo = line.match(/tvg-logo="([^"]*)"/)?.[1] || '';
-                        const group = line.match(/group-title="([^"]*)"/)?.[1] || 'Nacionales';
-                        const title = line.slice(line.lastIndexOf(',') + 1).trim() || 'Canal en Vivo';
-                        channels.push({ id: `tv-${i}`, title, image: logo || 'https://placehold.co/300x200/181A28/FF3B71?text=Magic+TV', group, url, type: 'tv' });
+                    let title = 'Canal en Vivo';
+                    const url = lines[i + 1] ? lines[i + 1].trim() : '';
+                    if (url && url.startsWith('http')) {
+                        const logoMatch = line.match(/tvg-logo="([^"]*)"/);
+                        const logo = logoMatch ? logoMatch[1] : '';
+                        const groupMatch = line.match(/group-title="([^"]*)"/);
+                        const group = groupMatch ? groupMatch[1] : 'Nacionales';
+                        const commaIndex = line.lastIndexOf(',');
+                        if (commaIndex !== -1) title = line.substring(commaIndex + 1).trim();
+                        channels.push({ 
+                            id: `tv-${i}`, 
+                            title, 
+                            image: logo || 'https://placehold.co/300x200/121420/ff2d55?text=Magic+TV', 
+                            group, 
+                            url, 
+                            type: 'tv' 
+                        });
                     }
                 }
             }
             return channels;
         };
 
-        const Equalizer = ({ playing }) => (
-            <div className={`eq-container ${playing ? 'eq-playing' : ''}`}>
-                {[1,2,3,4,5].map(i => <div key={i} className="eq-bar" style={{ height: `${20 + (i * 10)}%` }} />)}
-            </div>
-        );
-
-        const SplashScreen = () => (
-            <div className="fixed inset-0 flex flex-col items-center justify-center z-50 bg-bg">
-                <div className="relative mb-8">
-                    <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-accent via-secondary to-accentLight p-1 animate-pulse-slow">
-                        <div className="w-full h-full rounded-3xl bg-bg flex items-center justify-center">
-                            <i className="ph-fill ph-play text-3xl text-accent ml-1"></i>
-                        </div>
+        const LedEqualizer = ({ isPlaying }) => (
+            <div className="led-equalizer-container">
+                {[1, 2, 3].map(col => (
+                    <div key={col} className={`led-column ${isPlaying ? 'active' : ''}`}>
+                        {[1, 2, 3, 4, 5, 6, 7].map(block => (
+                            <div key={block} className="led-block"></div>
+                        ))}
                     </div>
-                    <div className="absolute -inset-3 rounded-full border border-accent/30 animate-[spin-slow_8s_linear_infinite]"></div>
-                </div>
-                <h1 className="font-display text-2xl font-extrabold tracking-tight">
-                    MAGIC <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-secondary">TV 3.0</span>
-                </h1>
-                <p className="text-textMuted text-xs mt-2 tracking-widest uppercase">Cargando experiencia...</p>
+                ))}
             </div>
         );
 
-        // ------------------------------------------------------------
-        // APP
-        // ------------------------------------------------------------
         const App = () => {
             const [currentTab, setCurrentTab] = useState('home');
+            const [searchQuery, setSearchQuery] = useState('');
             const [activeMedia, setActiveMedia] = useState(null);
             const [favorites, setFavorites] = useState([]);
             const [activeRadio, setActiveRadio] = useState(null);
@@ -353,17 +274,28 @@
             const [radioVolume, setRadioVolume] = useState(0.8);
             const [showQrModal, setShowQrModal] = useState(false);
             const [showAuthorModal, setShowAuthorModal] = useState(false);
+            const [showCtrlDTooltip, setShowCtrlDTooltip] = useState(false);
             const [loading, setLoading] = useState(true);
-            const [content, setContent] = useState({ tv: [], movies: [], series: [], animados: [], radios: DEFAULT_RADIO_STATIONS });
-            
+
+            const [content, setContent] = useState({
+                tv: [],
+                movies: [],
+                series: [],
+                animados: [],
+                radios: DEFAULT_RADIO_STATIONS
+            });
+
             const audioRef = useRef(null);
             const hlsRef = useRef(null);
 
-            // Cargar datos
             useEffect(() => {
                 const loadData = async () => {
+                    const startTime = Date.now();
                     try {
-                        const moviePromises = URLS.MOVIES.map((p, i) => fetchSmart(p, RAW_URLS.MOVIES[i], true));
+                        const moviePromises = URLS.MOVIES.map((localPath, idx) => 
+                            fetchSmart(localPath, RAW_URLS.MOVIES[idx], true)
+                        );
+
                         const [dataTV, dataSeries, dataAnimados, dataRadios, ...moviesResults] = await Promise.all([
                             fetchSmart(URLS.TV, RAW_URLS.TV, false),
                             fetchSmart(URLS.SERIES, RAW_URLS.SERIES, true),
@@ -372,535 +304,386 @@
                             ...moviePromises
                         ]);
 
-                        const tvChannels = dataTV ? parseM3U(dataTV) : [];
+                        let tvChannels = dataTV ? parseM3U(dataTV) : [];
                         
-                        const moviesList = [];
-                        moviesResults.forEach((data, idx) => {
-                            if (data) {
-                                const raw = Array.isArray(data) ? data : (data.peliculas || data.content || []);
-                                raw.map(m => moviesList.push({
+                        let moviesList = [];
+                        moviesResults.forEach((dataMovies, fileIdx) => {
+                            if (dataMovies) {
+                                const rawMovies = Array.isArray(dataMovies) ? dataMovies : (dataMovies.peliculas || dataMovies.content || []);
+                                const mapped = rawMovies.map((m, idx) => ({
                                     ...m,
-                                    id: `mov-${idx}-${moviesList.length}`,
+                                    id: `mov-${fileIdx}-${idx}`,
                                     type: 'movies',
                                     title: m.titulo || m.title || m.name,
                                     description: m.descripcion || m.sinopsis || m.plot,
                                     image: m.imagen || m.poster || m.image,
                                     url: convertUrl(m.urlDrive || m.url || m.urlOkRu),
-                                    group: 'Cine Premium',
-                                    rating: m.rating || '9.3'
+                                    group: 'Cine Z-Gen',
+                                    rating: m.rating || '9.4'
                                 }));
+                                moviesList = [...moviesList, ...mapped];
                             }
                         });
 
-                        const seriesList = [];
+                        let seriesList = [];
                         if (dataSeries) {
-                            const raw = Array.isArray(dataSeries) ? dataSeries : (dataSeries.series || []);
-                            raw.map((s, i) => seriesList.push({
+                            const rawSeries = Array.isArray(dataSeries) ? dataSeries : (dataSeries.series || dataSeries.content || []);
+                            seriesList = rawSeries.map((s, idx) => ({
                                 ...s,
-                                id: `serie-${i}`,
+                                id: `serie-${idx}`,
                                 type: 'series',
                                 title: s.tituloSerie || s.titulo || s.title || s.name,
                                 description: s.descripcion || s.sinopsis,
                                 image: s.imagen || s.poster || s.image,
                                 group: 'Series',
-                                seasons: (s.temporadas || []).map((t, ti) => ({
-                                    seasonNumber: t.numeroTemporada || ti + 1,
-                                    episodes: (t.episodios || []).map((ep, ei) => ({
-                                        id: `ep-${i}-${ti}-${ei}`,
-                                        title: ep.tituloEpisodio || ep.titulo || `Episodio ${ei + 1}`,
+                                seasons: (s.temporadas || []).map((t, tIdx) => ({
+                                    seasonNumber: t.numeroTemporada || (tIdx + 1),
+                                    episodes: (t.episodios || []).map((ep, eIdx) => ({
+                                        id: `ep-${idx}-${tIdx}-${eIdx}`,
+                                        title: ep.tituloEpisodio || ep.titulo || `Episodio ${eIdx + 1}`,
                                         url: convertUrl(ep.urlDrive || ep.url)
                                     }))
                                 }))
                             }));
                         }
 
-                        const animadosList = [];
+                        let animadosList = [];
                         if (dataAnimados) {
-                            const raw = Array.isArray(dataAnimados) ? dataAnimados : (dataAnimados.animados || []);
-                            raw.map((a, i) => animadosList.push({
+                            const rawAnimados = Array.isArray(dataAnimados) ? dataAnimados : (dataAnimados.animados || dataAnimados.series || dataAnimados.content || []);
+                            animadosList = rawAnimados.map((a, idx) => ({
                                 ...a,
-                                id: `anim-${i}`,
+                                id: `anim-${idx}`,
                                 type: 'animados',
                                 title: a.titulo || a.tituloSerie || a.title || a.name,
                                 description: a.descripcion || a.sinopsis,
                                 image: a.imagen || a.poster || a.image,
-                                group: 'Animados & Familia',
-                                seasons: (a.temporadas || []).map((t, ti) => ({
-                                    seasonNumber: t.numeroTemporada || ti + 1,
-                                    episodes: (t.episodios || []).map((ep, ei) => ({
-                                        id: `epanim-${i}-${ti}-${ei}`,
-                                        title: ep.tituloEpisodio || ep.titulo || `Episodio ${ei + 1}`,
+                                group: 'Animados & Kids',
+                                seasons: (a.temporadas || []).length > 0 ? a.temporadas.map((t, tIdx) => ({
+                                    seasonNumber: t.numeroTemporada || (tIdx + 1),
+                                    episodes: (t.episodios || []).map((ep, eIdx) => ({
+                                        id: `ep-anim-${idx}-${tIdx}-${eIdx}`,
+                                        title: ep.tituloEpisodio || ep.titulo || `Episodio ${eIdx + 1}`,
                                         url: convertUrl(ep.urlDrive || ep.url)
                                     }))
-                                }))
+                                })) : [{
+                                    seasonNumber: 1,
+                                    episodes: [{
+                                        id: `ep-anim-single-${idx}`,
+                                        title: a.titulo || a.title || 'Reproducir',
+                                        url: convertUrl(a.urlDrive || a.url || a.urlOkRu)
+                                    }]
+                                }]
                             }));
                         }
 
                         let radioList = DEFAULT_RADIO_STATIONS;
                         if (dataRadios) {
                             const list = Array.isArray(dataRadios) ? dataRadios : (dataRadios.radios || dataRadios.emisoras || []);
-                            if (list.length) radioList = list;
+                            if (list.length > 0) radioList = list;
                         }
 
-                        setContent({ tv: tvChannels, movies: moviesList, series: seriesList, animados: animadosList, radios: radioList });
-                    } catch (e) { console.error('Error cargando contenido:', e); }
-                    finally { setLoading(false); }
+                        setContent({
+                            tv: tvChannels,
+                            movies: moviesList,
+                            series: seriesList,
+                            animados: animadosList,
+                            radios: radioList
+                        });
+                    } catch (e) {
+                        console.error("Error loading Magic TV 2.0 content", e);
+                    } finally {
+                        const elapsed = Date.now() - startTime;
+                        const remaining = Math.max(0, 3000 - elapsed);
+                        setTimeout(() => {
+                            setLoading(false);
+                        }, remaining);
+                    }
                 };
+
                 loadData();
-                const saved = safeStorage.getItem('magictv3_favs');
-                if (saved) try { setFavorites(JSON.parse(saved)); } catch(e) {}
+
+                const savedFavs = safeStorage.getItem('magistv2_zgen_favs');
+                if (savedFavs) {
+                    try { setFavorites(JSON.parse(savedFavs)); } catch(e) {}
+                }
             }, []);
 
             const toggleFavorite = (item) => {
-                const id = item.id || item.title;
-                const updated = favorites.some(f => (f.id || f.title) === id)
-                    ? favorites.filter(f => (f.id || f.title) !== id)
+                const itemId = item.id || item.title;
+                const updated = favorites.some(f => (f.id || f.title) === itemId) 
+                    ? favorites.filter(f => (f.id || f.title) !== itemId) 
                     : [...favorites, item];
                 setFavorites(updated);
-                safeStorage.setItem('magictv3_favs', JSON.stringify(updated));
+                safeStorage.setItem('magistv2_zgen_favs', JSON.stringify(updated));
             };
 
-            // Radio
             useEffect(() => {
                 if (!audioRef.current) {
                     audioRef.current = new Audio();
-                    audioRef.current.crossOrigin = 'anonymous';
-                    audioRef.current.addEventListener('error', () => setIsPlayingRadio(false));
+                    audioRef.current.crossOrigin = "anonymous";
+                    
+                    audioRef.current.addEventListener('error', () => {
+                        setIsPlayingRadio(false);
+                    });
                 }
+
                 const audio = audioRef.current;
                 audio.volume = radioVolume;
+
                 if (activeRadio) {
-                    const play = () => audio.play().catch(() => setIsPlayingRadio(false));
+                    const playAudio = () => {
+                        audio.play().catch(() => {
+                            setIsPlayingRadio(false);
+                        });
+                    };
+
                     if (audio.dataset.currentUrl !== activeRadio.url) {
                         audio.dataset.currentUrl = activeRadio.url;
-                        hlsRef.current?.destroy();
-                        hlsRef.current = null;
-                        if (activeRadio.url.includes('.m3u8') && Hls.isSupported()) {
+
+                        if (hlsRef.current) {
+                            hlsRef.current.destroy();
+                            hlsRef.current = null;
+                        }
+
+                        if (activeRadio.url.includes('.m3u8') && typeof Hls !== 'undefined' && Hls.isSupported()) {
                             const hls = new Hls();
                             hlsRef.current = hls;
                             hls.loadSource(activeRadio.url);
                             hls.attachMedia(audio);
-                            hls.on(Hls.Events.MANIFEST_PARSED, () => isPlayingRadio && play());
+                            hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                                if (isPlayingRadio) playAudio();
+                            });
                         } else {
                             audio.src = activeRadio.url;
                             audio.load();
-                            isPlayingRadio && play();
+                            if (isPlayingRadio) playAudio();
                         }
                     } else {
-                        isPlayingRadio ? play() : audio.pause();
+                        if (isPlayingRadio) playAudio();
+                        else audio.pause();
                     }
                 }
-            }, [activeRadio, isPlayingRadio, radioVolume]);
+            }, [activeRadio, isPlayingRadio]);
+
+            useEffect(() => {
+                if (audioRef.current) audioRef.current.volume = radioVolume;
+            }, [radioVolume]);
 
             const handlePlayStation = (station) => {
-                if (activeRadio?.id === station.id) setIsPlayingRadio(!isPlayingRadio);
-                else { setActiveRadio(station); setIsPlayingRadio(true); }
+                if (activeRadio?.id === station.id) {
+                    setIsPlayingRadio(!isPlayingRadio);
+                } else {
+                    setActiveRadio(station);
+                    setIsPlayingRadio(true);
+                }
             };
 
-            if (loading) return <SplashScreen />;
-
-            // ---------- Subcomponentes internos ----------
-            const MediaViewer = ({ media }) => {
-                const videoRef = useRef(null);
-                const [season, setSeason] = useState(0);
-                const [ep, setEp] = useState(media.seasons?.[0]?.episodes?.[0] || null);
-                const isSeries = (media.type === 'series' || media.type === 'animados') && media.seasons?.length > 0;
-                const url = isSeries && ep ? ep.url : media.url;
-                const isEmbed = url && (url.includes('drive.google.com') || url.includes('ok.ru'));
-
-                useEffect(() => {
-                    const v = videoRef.current;
-                    if (!v || !url) return;
-                    if (url.includes('.m3u8')) {
-                        if (Hls.isSupported()) {
-                            const hls = new Hls();
-                            hls.loadSource(url);
-                            hls.attachMedia(v);
-                        } else if (v.canPlayType('application/vnd.apple.mpegurl')) v.src = url;
-                    } else v.src = url;
-                }, [url]);
-
+            if (loading) {
                 return (
-                    <div className="space-y-4 animate-fade-up">
-                        <button onClick={() => setActiveMedia(null)} className="flex items-center gap-2 px-4 py-2 rounded-full glass-light hover:bg-white/10 transition-all text-sm">
-                            <i className="ph-arrow-left"></i> Volver
-                        </button>
-                        <div className="aspect-video rounded-2xl overflow-hidden bg-black shadow-float border border-white/5">
-                            {isEmbed ? <iframe src={url} className="w-full h-full border-0" allowFullScreen title={media.title} />
-                            : <video ref={videoRef} controls autoPlay playsInline className="w-full h-full" />}
+                    <div className="flex h-screen w-screen items-center justify-center bg-zdark flex-col animate-z-fade">
+                        <div className="relative w-20 h-20 mb-6">
+                            <div className="absolute inset-0 rounded-3xl border-2 border-zpink animate-ping opacity-40"></div>
+                            <div className="absolute inset-0 rounded-3xl border-2 border-zpink border-t-transparent animate-spin"></div>
+                            <div className="absolute inset-2 rounded-2xl bg-zcard flex items-center justify-center text-zpink font-outfit font-black text-xl">2.0</div>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div className="md:col-span-2 glass rounded-2xl p-4 space-y-3">
-                                <span className="px-3 py-1 rounded-full bg-accent/10 text-accent text-xs font-semibold inline-block">{media.group}</span>
-                                <h1 className="font-display text-2xl md:text-3xl font-extrabold">{media.title}</h1>
-                                <p className="text-textMuted text-sm leading-relaxed">{media.description || 'Disfruta de este contenido en calidad cristalina.'}</p>
-                            </div>
-                            {isSeries && (
-                                <div className="glass rounded-2xl p-4 space-y-3 max-h-[350px] flex flex-col">
-                                    <h3 className="font-bold text-sm">Temporadas y Episodios</h3>
-                                    <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
-                                        {media.seasons.map((t, i) => (
-                                            <button key={i} onClick={() => setSeason(i)} className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap ${season === i ? 'bg-accent text-white' : 'bg-surface hover:bg-white/5'}`}>
-                                                T {t.seasonNumber}
-                                            </button>
-                                        ))}
-                                    </div>
-                                    <div className="flex-1 overflow-y-auto space-y-2 pr-1">
-                                        {media.seasons[season].episodes.map((e, i) => (
-                                            <div key={i} onClick={() => setEp(e)} className={`p-2 rounded-xl cursor-pointer text-xs ${ep?.url === e.url ? 'bg-accent/10 border border-accent/30' : 'hover:bg-white/5'}`}>
-                                                {i + 1}. {e.title}
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
+                        <h2 className="font-outfit text-lg font-extrabold tracking-wider text-white">MAGIC TV <span className="text-zpink">2.0 ULTIMATE</span></h2>
+                        <p className="text-xs text-gray-400 mt-2 font-mono tracking-wide">CARGANDO EXPERIENCIA MULTIMEDIA...</p>
                     </div>
                 );
-            };
-
-            const HomeSection = () => {
-                const featured = useMemo(() => content.movies.slice(-10)[Math.floor(Math.random() * 10)] || content.movies[0] || content.series[0], [content.movies, content.series]);
-                return (
-                    <div className="space-y-8 animate-fade-up">
-                        {featured && (
-                            <div className="relative rounded-2xl overflow-hidden glass shadow-float border border-white/5 p-4 md:p-8 flex flex-col md:flex-row gap-6 items-center">
-                                <div className="absolute inset-0 -z-10">
-                                    <img src={featured.image} alt="" className="w-full h-full object-cover blur-3xl opacity-20 scale-125" />
-                                    <div className="absolute inset-0 bg-gradient-to-r from-bg via-bg/80 to-transparent"></div>
-                                </div>
-                                <div className="w-32 md:w-52 aspect-[2/3] rounded-xl overflow-hidden shadow-2xl border border-white/10 animate-float flex-shrink-0">
-                                    <img src={featured.image} alt={featured.title} className="w-full h-full object-contain bg-black/40" />
-                                </div>
-                                <div className="flex-1 space-y-3 text-center md:text-left">
-                                    <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 text-xs text-textMuted">
-                                        <span className="px-2 py-0.5 rounded-full bg-accent/10 text-accent font-semibold">✨ Recomendado</span>
-                                        <span>★ {featured.rating || '9.3'}</span>
-                                    </div>
-                                    <h2 className="font-display text-2xl md:text-4xl font-extrabold leading-tight">{featured.title}</h2>
-                                    <p className="text-textMuted text-sm leading-relaxed max-w-2xl mx-auto md:mx-0">{featured.description || 'Disfruta de este contenido en calidad cristalina.'}</p>
-                                    <div className="flex flex-wrap gap-3 pt-2 justify-center md:justify-start">
-                                        <button onClick={() => setActiveMedia(featured)} className="px-5 py-2.5 rounded-full bg-gradient-to-r from-accent to-secondary text-white font-bold shadow-glow hover:shadow-glow-soft transition-all active:scale-95 text-sm">
-                                            <i className="ph-fill ph-play mr-2"></i> Reproducir
-                                        </button>
-                                        <button onClick={() => toggleFavorite(featured)} className="w-10 h-10 rounded-full glass-light flex items-center justify-center hover:bg-white/10 transition-all">
-                                            <i className={`ph-fill ph-heart ${favorites.some(f => f.id === featured.id) ? 'text-accent' : 'text-textMuted'}`}></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                        {[
-                            { title: 'Películas', items: content.movies.slice(0, 4), tab: 'movies' },
-                            { title: 'Series', items: content.series.slice(0, 4), tab: 'series' },
-                            { title: 'Animados', items: content.animados.slice(0, 4), tab: 'animados' }
-                        ].map(section => (
-                            <section key={section.tab} className="animate-fade-up stagger-1">
-                                <div className="flex items-center justify-between mb-3">
-                                    <h3 className="font-display text-lg font-bold">{section.title}</h3>
-                                    <button onClick={() => setCurrentTab(section.tab)} className="text-accent text-xs font-semibold hover:underline">Ver todo →</button>
-                                </div>
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                    {section.items.map(item => (
-                                        <div key={item.id} onClick={() => setActiveMedia(item)} className="glass rounded-xl p-2 card-hover cursor-pointer">
-                                            <div className="aspect-[2/3] rounded-lg overflow-hidden mb-2 bg-black/50 relative group">
-                                                <img src={item.image} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onError={e => e.target.src='https://placehold.co/300x450/181A28/FF3B71?text=Magic+TV'} />
-                                                <button onClick={e => { e.stopPropagation(); toggleFavorite(item); }} className="absolute top-1 right-1 w-7 h-7 rounded-full bg-black/60 flex items-center justify-center backdrop-blur-md">
-                                                    <i className={`ph-fill ph-heart text-xs ${favorites.some(f => f.id === item.id) ? 'text-accent' : 'text-white/70'}`} />
-                                                </button>
-                                            </div>
-                                            <h4 className="font-semibold text-xs truncate">{item.title}</h4>
-                                            <p className="text-xs text-textMuted mt-0.5">★ {item.rating || '9.0'}</p>
-                                        </div>
-                                    ))}
-                                </div>
-                            </section>
-                        ))}
-                    </div>
-                );
-            };
-
-            // ---------- SECCIÓN TV CON SCROLL AUTOMÁTICO AL REPRODUCTOR ----------
-            const TVSection = () => {
-                const [selected, setSelected] = useState(content.tv[0] || null);
-                const [filter, setFilter] = useState('ALL');
-                const listRef = useRef(null);
-                const playerRef = useRef(null); // <-- referencia al contenedor del reproductor
-
-                const groups = useMemo(() => ['ALL', ...Array.from(new Set(content.tv.map(c => c.group || 'Nacionales')))], [content.tv]);
-                const filtered = useMemo(() => content.tv.filter(c => filter === 'ALL' || c.group === filter), [content.tv, filter]);
-                const isEmbed = selected?.url && (selected.url.includes('drive.google.com') || selected.url.includes('ok.ru'));
-
-                // Función para seleccionar canal y hacer scroll al reproductor
-                const selectChannel = (ch) => {
-                    setSelected(ch);
-                    // Desplazamiento suave hacia el reproductor
-                    if (playerRef.current) {
-                        playerRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }
-                };
-
-                // Efecto para hacer scroll dentro de la lista (mantener visible el canal activo)
-                useEffect(() => {
-                    if (listRef.current && selected) {
-                        const activeEl = listRef.current.querySelector('.tv-channel-active');
-                        if (activeEl) {
-                            activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                        }
-                    }
-                }, [selected]);
-
-                return (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 animate-fade-up">
-                        <div className="md:col-span-2 space-y-4">
-                            {/* Contenedor del reproductor con ref */}
-                            <div ref={playerRef} className="aspect-video rounded-2xl overflow-hidden bg-black shadow-float border border-white/5">
-                                {selected ? (
-                                    isEmbed ? <iframe src={selected.url} className="w-full h-full border-0" allowFullScreen title={selected.title} />
-                                    : <video src={selected.url} controls autoPlay playsInline className="w-full h-full" />
-                                ) : <div className="flex flex-col items-center justify-center h-full text-textMuted"><i className="ph-tv text-4xl mb-2" /><p>Selecciona un canal</p></div>}
-                            </div>
-                            {selected && (
-                                <div className="glass rounded-2xl p-3 flex items-center gap-3">
-                                    <img src={selected.image} alt="" className="w-12 h-12 rounded-lg object-contain bg-black/40 p-1" />
-                                    <div className="flex-1">
-                                        <h3 className="font-bold text-base">{selected.title}</h3>
-                                        <p className="text-accent text-xs flex items-center gap-2 mt-0.5">
-                                            <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse"></span> En vivo · HD
-                                        </p>
-                                    </div>
-                                    <button onClick={() => toggleFavorite(selected)} className="p-2 rounded-xl glass-light">
-                                        <i className={`ph-fill ph-heart ${favorites.some(f => f.id === selected.id) ? 'text-accent' : 'text-textMuted'}`} />
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                        <div className="glass rounded-2xl p-3 h-[400px] md:h-[calc(100vh-160px)] flex flex-col">
-                            <div className="pb-3 border-b border-white/5 space-y-2">
-                                <h2 className="font-display font-bold flex items-center gap-2 text-base"><i className="ph-tv text-accent" /> Canales</h2>
-                                <select value={filter} onChange={e => setFilter(e.target.value)} className="w-full bg-surface border border-white/5 rounded-xl px-3 py-2 text-xs">
-                                    {groups.map(g => <option key={g} value={g}>{g === 'ALL' ? 'Todos los canales' : g}</option>)}
-                                </select>
-                            </div>
-                            {/* Lista con scroll automático al canal activo */}
-                            <div ref={listRef} className="flex-1 overflow-y-auto space-y-2 mt-3 pr-1 tv-list-scroll">
-                                {filtered.map(ch => {
-                                    const isActive = selected?.id === ch.id;
-                                    return (
-                                        <div 
-                                            key={ch.id} 
-                                            onClick={() => selectChannel(ch)}  // <-- usa la nueva función
-                                            className={`flex items-center gap-3 p-2 rounded-xl cursor-pointer transition-all ${
-                                                isActive 
-                                                    ? 'tv-channel-active' 
-                                                    : 'hover:bg-white/5'
-                                            }`}
-                                        >
-                                            <img src={ch.image} alt="" className="w-8 h-8 rounded-lg object-contain bg-black/40 p-1" />
-                                            <div className="flex-1 min-w-0">
-                                                <h4 className="font-medium text-xs truncate">{ch.title}</h4>
-                                                <p className="text-[10px] text-textMuted">{ch.group}</p>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    </div>
-                );
-            };
-
-            const CategorySection = ({ title, items }) => (
-                <div className="space-y-4 animate-fade-up">
-                    <h1 className="font-display text-2xl font-extrabold">{title}</h1>
-                    {items.length === 0 ? (
-                        <div className="text-center py-20 text-textMuted">
-                            <i className="ph-film-slate text-5xl mb-3 opacity-40"></i>
-                            <p>No hay contenido disponible aún</p>
-                        </div>
-                    ) : (
-                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                            {items.map(item => (
-                                <div key={item.id} onClick={() => setActiveMedia(item)} className="glass rounded-xl p-2 card-hover cursor-pointer">
-                                    <div className="aspect-[2/3] rounded-lg overflow-hidden mb-2 bg-black/50 relative">
-                                        <img src={item.image} alt={item.title} className="w-full h-full object-cover" onError={e => e.target.src='https://placehold.co/300x450/181A28/FF3B71?text=Poster'} />
-                                        <button onClick={e => { e.stopPropagation(); toggleFavorite(item); }} className="absolute top-1 right-1 w-7 h-7 rounded-full bg-black/60 flex items-center justify-center backdrop-blur-md">
-                                            <i className={`ph-fill ph-heart ${favorites.some(f => f.id === item.id) ? 'text-accent' : 'text-white/70'}`} />
-                                        </button>
-                                        {item.rating && <span className="absolute bottom-1 left-1 px-1.5 py-0.5 bg-yellow-400/90 text-black text-[10px] font-bold rounded">★ {item.rating}</span>}
-                                    </div>
-                                    <h4 className="font-semibold text-xs truncate">{item.title}</h4>
-                                    <p className="text-[10px] text-textMuted mt-0.5">{item.group}</p>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            );
-
-            const RadioSection = () => (
-                <div className="space-y-4 animate-fade-up">
-                    <div>
-                        <h1 className="font-display text-2xl font-extrabold">Radio en Alta Definición</h1>
-                        <p className="text-textMuted text-sm mt-1">Emisoras de Costa Rica en directo</p>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                        {content.radios.map(st => {
-                            const active = activeRadio?.id === st.id && isPlayingRadio;
-                            return (
-                                <div 
-                                    key={st.id} 
-                                    onClick={() => handlePlayStation(st)} 
-                                    className={`glass rounded-2xl p-3 card-hover cursor-pointer transition-all duration-300 ${active ? 'radio-active bg-accent/5' : ''}`}
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-16 h-16 rounded-xl overflow-hidden bg-black/50 relative flex-shrink-0">
-                                            <img 
-                                                src={st.image} 
-                                                alt={st.title} 
-                                                className="w-full h-full object-cover" 
-                                                onError={e => e.target.src='https://placehold.co/300x300/181A28/FF3B71?text=Radio'} 
-                                            />
-                                            {active && (
-                                                <div className="absolute inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center">
-                                                    <Equalizer playing={true} />
-                                                </div>
-                                            )}
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <h3 className="font-bold text-sm truncate">{st.title}</h3>
-                                            <p className="text-xs text-textMuted truncate mt-0.5">{st.group}</p>
-                                            {active && (
-                                                <span className="inline-block mt-1 text-[10px] font-semibold text-accent animate-pulse">
-                                                    ● Reproduciendo
-                                                </span>
-                                            )}
-                                        </div>
-                                        <button className="w-10 h-10 rounded-full bg-gradient-to-br from-accent to-secondary flex items-center justify-center text-white shadow-glow flex-shrink-0 transition-transform active:scale-90">
-                                            <i className={`ph-fill ${active ? 'ph-pause' : 'ph-play ml-0.5'}`} />
-                                        </button>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </div>
-            );
-
-            const FavoritesSection = () => (
-                <div className="space-y-4 animate-fade-up">
-                    <h1 className="font-display text-2xl font-extrabold">Mis Favoritos</h1>
-                    {favorites.length === 0 ? (
-                        <div className="text-center py-20 text-textMuted">
-                            <i className="ph-heart-straight text-5xl mb-3 opacity-40"></i>
-                            <p>No tienes favoritos guardados aún</p>
-                        </div>
-                    ) : (
-                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                            {favorites.map(item => (
-                                <div key={item.id || item.title} onClick={() => setActiveMedia(item)} className="glass rounded-xl p-2 card-hover cursor-pointer">
-                                    <div className="aspect-[2/3] rounded-lg overflow-hidden mb-2 bg-black/50">
-                                        <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
-                                    </div>
-                                    <h4 className="font-semibold text-xs truncate">{item.title}</h4>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            );
-
-            // ---------- Render principal ----------
-            const tabs = [
-                { id: 'home', label: 'Inicio', icon: 'ph-house' },
-                { id: 'movies', label: 'Cine', icon: 'ph-film-slate' },
-                { id: 'series', label: 'Series', icon: 'ph-video-camera' },
-                { id: 'animados', label: 'Animados', icon: 'ph-smiley' },
-                { id: 'tv', label: 'TV', icon: 'ph-tv' },
-                { id: 'radio', label: 'Radio', icon: 'ph-radio' },
-                { id: 'favorites', label: 'Favoritos', icon: 'ph-heart' }
-            ];
+            }
 
             return (
-                <div className="flex flex-col min-h-screen">
-                    {/* HEADER */}
-                    <header className="fixed top-0 left-0 right-0 glass z-50 px-3 py-2 border-b border-white/5">
-                        <div className="max-w-7xl mx-auto flex items-center justify-between">
-                            <div className="flex items-center gap-2 cursor-pointer" onClick={() => { setCurrentTab('home'); setActiveMedia(null); }}>
-                                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-accent to-secondary flex items-center justify-center shadow-glow">
-                                    <i className="ph-fill ph-play text-white ml-0.5 text-sm"></i>
+                <div className="flex flex-col min-h-screen bg-zdark relative">
+                    
+                    {/* Header */}
+                    <header className="fixed top-0 w-full glass-z z-50 px-6 py-4 flex items-center justify-between border-b border-white/10 shadow-lg">
+                        <div className="flex items-center gap-8">
+                            <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => { setCurrentTab('home'); setActiveMedia(null); }}>
+                                <div className="w-9 h-9 bg-zpink rounded-xl flex items-center justify-center font-outfit font-black text-white shadow-[0_0_15px_rgba(255,45,85,0.4)]">
+                                    <i className="ph-fill ph-play text-base ml-0.5"></i>
                                 </div>
-                                <span className="font-display font-extrabold text-sm hidden sm:block">Magic TV</span>
+                                <span className="font-outfit font-extrabold text-lg tracking-tight text-white">Logo</span>
                             </div>
-                            {/* Desktop nav */}
-                            <nav className="hidden md:flex items-center gap-4 text-xs font-medium">
-                                {tabs.map(tab => (
-                                    <button key={tab.id} onClick={() => { setCurrentTab(tab.id); setActiveMedia(null); }} className={`flex items-center gap-1.5 px-1 py-2 border-b-2 transition-all ${currentTab === tab.id ? 'border-accent text-white font-semibold' : 'border-transparent text-textMuted hover:text-white'}`}>
-                                        <i className={`ph ${tab.icon}`}></i> {tab.label}
+                            <nav className="hidden md:flex items-center gap-6 text-sm font-semibold text-gray-300">
+                                {[
+                                    { id: 'home', label: 'Home' },
+                                    { id: 'movies', label: 'Cine' },
+                                    { id: 'series', label: 'Series' },
+                                    { id: 'animados', label: 'Animados' },
+                                    { id: 'tv', label: 'TV Live' },
+                                    { id: 'radio', label: 'Radio HD' }
+                                ].map(t => (
+                                    <button 
+                                        key={t.id}
+                                        onClick={() => { setCurrentTab(t.id); setActiveMedia(null); }}
+                                        className={`transition-colors hover:text-white ${currentTab === t.id ? 'text-white border-b-2 border-zpink pb-1' : 'text-gray-400'}`}
+                                    >
+                                        {t.label}
                                     </button>
                                 ))}
                             </nav>
-                            <div className="flex items-center gap-2">
-                                <button onClick={() => setShowQrModal(true)} className="p-2 rounded-xl glass-light hover:bg-white/10 transition-all" title="Código QR">
-                                    <i className="ph-qr-code text-base"></i>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            {/* Ctrl + D Bookmark Reminder Button */}
+                            <div className="relative">
+                                <button 
+                                    onClick={() => setShowCtrlDTooltip(!showCtrlDTooltip)} 
+                                    onMouseEnter={() => setShowCtrlDTooltip(true)}
+                                    onMouseLeave={() => setShowCtrlDTooltip(false)}
+                                    className="px-3 py-2 rounded-xl bg-gradient-to-r from-zpink/20 to-purple-600/20 hover:from-zpink/30 hover:to-purple-600/30 border border-zpink/40 text-white text-xs font-bold flex items-center gap-2 transition-all shadow-[0_0_15px_rgba(255,45,85,0.3)] animate-attention"
+                                >
+                                    <i className="ph-fill ph-bookmark-simple text-zpink text-sm animate-pulse"></i>
+                                    <span className="hidden sm:inline">Guardar</span>
+                                    <span className="bg-zpink text-white text-[10px] px-1.5 py-0.5 rounded font-mono font-black">Ctrl+D</span>
                                 </button>
-                                <button onClick={() => setShowAuthorModal(true)} className="px-3 py-1.5 rounded-full bg-gradient-to-r from-accent to-secondary text-white text-[10px] font-bold shadow-glow hover:shadow-glow-soft transition-all">
-                                    Jorge Arturo ⚡
-                                </button>
+                                {showCtrlDTooltip && (
+                                    <div className="absolute right-0 top-12 w-64 glass-z p-3 rounded-2xl border border-white/20 shadow-2xl text-xs text-gray-200 z-50 animate-z-fade">
+                                        <div className="font-bold text-zpink mb-1 flex items-center gap-1.5">
+                                            <i className="ph-fill ph-star"></i> Añadir a Favoritos
+                                        </div>
+                                        Presiona <kbd className="bg-zcard px-1.5 py-0.5 rounded border border-white/20 font-mono font-bold text-zpink">Ctrl + D</kbd> en tu teclado para guardar esta página web en los marcadores de tu navegador.
+                                    </div>
+                                )}
                             </div>
+
+                            <button onClick={() => setShowQrModal(true)} className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white transition-all">
+                                <i className="ph ph-qr-code text-xl"></i>
+                            </button>
+                            <button onClick={() => setShowAuthorModal(true)} className="px-4 py-2 rounded-full bg-zpink hover:bg-zpinkHover text-white text-xs font-bold shadow-[0_0_20px_rgba(255,45,85,0.4)] transition-all active:scale-95">
+                                Jorge Arturo ⚡
+                            </button>
                         </div>
                     </header>
 
-                    {/* MAIN */}
-                    <main className="flex-1 pt-14 pb-20 px-3 sm:px-6 max-w-7xl mx-auto w-full relative z-10">
+                    {/* Main Content Area */}
+                    <main className="flex-1 pt-20 pb-40 px-4 sm:px-8 max-w-7xl mx-auto w-full relative z-10">
                         {activeMedia ? (
-                            <MediaViewer media={activeMedia} />
-                        ) : (
-                            <>
-                                {currentTab === 'home' && <HomeSection />}
-                                {currentTab === 'movies' && <CategorySection title="Películas" items={content.movies} />}
-                                {currentTab === 'series' && <CategorySection title="Series" items={content.series} />}
-                                {currentTab === 'animados' && <CategorySection title="Animados" items={content.animados} />}
-                                {currentTab === 'tv' && <TVSection />}
-                                {currentTab === 'radio' && <RadioSection />}
-                                {currentTab === 'favorites' && <FavoritesSection />}
-                            </>
-                        )}
+                            <MediaViewer media={activeMedia} onBack={() => setActiveMedia(null)} />
+                        ) : currentTab === 'home' ? (
+                            <HomeSection 
+                                content={content} 
+                                onSelect={(item) => setActiveMedia(item)} 
+                                searchQuery={searchQuery}
+                                setSearchQuery={setSearchQuery}
+                                onNavigate={(tab) => setCurrentTab(tab)}
+                                favorites={favorites}
+                                onToggleFav={toggleFavorite}
+                            />
+                        ) : currentTab === 'tv' ? (
+                            <ChannelsSection 
+                                channels={content.tv} 
+                                favorites={favorites} 
+                                onToggleFav={toggleFavorite}
+                            />
+                        ) : currentTab === 'movies' ? (
+                            <CategoryGridSection title="Películas en Tendencia" subtitle="Estrenos exclusivos seleccionados para ti" items={content.movies} onSelect={(item) => setActiveMedia(item)} favorites={favorites} onToggleFav={toggleFavorite} />
+                        ) : currentTab === 'series' ? (
+                            <CategoryGridSection title="Series de Televisión" subtitle="Temporadas completas en alta definición" items={content.series} onSelect={(item) => setActiveMedia(item)} favorites={favorites} onToggleFav={toggleFavorite} />
+                        ) : currentTab === 'animados' ? (
+                            <CategoryGridSection title="Animados & Kids" subtitle="Diversión y entretenimiento familiar" items={content.animados} onSelect={(item) => setActiveMedia(item)} favorites={favorites} onToggleFav={toggleFavorite} />
+                        ) : currentTab === 'radio' ? (
+                            <RadioSection stations={content.radios} activeRadio={activeRadio} isPlaying={isPlayingRadio} onPlayStation={handlePlayStation} favorites={favorites} />
+                        ) : currentTab === 'favorites' ? (
+                            <FavoritesSection favorites={favorites} onSelect={(item) => setActiveMedia(item)} onToggleFav={toggleFavorite} />
+                        ) : null}
                     </main>
 
-                    {/* BOTTOM NAV (mobile) */}
-                    <nav className="bottom-nav md:hidden">
-                        {tabs.map(tab => (
-                            <button key={tab.id} onClick={() => { setCurrentTab(tab.id); setActiveMedia(null); }} className={currentTab === tab.id ? 'active' : ''}>
-                                <i className={`ph ${tab.icon}`}></i>
-                                <span>{tab.label}</span>
-                            </button>
-                        ))}
+                    {/* Enhanced Mobile Bottom Navigation Bar (Larger, more visible text and colorful active state) */}
+                    <nav className="md:hidden fixed bottom-0 w-full glass-z border-t border-white/15 z-40 flex items-center justify-around py-3 px-1 pb-safe shadow-[0_-10px_30px_rgba(0,0,0,0.8)]">
+                        {[
+                            { id: 'home', icon: 'ph-house-line', label: 'Home' },
+                            { id: 'movies', icon: 'ph-film-slate', label: 'Cine' },
+                            { id: 'series', icon: 'ph-video-camera', label: 'Series' },
+                            { id: 'animados', icon: 'ph-smiley', label: 'Animados' },
+                            { id: 'tv', icon: 'ph-television-simple', label: 'TV' },
+                            { id: 'radio', icon: 'ph-radio', label: 'Radio' },
+                            { id: 'favorites', icon: 'ph-heart-straight', label: 'Favs' }
+                        ].map(tab => {
+                            const isActive = currentTab === tab.id;
+                            return (
+                                <button 
+                                    key={tab.id}
+                                    onClick={() => { setCurrentTab(tab.id); setActiveMedia(null); }}
+                                    className={`flex flex-col items-center justify-center transition-all px-2 py-1.5 rounded-xl ${isActive ? 'text-zpink font-black scale-105 bg-zpink/15 border border-zpink/30 shadow-[0_0_12px_rgba(255,45,85,0.3)]' : 'text-gray-300 hover:text-white font-medium'}`}
+                                >
+                                    <i className={`${tab.icon} text-2xl ${isActive ? 'text-zpink' : 'text-gray-300'}`}></i>
+                                    <span className={`text-[11px] mt-1 tracking-tight ${isActive ? 'font-extrabold text-white' : 'font-medium'}`}>{tab.label}</span>
+                                </button>
+                            );
+                        })}
                     </nav>
 
-                    {/* MODAL QR */}
-                    {showQrModal && (
-                        <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-md flex items-center justify-center p-4" onClick={() => setShowQrModal(false)}>
-                            <div className="glass rounded-3xl p-6 max-w-sm w-full text-center" onClick={e => e.stopPropagation()}>
-                                <h2 className="font-display text-xl font-bold mb-3">Escanea el código QR</h2>
-                                <img src={QR_IMAGE_URL} alt="QR" className="w-48 h-48 mx-auto rounded-2xl border border-white/10" />
-                                <p className="text-textMuted text-sm mt-4">Abre este enlace en tu dispositivo móvil</p>
-                                <button onClick={() => setShowQrModal(false)} className="mt-6 px-6 py-2 rounded-full bg-accent/20 text-accent font-semibold hover:bg-accent/30 transition-all text-sm">Cerrar</button>
+                    {/* Radio Mini Player Bar */}
+                    {activeRadio && (
+                        <div className="fixed bottom-[68px] md:bottom-0 left-0 right-0 glass-z border-t border-white/10 p-4 z-40 flex items-center justify-between shadow-2xl animate-z-fade">
+                            <div className="flex items-center gap-3">
+                                <img src={activeRadio.image} alt={activeRadio.title} className="w-12 h-12 rounded-xl object-cover border border-white/10 hidden sm:block shadow" />
+                                <div>
+                                    <h4 className="font-bold text-xs sm:text-sm text-white truncate">{activeRadio.title}</h4>
+                                    <span className="text-[11px] text-zpink flex items-center gap-1.5 font-semibold mt-0.5">
+                                        <span className="w-2 h-2 rounded-full bg-zpink animate-pulse"></span> TRANSMITIENDO HD
+                                    </span>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-4">
+                                <div className="flex items-center mr-2">
+                                    <LedEqualizer isPlaying={isPlayingRadio} />
+                                </div>
+                                <button onClick={() => setIsPlayingRadio(!isPlayingRadio)} className="w-12 h-12 rounded-full bg-zpink hover:bg-zpinkHover text-white flex items-center justify-center shadow-[0_0_20px_rgba(255,45,85,0.5)] transition-transform active:scale-95">
+                                    <i className={`ph-fill ${isPlayingRadio ? 'ph-pause' : 'ph-play text-xl ml-0.5'}`}></i>
+                                </button>
+                                <button onClick={() => setActiveRadio(null)} className="p-2 text-gray-400 hover:text-white">
+                                    <i className="ph ph-x text-xl"></i>
+                                </button>
                             </div>
                         </div>
                     )}
 
-                    {/* MODAL AUTOR */}
-                    {showAuthorModal && (
-                        <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-md flex items-center justify-center p-4" onClick={() => setShowAuthorModal(false)}>
-                            <div className="glass rounded-3xl p-6 max-w-sm w-full" onClick={e => e.stopPropagation()}>
-                                <h2 className="font-display text-2xl font-bold text-center">Jorge Arturo</h2>
-                                <p className="text-textMuted text-center text-sm mt-1">Desarrollador de Magic TV 3.0</p>
-                                <div className="flex justify-center mt-6">
-                                    <img src="https://via.placeholder.com/100x100/6366F1/ffffff?text=JA" className="w-20 h-20 rounded-full border-2 border-accent/30" alt="Avatar" />
+                    {/* QR Modal */}
+                    {showQrModal && (
+                        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 animate-z-fade">
+                            <div className="glass-z rounded-3xl p-6 max-w-xs w-full text-center relative shadow-2xl space-y-4 border border-white/10">
+                                <button onClick={() => setShowQrModal(false)} className="absolute top-3 right-3 text-gray-400 hover:text-white p-1.5 rounded-full bg-white/10">
+                                    <i className="ph ph-x text-lg"></i>
+                                </button>
+                                <div className="p-2.5 bg-zpink/20 rounded-2xl border border-zpink/40 inline-block">
+                                    <span className="text-xs font-bold uppercase text-zpink tracking-widest">Compartir Magic TV 2.0</span>
                                 </div>
-                                <p className="text-sm text-center text-textMuted mt-4">Apasionado por el entretenimiento digital y la tecnología.</p>
-                                <button onClick={() => setShowAuthorModal(false)} className="mt-6 w-full py-2 rounded-full bg-accent text-white font-bold hover:bg-accentDark transition-all text-sm">Cerrar</button>
+                                <div className="bg-white p-3 rounded-2xl shadow-2xl flex justify-center items-center">
+                                    <img src={QR_IMAGE_URL} alt="QR Code" className="w-48 h-48 object-contain" />
+                                </div>
+                                <div>
+                                    <h3 className="font-outfit font-extrabold text-lg text-white">MAGIC <span className="text-zpink">TV 2.0</span></h3>
+                                    <p className="text-xs text-gray-300 mt-1 leading-relaxed">Escanea el código QR con tu celular para abrir la app al instante.</p>
+                                </div>
+                                <button onClick={() => setShowQrModal(false)} className="w-full bg-zpink text-white py-3 rounded-2xl font-bold text-xs shadow-lg transition-transform active:scale-95">
+                                    Cerrar
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Author Modal */}
+                    {showAuthorModal && (
+                        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 animate-z-fade">
+                            <div className="glass-z rounded-3xl p-6 sm:p-8 max-w-sm w-full text-center relative shadow-2xl space-y-5 border border-white/10">
+                                <button onClick={() => setShowAuthorModal(false)} className="absolute top-3 right-3 text-gray-400 hover:text-white p-1.5 rounded-full bg-white/10">
+                                    <i className="ph ph-x text-lg"></i>
+                                </button>
+                                <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-zpink to-purple-600 flex items-center justify-center mx-auto shadow-2xl font-outfit text-white font-black text-2xl">
+                                    J
+                                </div>
+                                <div>
+                                    <span className="text-[10px] font-bold uppercase text-zpink tracking-widest bg-zpink/20 px-3.5 py-1 rounded-full border border-zpink/30">Autoría Oficial</span>
+                                    <h2 className="font-outfit text-xl font-black text-white mt-3">MAGIC TV <span className="text-zpink">2.0</span></h2>
+                                </div>
+                                <div className="bg-zcard rounded-2xl p-4.5 border border-white/10 space-y-2 shadow-inner">
+                                    <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">DISEÑADO Y PROGRAMADO POR</p>
+                                    <h3 className="font-outfit font-black text-base sm:text-lg text-white">JORGE ARTURO HERNÁNDEZ MÉNDEZ</h3>
+                                </div>
+                                <button onClick={() => setShowAuthorModal(false)} className="w-full bg-zpink hover:bg-zpinkHover text-white font-bold py-3 rounded-2xl text-xs shadow-lg transition-transform active:scale-95">
+                                    Cerrar Créditos
+                                </button>
                             </div>
                         </div>
                     )}
@@ -908,8 +691,541 @@
             );
         };
 
-        // Render
-        ReactDOM.render(<App />, document.getElementById('root'));
+        const HomeSection = ({ content, onSelect, searchQuery, setSearchQuery, onNavigate, favorites, onToggleFav }) => {
+            const featured = useMemo(() => {
+                const pool = content.movies.slice(-10);
+                if (pool.length === 0) return content.movies[0] || content.series[0];
+                const randomIndex = Math.floor(Math.random() * pool.length);
+                return pool[randomIndex];
+            }, [content.movies, content.series]);
+
+            const trendingMovies = content.movies.slice(0, 4);
+            const trendingSeries = content.series.slice(0, 4);
+            const trendingAnimados = content.animados.slice(0, 4);
+
+            return (
+                <div className="space-y-12 animate-z-fade">
+                    {featured && (
+                        <div className="relative rounded-3xl overflow-hidden glass-z border border-white/10 p-6 sm:p-12 flex flex-col md:flex-row items-center gap-8 shadow-2xl">
+                            <div className="absolute inset-0 z-0">
+                                <img src={featured.image} alt={featured.title} className="w-full h-full object-cover filter blur-3xl opacity-30 scale-125" />
+                                <div className="absolute inset-0 bg-gradient-to-r from-zdark via-zdark/80 to-transparent"></div>
+                            </div>
+                            
+                            <div className="relative z-10 w-48 sm:w-64 aspect-[2/3] sm:aspect-[4/5] rounded-2xl overflow-hidden shadow-2xl border border-white/20 flex-shrink-0 bg-black/40 flex items-center justify-center animate-soft-float">
+                                <img src={featured.image} alt={featured.title} className="w-full h-full object-contain p-0" />
+                            </div>
+
+                            <div className="relative z-10 flex-1 space-y-4 text-center md:text-left">
+                                <div className="flex items-center justify-center md:justify-start gap-3 text-xs text-gray-300 font-medium">
+                                    <span>2025</span>
+                                    <span>•</span>
+                                    <span>IMDB {featured.rating || '7.2'}</span>
+                                    <span>•</span>
+                                    <span className="flex items-center gap-1 text-yellow-400"><i className="ph-fill ph-star"></i> 4.8</span>
+                                    <span>•</span>
+                                    <span>Estreno Destacado</span>
+                                </div>
+                                <h1 className="font-outfit text-3xl sm:text-5xl font-black text-white tracking-tight">{featured.title}</h1>
+                                <p className="text-xs sm:text-sm text-gray-300 leading-relaxed max-w-xl">{featured.description || "Disfruta de este contenido exclusivo con la mejor calidad en Magic TV 2.0."}</p>
+                                
+                                <div className="pt-2 flex flex-wrap justify-center md:justify-start gap-4 items-center">
+                                    <button onClick={() => onSelect(featured)} className="px-6 py-3 rounded-full bg-zpink hover:bg-zpinkHover text-white font-bold text-xs sm:text-sm shadow-[0_0_20px_rgba(255,45,85,0.4)] flex items-center gap-2 transition-transform active:scale-95">
+                                        <i className="ph-fill ph-play text-lg"></i> Watch Now
+                                    </button>
+                                    <button onClick={() => onToggleFav(featured)} className="w-11 h-11 rounded-full glass-z hover:bg-white/10 text-white flex items-center justify-center border border-white/20 transition-transform active:scale-95">
+                                        <i className="ph-fill ph-heart-straight text-lg text-zpink"></i>
+                                    </button>
+                                </div>
+
+                                <div className="pt-2 flex items-center justify-center md:justify-start gap-3 bg-zpink/15 border border-zpink/30 px-4 py-3 rounded-2xl shadow-lg max-w-md">
+                                    <i className="ph-fill ph-cast text-zpink text-xl animate-pulse-glow flex-shrink-0"></i>
+                                    <span className="text-xs sm:text-sm text-gray-200 font-medium leading-snug">
+                                        💡 Puedes transmitir y ver esta película en tu televisor usando <strong className="text-white font-bold underline decoration-zpink decoration-2">Smart View</strong>.
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    <div>
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="font-outfit text-xl sm:text-2xl font-extrabold text-white">Películas en Tendencia</h2>
+                            <button onClick={() => onNavigate('movies')} className="text-xs text-zpink font-bold hover:underline">Ver todas →</button>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+                            {trendingMovies.map(item => {
+                                const isFav = favorites.some(f => f.id === item.id);
+                                return (
+                                    <div key={item.id} onClick={() => onSelect(item)} className="group glass-z rounded-2xl p-3 cursor-pointer hover:border-zpink transition-all duration-300 shadow-xl flex flex-col justify-between">
+                                        <div className="aspect-[2/3] rounded-xl bg-black/80 overflow-hidden relative mb-3 border border-white/10 flex items-center justify-center">
+                                            <img src={item.image} alt={item.title} className="w-full h-full object-contain p-0 group-hover:scale-105 transition-transform duration-300" onError={(e) => e.target.src='https://placehold.co/300x450/121420/ff2d55?text=Poster'} />
+                                            <button onClick={(e) => { e.stopPropagation(); onToggleFav(item); }} className="absolute top-2.5 right-2.5 p-2 rounded-full bg-black/60 text-white backdrop-blur-md shadow z-10">
+                                                <i className={`ph-fill ph-heart-straight ${isFav ? 'text-zpink' : 'text-white'}`}></i>
+                                            </button>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <h3 className="font-bold text-xs sm:text-sm text-white truncate">{item.title}</h3>
+                                            <div className="flex items-center justify-between text-[11px] text-gray-400">
+                                                <span>2025</span>
+                                                <span className="flex items-center gap-1 text-yellow-400"><i className="ph-fill ph-star"></i> 4.8</span>
+                                            </div>
+                                            <button onClick={(e) => { e.stopPropagation(); onSelect(item); }} className="w-full py-2.5 rounded-full bg-zpink hover:bg-zpinkHover text-white font-bold text-xs shadow-[0_0_15px_rgba(255,45,85,0.3)] flex items-center justify-center gap-2 transition-transform active:scale-95">
+                                                <i className="ph-fill ph-play"></i> Watch Now
+                                            </button>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    <div>
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="font-outfit text-xl sm:text-2xl font-extrabold text-white">Series de Televisión</h2>
+                            <button onClick={() => onNavigate('series')} className="text-xs text-zpink font-bold hover:underline">Ver todas →</button>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+                            {trendingSeries.map(item => {
+                                const isFav = favorites.some(f => f.id === item.id);
+                                return (
+                                    <div key={item.id} onClick={() => onSelect(item)} className="group glass-z rounded-2xl p-3 cursor-pointer hover:border-zpink transition-all duration-300 shadow-xl flex flex-col justify-between">
+                                        <div className="aspect-[2/3] rounded-xl bg-black/80 overflow-hidden relative mb-3 border border-white/10 flex items-center justify-center">
+                                            <img src={item.image} alt={item.title} className="w-full h-full object-contain p-0 group-hover:scale-105 transition-transform duration-300" onError={(e) => e.target.src='https://placehold.co/300x450/121420/ff2d55?text=Series'} />
+                                            <button onClick={(e) => { e.stopPropagation(); onToggleFav(item); }} className="absolute top-2.5 right-2.5 p-2 rounded-full bg-black/60 text-white backdrop-blur-md shadow z-10">
+                                                <i className={`ph-fill ph-heart-straight ${isFav ? 'text-zpink' : 'text-white'}`}></i>
+                                            </button>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <h3 className="font-bold text-xs sm:text-sm text-white truncate">{item.title}</h3>
+                                            <span className="text-[11px] text-gray-400 block truncate">Temporadas Completas</span>
+                                            <button onClick={(e) => { e.stopPropagation(); onSelect(item); }} className="w-full py-2.5 rounded-full bg-zpink hover:bg-zpinkHover text-white font-bold text-xs shadow-[0_0_15px_rgba(255,45,85,0.3)] flex items-center justify-center gap-2 transition-transform active:scale-95">
+                                                <i className="ph-fill ph-play"></i> Ver Serie
+                                            </button>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    <div>
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="font-outfit text-xl sm:text-2xl font-extrabold text-white">Animados & Kids</h2>
+                            <button onClick={() => onNavigate('animados')} className="text-xs text-zpink font-bold hover:underline">Ver todos →</button>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+                            {trendingAnimados.map(item => {
+                                const isFav = favorites.some(f => f.id === item.id);
+                                return (
+                                    <div key={item.id} onClick={() => onSelect(item)} className="group glass-z rounded-2xl p-3 cursor-pointer hover:border-zpink transition-all duration-300 shadow-xl flex flex-col justify-between">
+                                        <div className="aspect-[2/3] rounded-xl bg-black/80 overflow-hidden relative mb-3 border border-white/10 flex items-center justify-center">
+                                            <img src={item.image} alt={item.title} className="w-full h-full object-contain p-0 group-hover:scale-105 transition-transform duration-300" onError={(e) => e.target.src='https://placehold.co/300x450/121420/ff2d55?text=Animados'} />
+                                            <button onClick={(e) => { e.stopPropagation(); onToggleFav(item); }} className="absolute top-2.5 right-2.5 p-2 rounded-full bg-black/60 text-white backdrop-blur-md shadow z-10">
+                                                <i className={`ph-fill ph-heart-straight ${isFav ? 'text-zpink' : 'text-white'}`}></i>
+                                            </button>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <h3 className="font-bold text-xs sm:text-sm text-white truncate">{item.title}</h3>
+                                            <span className="text-[11px] text-gray-400 block truncate">Entretenimiento Familiar</span>
+                                            <button onClick={(e) => { e.stopPropagation(); onSelect(item); }} className="w-full py-2.5 rounded-full bg-zpink hover:bg-zpinkHover text-white font-bold text-xs shadow-[0_0_15px_rgba(255,45,85,0.3)] flex items-center justify-center gap-2 transition-transform active:scale-95">
+                                                <i className="ph-fill ph-play"></i> Ver Animado
+                                            </button>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const ChannelsSection = ({ channels, favorites, onToggleFav }) => {
+            const [selectedChannel, setSelectedChannel] = useState(channels[0] || null);
+            const [filterGroup, setFilterGroup] = useState('ALL');
+            const [searchQuery, setSearchQuery] = useState('');
+            const playerRef = useRef(null);
+
+            const groups = useMemo(() => ['ALL', ...Array.from(new Set(channels.map(c => c.group || 'Nacionales')))], [channels]);
+
+            useEffect(() => {
+                if (!selectedChannel && channels.length > 0) {
+                    setSelectedChannel(channels[0]);
+                }
+            }, [channels]);
+
+            const handleSelectChannel = (channel) => {
+                setSelectedChannel(channel);
+                if (window.innerWidth < 1024 && playerRef.current) {
+                    playerRef.current.scrollIntoView({ behavior: 'smooth' });
+                }
+            };
+
+            const filtered = channels.filter(c => {
+                const matchesGroup = filterGroup === 'ALL' || c.group === filterGroup;
+                const matchesSearch = !searchQuery || c.title.toLowerCase().includes(searchQuery.toLowerCase());
+                return matchesGroup && matchesSearch;
+            });
+
+            const isEmbed = selectedChannel?.url && (selectedChannel.url.includes('drive.google.com') || selectedChannel.url.includes('ok.ru'));
+
+            return (
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-z-fade">
+                    <div className="lg:col-span-2 flex flex-col gap-4 order-1 lg:order-2" ref={playerRef}>
+                        <div className="w-full aspect-video bg-black rounded-3xl overflow-hidden shadow-2xl border border-white/15 relative">
+                            {selectedChannel ? (
+                                isEmbed ? (
+                                    <iframe src={selectedChannel.url} className="w-full h-full border-0 absolute inset-0" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowFullScreen></iframe>
+                                ) : (
+                                    <video src={selectedChannel.url} controls autoPlay playsInline className="w-full h-full object-contain absolute inset-0"></video>
+                                )
+                            ) : (
+                                <div className="flex flex-col items-center justify-center h-full text-gray-400 space-y-2">
+                                    <i className="ph ph-television-simple text-4xl opacity-40"></i>
+                                    <p className="text-xs font-medium">Selecciona un canal para comenzar la transmisión</p>
+                                </div>
+                            )}
+                        </div>
+                        {selectedChannel && (
+                            <div className="glass-z rounded-3xl p-5 border border-white/10 shadow-xl flex items-center justify-between">
+                                <div className="flex items-center gap-3 truncate">
+                                    <img src={selectedChannel.image} alt={selectedChannel.title} className="w-12 h-12 rounded-xl object-contain bg-black/60 border border-white/10 p-1" />
+                                    <div>
+                                        <h3 className="font-outfit font-black text-sm text-white truncate">{selectedChannel.title}</h3>
+                                        <span className="text-[11px] text-zpink font-semibold flex items-center gap-1.5 mt-0.5">
+                                            <span className="w-2 h-2 rounded-full bg-zpink animate-pulse"></span> TRANSMITIENDO EN DIRECTO HD
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <button onClick={() => onToggleFav(selectedChannel)} className="p-3 rounded-xl glass-z hover:bg-white/15 text-white transition-all">
+                                        <i className={`ph-fill ph-heart-straight text-lg ${favorites.some(f => f.id === selectedChannel.id) ? 'text-zpink' : 'text-gray-300'}`}></i>
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="glass-z rounded-3xl p-4 flex flex-col border border-white/10 shadow-2xl overflow-hidden order-2 lg:order-1 h-[550px] lg:h-[calc(100vh-120px)]">
+                        <div className="p-2 border-b border-white/10 space-y-3">
+                            <div className="flex items-center justify-between">
+                                <h2 className="font-outfit font-black text-sm text-white flex items-center gap-2">
+                                    <i className="ph ph-television-simple text-zpink text-base"></i> Canales TV
+                                </h2>
+                                <span className="text-[10px] font-mono text-gray-400 bg-white/5 px-2.5 py-1 rounded-full border border-white/10">{channels.length} en vivo</span>
+                            </div>
+                            <div className="relative">
+                                <input 
+                                    type="text" 
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    placeholder="Buscar canal..."
+                                    className="w-full bg-zcard border border-white/15 rounded-xl px-3 py-2 text-xs text-white placeholder-gray-500 outline-none focus:border-zpink shadow-inner pl-9"
+                                />
+                                <i className="ph ph-magnifying-glass absolute left-3 top-2.5 text-gray-400 text-xs"></i>
+                            </div>
+                            <select 
+                                value={filterGroup} 
+                                onChange={(e) => setFilterGroup(e.target.value)}
+                                className="w-full bg-zcard border border-white/15 rounded-xl px-3 py-2 text-xs text-white font-bold outline-none focus:border-zpink shadow-inner cursor-pointer"
+                            >
+                                {groups.map(g => <option key={g} value={g}>{g === 'ALL' ? 'Todos los géneros / categorías' : g}</option>)}
+                            </select>
+                        </div>
+                        <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2 mt-3 pr-1">
+                            {filtered.map(channel => {
+                                const isActive = selectedChannel?.id === channel.id;
+                                const isFav = favorites.some(f => f.id === channel.id);
+                                return (
+                                    <div 
+                                        key={channel.id} 
+                                        onClick={() => handleSelectChannel(channel)} 
+                                        className={`group relative flex items-center gap-3 p-3 rounded-2xl cursor-pointer transition-all border ${isActive ? 'bg-zpink/20 border-zpink shadow-[0_0_15px_rgba(255,45,85,0.3)] border-l-4' : 'glass-z hover:bg-white/5 border-white/5'}`}
+                                    >
+                                        <div className="w-12 h-10 rounded-xl bg-black/80 flex items-center justify-center overflow-hidden flex-shrink-0 border border-white/10 relative">
+                                            <img src={channel.image} alt={channel.title} className="w-full h-full object-contain p-0.5" onError={(e) => e.target.src='https://placehold.co/300x300/121420/ff2d55?text=TV'} />
+                                            {isActive && <div className="absolute inset-0 bg-zpink/20 flex items-center justify-center"><div className="w-2 h-2 rounded-full bg-zpink animate-ping"></div></div>}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h4 className={`text-xs font-bold truncate transition-colors ${isActive ? 'text-zpink font-black' : 'text-white'}`}>{channel.title}</h4>
+                                            <span className="text-[10px] text-gray-400 truncate block mt-0.5">{channel.group || 'Nacionales'}</span>
+                                        </div>
+                                        <button onClick={(e) => { e.stopPropagation(); onToggleFav(channel); }} className="p-1.5 rounded-lg text-gray-400 hover:text-white transition-colors">
+                                            <i className={`ph-fill ph-heart-straight text-sm ${isFav ? 'text-zpink' : 'text-gray-500'}`}></i>
+                                        </button>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const CategoryGridSection = ({ title, subtitle, items, onSelect, favorites, onToggleFav }) => (
+            <div className="space-y-6 animate-z-fade">
+                <div>
+                    <h1 className="font-outfit text-2xl sm:text-3xl font-black text-white">{title}</h1>
+                    <p className="text-xs sm:text-sm text-gray-400 mt-1">{subtitle}</p>
+                </div>
+                {items.length === 0 ? (
+                    <div className="text-center py-24 text-gray-400">
+                        <i className="ph ph-film-slate text-5xl mb-3 opacity-50"></i>
+                        <p className="text-sm font-medium">No hay contenido disponible en esta categoría.</p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                        {items.map(item => {
+                            const isFav = favorites.some(f => (f.id || f.title) === (item.id || item.title));
+                            return (
+                                <div key={item.id || item.title} onClick={() => onSelect(item)} className="group glass-z rounded-2xl p-3 cursor-pointer hover:border-zpink transition-all shadow-xl flex flex-col justify-between">
+                                    <div className="aspect-[2/3] rounded-xl bg-black/80 overflow-hidden relative mb-2.5 border border-white/10 flex items-center justify-center">
+                                        <img src={item.image} alt={item.title} className="w-full h-full object-contain p-0 group-hover:scale-105 transition-transform duration-300" onError={(e) => e.target.src='https://placehold.co/300x450/121420/ffffff?text=Poster'} />
+                                        <button onClick={(e) => { e.stopPropagation(); onToggleFav(item); }} className="absolute top-2 right-2 p-1.5 rounded-full bg-black/70 text-white backdrop-blur-md shadow z-10">
+                                            <i className={`ph-fill ph-heart-straight ${isFav ? 'text-zpink' : 'text-white'}`}></i>
+                                        </button>
+                                        {item.rating && (
+                                            <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-yellow-400 text-black text-[9px] font-black uppercase shadow">
+                                                ★ {item.rating}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="min-w-0">
+                                        <h3 className="font-bold text-xs text-white truncate">{item.title}</h3>
+                                        <span className="text-[11px] text-gray-400 block mt-0.5 truncate">{item.group || 'Estreno'}</span>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
+            </div>
+        );
+
+        const RadioSection = ({ stations, activeRadio, isPlaying, onPlayStation, favorites }) => {
+            const [tab, setTab] = useState('all');
+            const list = tab === 'favs' ? favorites.filter(f => stations.some(s => s.id === f.id)) : stations;
+
+            return (
+                <div className="space-y-6 animate-z-fade">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div>
+                            <h1 className="font-outfit text-2xl sm:text-3xl font-black text-white">Radio HD Costa Rica</h1>
+                            <p className="text-xs sm:text-sm text-gray-400 mt-1">Emisoras nacionales en directo con calidad cristalina.</p>
+                        </div>
+                        <div className="flex gap-2">
+                            <button onClick={() => setTab('all')} className={`px-4 py-2 rounded-xl text-xs font-bold shadow ${tab === 'all' ? 'bg-zpink text-white' : 'bg-white/5 text-gray-400 hover:text-white'}`}>Todas</button>
+                            <button onClick={() => setTab('favs')} className={`px-4 py-2 rounded-xl text-xs font-bold shadow ${tab === 'favs' ? 'bg-zpink text-white' : 'bg-white/5 text-gray-400 hover:text-white'}`}>Favoritas</button>
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {list.map(station => {
+                            const active = activeRadio?.id === station.id && isPlaying;
+                            return (
+                                <div key={station.id} onClick={() => onPlayStation(station)} className={`group glass-z rounded-2xl p-4 cursor-pointer hover:border-zpink transition-all flex items-center justify-between shadow-xl ${active ? 'border-zpink shadow-[0_0_20px_rgba(255,45,85,0.3)] bg-zpink/10' : ''}`}>
+                                    <div className="flex items-center gap-3.5 min-w-0 flex-1 pr-2">
+                                        <div className="w-14 h-14 rounded-xl overflow-hidden bg-black border border-white/10 relative flex items-center justify-center flex-shrink-0">
+                                            <img src={station.image} alt={station.title} className="w-full h-full object-cover" onError={(e) => e.target.src='https://placehold.co/300x300/121420/ffffff?text=Radio'} />
+                                            {active && (
+                                                <div className="absolute inset-0 bg-zpink/30 flex items-center justify-center">
+                                                    <LedEqualizer isPlaying={true} />
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <h3 className="font-bold text-xs sm:text-sm text-white truncate">{station.title}</h3>
+                                            <span className="text-[11px] text-gray-400 block truncate mt-0.5">{station.group}</span>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-3 flex-shrink-0">
+                                        {active && (
+                                            <div className="flex items-center">
+                                                <LedEqualizer isPlaying={true} />
+                                            </div>
+                                        )}
+                                        <div className="w-10 h-10 rounded-full flex items-center justify-center text-white bg-white/10 group-hover:bg-zpink transition-all shadow">
+                                            <i className={`ph-fill ${active ? 'ph-pause' : 'ph-play ml-0.5 text-base'}`}></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            );
+        };
+
+        const FavoritesSection = ({ favorites, onSelect, onToggleFav }) => (
+            <div className="space-y-6 animate-z-fade">
+                <div>
+                    <h1 className="font-outfit text-2xl sm:text-3xl font-black text-white">Tus Favoritos</h1>
+                    <p className="text-xs sm:text-sm text-gray-400 mt-1">Contenido guardado en tu dispositivo.</p>
+                </div>
+                {favorites.length === 0 ? (
+                    <div className="text-center py-24 text-gray-400">
+                        <i className="ph ph-heart-straight text-5xl mb-3 opacity-50"></i>
+                        <p className="text-sm font-medium">No tienes favoritos guardados aún.</p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                        {favorites.map(item => (
+                            <div key={item.id || item.title} onClick={() => onSelect(item)} className="glass-z rounded-2xl p-3 cursor-pointer hover:border-zpink transition-all relative shadow-xl">
+                                <div className="aspect-[2/3] rounded-xl bg-black/80 overflow-hidden relative mb-2.5 flex items-center justify-center border border-white/10">
+                                    <img src={item.image} alt={item.title} className="w-full h-full object-contain p-0" onError={(e) => e.target.src='https://placehold.co/300x450/121420/ff2d55?text=Magic'} />
+                                    <button onClick={(e) => { e.stopPropagation(); onToggleFav(item); }} className="absolute top-2 right-2 p-1.5 rounded-full bg-black/70 text-white backdrop-blur-md shadow z-10">
+                                        <i className={`ph-fill ph-heart-straight text-zpink`}></i>
+                                    </button>
+                                </div>
+                                <h3 className="font-bold text-xs text-white truncate">{item.title}</h3>
+                                <span className="text-[11px] text-gray-400 block mt-0.5 truncate">{item.group || 'Favorito'}</span>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+        );
+
+        const MediaViewer = ({ media, onBack }) => {
+            const videoRef = useRef(null);
+            const [selectedSeason, setSelectedSeason] = useState(0);
+            const [selectedEpisode, setSelectedEpisode] = useState(
+                media.seasons?.[0]?.episodes?.[0] || null
+            );
+            const [isPlaying, setIsPlaying] = useState(false);
+
+            useEffect(() => {
+                const video = videoRef.current;
+                if (!video) return;
+
+                const targetUrl = (media.type === 'series' || media.type === 'animados') && selectedEpisode 
+                    ? selectedEpisode.url 
+                    : media.url;
+
+                if (!targetUrl) return;
+
+                if (targetUrl.includes('.m3u8')) {
+                    if (Hls.isSupported()) {
+                        const hls = new Hls();
+                        hls.loadSource(targetUrl);
+                        hls.attachMedia(video);
+                    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                        video.src = targetUrl;
+                    }
+                } else {
+                    video.src = targetUrl;
+                }
+                setIsPlaying(false);
+            }, [media, selectedEpisode]);
+
+            const handleStartPlayback = () => {
+                const video = videoRef.current;
+                if (video) {
+                    video.play().then(() => {
+                        setIsPlaying(true);
+                    }).catch(e => {
+                        console.error("Playback error", e);
+                    });
+                }
+            };
+
+            const isSeriesOrAnim = (media.type === 'series' || media.type === 'animados') && media.seasons && media.seasons.length > 0;
+            const activeUrl = isSeriesOrAnim && selectedEpisode ? selectedEpisode.url : media.url;
+            const isEmbed = activeUrl && (activeUrl.includes('drive.google.com') || activeUrl.includes('ok.ru'));
+
+            return (
+                <div className="space-y-6 animate-z-fade pb-32">
+                    <button onClick={onBack} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full glass-z hover:bg-white/10 text-white text-xs font-bold border border-white/20 transition-all shadow">
+                        <i className="ph ph-arrow-left text-base"></i> Volver al Inicio
+                    </button>
+
+                    <div className="w-full aspect-video bg-black rounded-3xl overflow-hidden shadow-2xl border border-white/10 relative flex items-center justify-center">
+                        {isEmbed ? (
+                            <iframe 
+                                src={activeUrl} 
+                                className="w-full h-full border-0 absolute inset-0" 
+                                allow="autoplay; encrypted-media; fullscreen; picture-in-picture" 
+                                allowFullScreen
+                            ></iframe>
+                        ) : (
+                            <>
+                                <video 
+                                    ref={videoRef}
+                                    controls 
+                                    playsInline
+                                    onPlay={() => setIsPlaying(true)}
+                                    onPause={() => setIsPlaying(false)}
+                                    className="w-full h-full object-contain absolute inset-0"
+                                ></video>
+                                {!isPlaying && activeUrl && (
+                                    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex flex-col items-center justify-center gap-4 z-20 cursor-pointer" onClick={handleStartPlayback}>
+                                        <div className="w-20 h-20 rounded-full bg-zpink flex items-center justify-center text-white shadow-[0_0_30px_rgba(255,45,85,0.7)] animate-attention">
+                                            <i className="ph-fill ph-play text-3xl ml-1"></i>
+                                        </div>
+                                        <span className="font-outfit font-extrabold text-sm text-white tracking-wider">Haga clic para reproducir</span>
+                                    </div>
+                                )}
+                            </>
+                        )}
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div className="lg:col-span-2 glass-z rounded-3xl p-6 sm:p-8 space-y-4 border border-white/10 shadow-xl">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <span className="px-3 py-1 rounded-full bg-zpink/20 text-zpink text-[11px] font-bold uppercase tracking-wider border border-zpink/30">{media.group || media.type}</span>
+                                    {media.year && <span className="text-xs text-gray-400">{media.year}</span>}
+                                </div>
+                            </div>
+                            <h1 className="font-outfit text-2xl sm:text-4xl font-black text-white">{media.title}</h1>
+                            <p className="text-xs sm:text-sm text-gray-300 leading-relaxed">{media.description || media.sinopsis || "Disfruta de esta transmisión exclusiva en Magic TV 2.0."}</p>
+                            
+                            <div className="pt-2 flex items-center gap-3 bg-zpink/15 border border-zpink/30 px-4 py-3 rounded-2xl shadow-lg mt-4">
+                                <i className="ph-fill ph-cast text-zpink text-xl animate-pulse-glow flex-shrink-0"></i>
+                                <span className="text-xs sm:text-sm text-gray-200 font-medium leading-snug">
+                                    💡 Recuerda que puedes transmitir y ver esta película en tu televisor usando <strong className="text-white font-bold underline decoration-zpink decoration-2">Smart View</strong>.
+                                </span>
+                            </div>
+                        </div>
+
+                        {isSeriesOrAnim && (
+                            <div className="glass-z rounded-3xl p-6 space-y-4 border border-white/10 flex flex-col h-[420px] shadow-xl">
+                                <h3 className="font-outfit font-bold text-sm text-white uppercase tracking-wider">Temporadas y Episodios</h3>
+                                <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+                                    {media.seasons.map((season, sIdx) => (
+                                        <button 
+                                            key={sIdx} 
+                                            onClick={() => setSelectedSeason(sIdx)} 
+                                            className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${selectedSeason === sIdx ? 'bg-zpink text-white shadow-md' : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'}`}
+                                        >
+                                            Temporada {season.seasonNumber}
+                                        </button>
+                                    ))}
+                                </div>
+                                <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-1">
+                                    {media.seasons[selectedSeason]?.episodes?.map((ep, eIdx) => (
+                                        <div 
+                                            key={eIdx} 
+                                            onClick={() => setSelectedEpisode(ep)} 
+                                            className={`p-3 rounded-xl cursor-pointer flex items-center justify-between text-xs transition-all ${selectedEpisode?.url === ep.url ? 'bg-zpink/25 text-white border border-zpink/50 shadow font-bold' : 'bg-white/5 hover:bg-white/10 text-gray-300'}`}
+                                        >
+                                            <div className="flex items-center gap-3 truncate">
+                                                <span className="text-zpink font-bold">{eIdx + 1}.</span>
+                                                <span className="truncate">{ep.title}</span>
+                                            </div>
+                                            <i className="ph-fill ph-play text-zpink text-sm"></i>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
     </script>
 </body>
 </html>
