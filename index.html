@@ -350,30 +350,38 @@
                         let animadosList = [];
                         if (dataAnimados) {
                             const rawAnimados = Array.isArray(dataAnimados) ? dataAnimados : (dataAnimados.animados || dataAnimados.series || dataAnimados.content || []);
-                            animadosList = rawAnimados.map((a, idx) => ({
-                                ...a,
-                                id: `anim-${idx}`,
-                                type: 'animados',
-                                title: a.titulo || a.tituloSerie || a.title || a.name,
-                                description: a.descripcion || a.sinopsis,
-                                image: a.imagen || a.poster || a.image,
-                                group: 'Animados & Kids',
-                                seasons: (a.temporadas || []).length > 0 ? a.temporadas.map((t, tIdx) => ({
+                            animadosList = rawAnimados.map((a, idx) => {
+                                const seasonsData = (a.temporadas || []).map((t, tIdx) => ({
                                     seasonNumber: t.numeroTemporada || (tIdx + 1),
                                     episodes: (t.episodios || []).map((ep, eIdx) => ({
                                         id: `ep-anim-${idx}-${tIdx}-${eIdx}`,
                                         title: ep.tituloEpisodio || ep.titulo || `Episodio ${eIdx + 1}`,
                                         url: convertUrl(ep.urlDrive || ep.url)
                                     }))
-                                })) : [{
-                                    seasonNumber: 1,
-                                    episodes: [{
-                                        id: `ep-anim-single-${idx}`,
-                                        title: a.titulo || a.title || 'Reproducir',
-                                        url: convertUrl(a.urlDrive || a.url || a.urlOkRu)
+                                }));
+
+                                const hasSeasons = seasonsData.length > 0 && seasonsData.some(s => s.episodes.length > 0);
+                                const singleUrl = convertUrl(a.urlDrive || a.url || a.urlOkRu);
+
+                                return {
+                                    ...a,
+                                    id: `anim-${idx}`,
+                                    type: 'animados',
+                                    title: a.titulo || a.tituloSerie || a.title || a.name,
+                                    description: a.descripcion || a.sinopsis,
+                                    image: a.imagen || a.poster || a.image,
+                                    group: 'Animados & Kids',
+                                    url: singleUrl,
+                                    seasons: hasSeasons ? seasonsData : [{
+                                        seasonNumber: 1,
+                                        episodes: [{
+                                            id: `ep-anim-single-${idx}`,
+                                            title: a.titulo || a.title || 'Reproducir Animado',
+                                            url: singleUrl
+                                        }]
                                     }]
-                                }]
-                            }));
+                                };
+                            });
                         }
 
                         let radioList = DEFAULT_RADIO_STATIONS;
@@ -496,15 +504,15 @@
                 <div className="flex flex-col min-h-screen bg-zdark relative">
                     
                     {/* Header */}
-                    <header className="fixed top-0 w-full glass-z z-50 px-6 py-4 flex items-center justify-between border-b border-white/10 shadow-lg">
-                        <div className="flex items-center gap-8">
-                            <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => { setCurrentTab('home'); setActiveMedia(null); }}>
+                    <header className="fixed top-0 w-full glass-z z-50 px-4 sm:px-6 py-4 flex items-center justify-between border-b border-white/10 shadow-lg">
+                        <div className="flex items-center gap-4 sm:gap-8">
+                            <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => { setCurrentTab('home'); setActiveMedia(null); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
                                 <div className="w-9 h-9 bg-zpink rounded-xl flex items-center justify-center font-outfit font-black text-white shadow-[0_0_15px_rgba(255,45,85,0.4)]">
                                     <i className="ph-fill ph-play text-base ml-0.5"></i>
                                 </div>
-                                <span className="font-outfit font-extrabold text-lg tracking-tight text-white">Logo</span>
+                                <span className="font-outfit font-extrabold text-base sm:text-lg tracking-tight text-white hidden xs:inline">Magic TV</span>
                             </div>
-                            <nav className="hidden md:flex items-center gap-6 text-sm font-semibold text-gray-300">
+                            <nav className="hidden lg:flex items-center gap-5 text-sm font-semibold text-gray-300">
                                 {[
                                     { id: 'home', label: 'Home' },
                                     { id: 'movies', label: 'Cine' },
@@ -515,7 +523,7 @@
                                 ].map(t => (
                                     <button 
                                         key={t.id}
-                                        onClick={() => { setCurrentTab(t.id); setActiveMedia(null); }}
+                                        onClick={() => { setCurrentTab(t.id); setActiveMedia(null); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                                         className={`transition-colors hover:text-white ${currentTab === t.id ? 'text-white border-b-2 border-zpink pb-1' : 'text-gray-400'}`}
                                     >
                                         {t.label}
@@ -523,21 +531,20 @@
                                 ))}
                             </nav>
                         </div>
-                        <div className="flex items-center gap-3">
-                            {/* Ctrl + D Bookmark Reminder Button */}
+                        <div className="flex items-center gap-2 sm:gap-3">
                             <div className="relative">
                                 <button 
                                     onClick={() => setShowCtrlDTooltip(!showCtrlDTooltip)} 
                                     onMouseEnter={() => setShowCtrlDTooltip(true)}
                                     onMouseLeave={() => setShowCtrlDTooltip(false)}
-                                    className="px-3 py-2 rounded-xl bg-gradient-to-r from-zpink/20 to-purple-600/20 hover:from-zpink/30 hover:to-purple-600/30 border border-zpink/40 text-white text-xs font-bold flex items-center gap-2 transition-all shadow-[0_0_15px_rgba(255,45,85,0.3)] animate-attention"
+                                    className="px-2.5 sm:px-3 py-2 rounded-xl bg-gradient-to-r from-zpink/20 to-purple-600/25 hover:from-zpink/30 hover:to-purple-600/35 border border-zpink/40 text-white text-[11px] sm:text-xs font-bold flex items-center gap-1.5 sm:gap-2 transition-all shadow-[0_0_15px_rgba(255,45,85,0.3)] animate-attention"
                                 >
                                     <i className="ph-fill ph-bookmark-simple text-zpink text-sm animate-pulse"></i>
                                     <span className="hidden sm:inline">Guardar</span>
                                     <span className="bg-zpink text-white text-[10px] px-1.5 py-0.5 rounded font-mono font-black">Ctrl+D</span>
                                 </button>
                                 {showCtrlDTooltip && (
-                                    <div className="absolute right-0 top-12 w-64 glass-z p-3 rounded-2xl border border-white/20 shadow-2xl text-xs text-gray-200 z-50 animate-z-fade">
+                                    <div className="absolute right-0 top-12 w-60 sm:w-64 glass-z p-3 rounded-2xl border border-white/20 shadow-2xl text-xs text-gray-200 z-50 animate-z-fade">
                                         <div className="font-bold text-zpink mb-1 flex items-center gap-1.5">
                                             <i className="ph-fill ph-star"></i> Añadir a Favoritos
                                         </div>
@@ -546,26 +553,26 @@
                                 )}
                             </div>
 
-                            <button onClick={() => setShowQrModal(true)} className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white transition-all">
+                            <button onClick={() => setShowQrModal(true)} className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white transition-all hidden sm:block">
                                 <i className="ph ph-qr-code text-xl"></i>
                             </button>
-                            <button onClick={() => setShowAuthorModal(true)} className="px-4 py-2 rounded-full bg-zpink hover:bg-zpinkHover text-white text-xs font-bold shadow-[0_0_20px_rgba(255,45,85,0.4)] transition-all active:scale-95">
+                            <button onClick={() => setShowAuthorModal(true)} className="px-3 sm:px-4 py-2 rounded-full bg-zpink hover:bg-zpinkHover text-white text-[11px] sm:text-xs font-bold shadow-[0_0_20px_rgba(255,45,85,0.4)] transition-all active:scale-95 whitespace-nowrap">
                                 Jorge Arturo ⚡
                             </button>
                         </div>
                     </header>
 
                     {/* Main Content Area */}
-                    <main className="flex-1 pt-20 pb-40 px-4 sm:px-8 max-w-7xl mx-auto w-full relative z-10">
+                    <main className="flex-1 pt-20 pb-44 px-3 sm:px-8 max-w-7xl mx-auto w-full relative z-10">
                         {activeMedia ? (
-                            <MediaViewer media={activeMedia} onBack={() => setActiveMedia(null)} />
+                            <MediaViewer media={activeMedia} onBack={() => { setActiveMedia(null); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
                         ) : currentTab === 'home' ? (
                             <HomeSection 
                                 content={content} 
-                                onSelect={(item) => setActiveMedia(item)} 
+                                onSelect={(item) => { setActiveMedia(item); window.scrollTo({ top: 0, behavior: 'smooth' }); }} 
                                 searchQuery={searchQuery}
                                 setSearchQuery={setSearchQuery}
-                                onNavigate={(tab) => setCurrentTab(tab)}
+                                onNavigate={(tab) => { setCurrentTab(tab); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                                 favorites={favorites}
                                 onToggleFav={toggleFavorite}
                             />
@@ -576,20 +583,20 @@
                                 onToggleFav={toggleFavorite}
                             />
                         ) : currentTab === 'movies' ? (
-                            <CategoryGridSection title="Películas en Tendencia" subtitle="Estrenos exclusivos seleccionados para ti" items={content.movies} onSelect={(item) => setActiveMedia(item)} favorites={favorites} onToggleFav={toggleFavorite} />
+                            <CategoryGridSection title="Películas en Tendencia" subtitle="Estrenos exclusivos seleccionados para ti" items={content.movies} onSelect={(item) => { setActiveMedia(item); window.scrollTo({ top: 0, behavior: 'smooth' }); }} favorites={favorites} onToggleFav={toggleFavorite} />
                         ) : currentTab === 'series' ? (
-                            <CategoryGridSection title="Series de Televisión" subtitle="Temporadas completas en alta definición" items={content.series} onSelect={(item) => setActiveMedia(item)} favorites={favorites} onToggleFav={toggleFavorite} />
+                            <CategoryGridSection title="Series de Televisión" subtitle="Temporadas completas en alta definición" items={content.series} onSelect={(item) => { setActiveMedia(item); window.scrollTo({ top: 0, behavior: 'smooth' }); }} favorites={favorites} onToggleFav={toggleFavorite} />
                         ) : currentTab === 'animados' ? (
-                            <CategoryGridSection title="Animados & Kids" subtitle="Diversión y entretenimiento familiar" items={content.animados} onSelect={(item) => setActiveMedia(item)} favorites={favorites} onToggleFav={toggleFavorite} />
+                            <CategoryGridSection title="Animados & Kids" subtitle="Diversión y entretenimiento familiar" items={content.animados} onSelect={(item) => { setActiveMedia(item); window.scrollTo({ top: 0, behavior: 'smooth' }); }} favorites={favorites} onToggleFav={toggleFavorite} />
                         ) : currentTab === 'radio' ? (
                             <RadioSection stations={content.radios} activeRadio={activeRadio} isPlaying={isPlayingRadio} onPlayStation={handlePlayStation} favorites={favorites} />
                         ) : currentTab === 'favorites' ? (
-                            <FavoritesSection favorites={favorites} onSelect={(item) => setActiveMedia(item)} onToggleFav={toggleFavorite} />
+                            <FavoritesSection favorites={favorites} onSelect={(item) => { setActiveMedia(item); window.scrollTo({ top: 0, behavior: 'smooth' }); }} onToggleFav={toggleFavorite} />
                         ) : null}
                     </main>
 
-                    {/* Enhanced Mobile Bottom Navigation Bar (Larger, more visible text and colorful active state) */}
-                    <nav className="md:hidden fixed bottom-0 w-full glass-z border-t border-white/15 z-40 flex items-center justify-around py-3 px-1 pb-safe shadow-[0_-10px_30px_rgba(0,0,0,0.8)]">
+                    {/* Enhanced Responsive Mobile Bottom Navigation Bar */}
+                    <nav className="lg:hidden fixed bottom-0 w-full glass-z border-t border-white/15 z-40 flex items-center justify-around py-3 px-1 pb-safe shadow-[0_-10px_30px_rgba(0,0,0,0.8)]">
                         {[
                             { id: 'home', icon: 'ph-house-line', label: 'Home' },
                             { id: 'movies', icon: 'ph-film-slate', label: 'Cine' },
@@ -603,11 +610,11 @@
                             return (
                                 <button 
                                     key={tab.id}
-                                    onClick={() => { setCurrentTab(tab.id); setActiveMedia(null); }}
-                                    className={`flex flex-col items-center justify-center transition-all px-2 py-1.5 rounded-xl ${isActive ? 'text-zpink font-black scale-105 bg-zpink/15 border border-zpink/30 shadow-[0_0_12px_rgba(255,45,85,0.3)]' : 'text-gray-300 hover:text-white font-medium'}`}
+                                    onClick={() => { setCurrentTab(tab.id); setActiveMedia(null); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                                    className={`flex flex-col items-center justify-center transition-all px-1.5 py-1.5 rounded-xl ${isActive ? 'text-zpink font-black scale-105 bg-zpink/15 border border-zpink/30 shadow-[0_0_12px_rgba(255,45,85,0.3)]' : 'text-gray-300 hover:text-white font-medium'}`}
                                 >
-                                    <i className={`${tab.icon} text-2xl ${isActive ? 'text-zpink' : 'text-gray-300'}`}></i>
-                                    <span className={`text-[11px] mt-1 tracking-tight ${isActive ? 'font-extrabold text-white' : 'font-medium'}`}>{tab.label}</span>
+                                    <i className={`${tab.icon} text-xl sm:text-2xl ${isActive ? 'text-zpink' : 'text-gray-300'}`}></i>
+                                    <span className={`text-[10px] sm:text-[11px] mt-1 tracking-tight ${isActive ? 'font-extrabold text-white' : 'font-medium'}`}>{tab.label}</span>
                                 </button>
                             );
                         })}
@@ -615,25 +622,25 @@
 
                     {/* Radio Mini Player Bar */}
                     {activeRadio && (
-                        <div className="fixed bottom-[68px] md:bottom-0 left-0 right-0 glass-z border-t border-white/10 p-4 z-40 flex items-center justify-between shadow-2xl animate-z-fade">
+                        <div className="fixed bottom-[68px] lg:bottom-0 left-0 right-0 glass-z border-t border-white/10 p-3 sm:p-4 z-40 flex items-center justify-between shadow-2xl animate-z-fade">
                             <div className="flex items-center gap-3">
-                                <img src={activeRadio.image} alt={activeRadio.title} className="w-12 h-12 rounded-xl object-cover border border-white/10 hidden sm:block shadow" />
+                                <img src={activeRadio.image} alt={activeRadio.title} className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl object-cover border border-white/10 shadow" />
                                 <div>
-                                    <h4 className="font-bold text-xs sm:text-sm text-white truncate">{activeRadio.title}</h4>
-                                    <span className="text-[11px] text-zpink flex items-center gap-1.5 font-semibold mt-0.5">
+                                    <h4 className="font-bold text-xs sm:text-sm text-white truncate max-w-[150px] sm:max-w-xs">{activeRadio.title}</h4>
+                                    <span className="text-[10px] sm:text-[11px] text-zpink flex items-center gap-1.5 font-semibold mt-0.5">
                                         <span className="w-2 h-2 rounded-full bg-zpink animate-pulse"></span> TRANSMITIENDO HD
                                     </span>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-4">
-                                <div className="flex items-center mr-2">
+                            <div className="flex items-center gap-3 sm:gap-4">
+                                <div className="hidden sm:flex items-center mr-2">
                                     <LedEqualizer isPlaying={isPlayingRadio} />
                                 </div>
-                                <button onClick={() => setIsPlayingRadio(!isPlayingRadio)} className="w-12 h-12 rounded-full bg-zpink hover:bg-zpinkHover text-white flex items-center justify-center shadow-[0_0_20px_rgba(255,45,85,0.5)] transition-transform active:scale-95">
-                                    <i className={`ph-fill ${isPlayingRadio ? 'ph-pause' : 'ph-play text-xl ml-0.5'}`}></i>
+                                <button onClick={() => setIsPlayingRadio(!isPlayingRadio)} className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-zpink hover:bg-zpinkHover text-white flex items-center justify-center shadow-[0_0_20px_rgba(255,45,85,0.5)] transition-transform active:scale-95">
+                                    <i className={`ph-fill ${isPlayingRadio ? 'ph-pause' : 'ph-play text-lg sm:text-xl ml-0.5'}`}></i>
                                 </button>
                                 <button onClick={() => setActiveRadio(null)} className="p-2 text-gray-400 hover:text-white">
-                                    <i className="ph ph-x text-xl"></i>
+                                    <i className="ph ph-x text-lg sm:text-xl"></i>
                                 </button>
                             </div>
                         </div>
@@ -857,8 +864,8 @@
 
             const handleSelectChannel = (channel) => {
                 setSelectedChannel(channel);
-                if (window.innerWidth < 1024 && playerRef.current) {
-                    playerRef.current.scrollIntoView({ behavior: 'smooth' });
+                if (playerRef.current) {
+                    playerRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
             };
 
@@ -1092,7 +1099,6 @@
             const [selectedEpisode, setSelectedEpisode] = useState(
                 media.seasons?.[0]?.episodes?.[0] || null
             );
-            const [isPlaying, setIsPlaying] = useState(false);
 
             useEffect(() => {
                 const video = videoRef.current;
@@ -1115,19 +1121,7 @@
                 } else {
                     video.src = targetUrl;
                 }
-                setIsPlaying(false);
             }, [media, selectedEpisode]);
-
-            const handleStartPlayback = () => {
-                const video = videoRef.current;
-                if (video) {
-                    video.play().then(() => {
-                        setIsPlaying(true);
-                    }).catch(e => {
-                        console.error("Playback error", e);
-                    });
-                }
-            };
 
             const isSeriesOrAnim = (media.type === 'series' || media.type === 'animados') && media.seasons && media.seasons.length > 0;
             const activeUrl = isSeriesOrAnim && selectedEpisode ? selectedEpisode.url : media.url;
@@ -1139,7 +1133,7 @@
                         <i className="ph ph-arrow-left text-base"></i> Volver al Inicio
                     </button>
 
-                    <div className="w-full aspect-video bg-black rounded-3xl overflow-hidden shadow-2xl border border-white/10 relative flex items-center justify-center">
+                    <div className="w-full aspect-video bg-black rounded-3xl overflow-hidden shadow-2xl border border-white/10 relative">
                         {isEmbed ? (
                             <iframe 
                                 src={activeUrl} 
@@ -1148,24 +1142,13 @@
                                 allowFullScreen
                             ></iframe>
                         ) : (
-                            <>
-                                <video 
-                                    ref={videoRef}
-                                    controls 
-                                    playsInline
-                                    onPlay={() => setIsPlaying(true)}
-                                    onPause={() => setIsPlaying(false)}
-                                    className="w-full h-full object-contain absolute inset-0"
-                                ></video>
-                                {!isPlaying && activeUrl && (
-                                    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex flex-col items-center justify-center gap-4 z-20 cursor-pointer" onClick={handleStartPlayback}>
-                                        <div className="w-20 h-20 rounded-full bg-zpink flex items-center justify-center text-white shadow-[0_0_30px_rgba(255,45,85,0.7)] animate-attention">
-                                            <i className="ph-fill ph-play text-3xl ml-1"></i>
-                                        </div>
-                                        <span className="font-outfit font-extrabold text-sm text-white tracking-wider">Haga clic para reproducir</span>
-                                    </div>
-                                )}
-                            </>
+                            <video 
+                                ref={videoRef}
+                                controls 
+                                autoPlay 
+                                playsInline
+                                className="w-full h-full object-contain"
+                            ></video>
                         )}
                     </div>
 
