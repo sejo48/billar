@@ -472,7 +472,7 @@
                 const audio = audioRef.current;
                 audio.volume = radioVolume;
 
-                if (currentRadioStation) {
+                if (currentRadioStation && activeTab === 'radio') {
                     const playAudio = () => {
                         const playPromise = audio.play();
                         if (playPromise !== undefined) {
@@ -518,8 +518,10 @@
                         if (isRadioPlaying) playAudio();
                         else audio.pause();
                     }
+                } else if (audioRef.current) {
+                    audioRef.current.pause();
                 }
-            }, [currentRadioStation, isRadioPlaying]);
+            }, [currentRadioStation, isRadioPlaying, activeTab]);
 
             useEffect(() => {
                 if (audioRef.current) audioRef.current.volume = radioVolume;
@@ -608,7 +610,7 @@
                     : activeTab === 'topshows'
                     ? [...content.series, ...content.animados].slice(0, 15)
                     : content[activeTab] || []; 
-                if (search && activeTab !== 'tv' && activeTab !== 'community') return list.filter(i => (i.title || i.name || i.titulo || '').toLowerCase().includes(search.toLowerCase())); 
+                if (search && activeTab !== 'tv') return list.filter(i => (i.title || i.name || i.titulo || '').toLowerCase().includes(search.toLowerCase())); 
                 return list; 
             };
 
@@ -655,7 +657,7 @@
                             ) || content.tv[0];
                             if (telerredChannel) setSelectedItem(telerredChannel);
                         }
-                    } else if (tab.id !== 'community') {
+                    } else {
                         setSelectedItem(null); 
                     }
                 }
@@ -675,7 +677,7 @@
                             </div>
 
                             <nav className="hidden xl:flex items-center gap-1">
-                                {navTabs.slice(0, 8).map(tab => (
+                                {navTabs.slice(0, 9).map(tab => (
                                     <button 
                                         key={tab.id} 
                                         onClick={() => handleTabClick(tab)} 
@@ -711,7 +713,7 @@
                     </header>
 
                     <div className="xl:hidden fixed bottom-0 w-full bg-[#070b19] border-t border-indigo-950/80 z-50 flex py-2.5 pb-safe px-2 overflow-x-auto no-scrollbar snap-x items-center justify-around shadow-[0_-10px_30px_rgba(0,0,0,0.9)]">
-                        {navTabs.map(tab => (
+                        {navTabs.slice(0, 9).map(tab => (
                             <button key={tab.id} onClick={() => handleTabClick(tab)} className={`flex flex-col items-center justify-center flex-shrink-0 min-w-[56px] py-1 gap-1 snap-start transition-all active:scale-95 rounded-xl ${activeTab === tab.id && !tab.isExternal ? 'text-indigo-400 bg-indigo-950/40 border border-indigo-500/30' : 'text-gray-400 hover:text-white'}`}>
                                 <Icon name={tab.icon} size={18}/>
                                 <span className="text-[9px] font-medium tracking-wide">{tab.label}</span>
@@ -722,8 +724,6 @@
                     <main className="flex-1 min-h-screen pb-36 md:pb-16 relative z-10">
                         {activeTab === 'radio' ? (
                             <RadioSection currentStation={currentRadioStation} favorites={radioFavorites} isLoading={isLoadingRadio} isPlaying={isRadioPlaying} onPlayStation={handlePlayRadioStation} onToggleFavorite={toggleRadioFavorite} search={radioSearch} setSearch={setRadioSearch} setVolume={setRadioVolume} stations={radioStations} streamError={streamError} volume={radioVolume}/>
-                        ) : activeTab === 'community' ? (
-                            <CommunitySection/>
                         ) : activeTab === 'favorites' && !selectedItem ? (
                             <div className="p-4 sm:p-10 animate-fade-in max-w-7xl mx-auto w-full">
                                 <div className="mb-6 flex items-center gap-3 border-b border-indigo-950/60 pb-4">
@@ -962,7 +962,7 @@
                         )}
                     </main>
 
-                    {currentRadioStation && (
+                    {currentRadioStation && activeTab === 'radio' && (
                         <div className="fixed bottom-[55px] md:bottom-0 left-0 right-0 bg-[#070b19]/95 backdrop-blur-2xl border-t border-indigo-950/80 p-3.5 sm:p-4 z-50 flex items-center justify-between shadow-[0_-20px_50px_rgba(0,0,0,0.9)] animate-slide-up">
                             <div className="flex items-center gap-3.5 w-1/3 min-w-[120px]">
                                 <div className="w-12 h-12 rounded-2xl overflow-hidden flex-shrink-0 border border-indigo-500/40 hidden sm:block shadow-lg">
@@ -1073,7 +1073,7 @@
                     <div ref={rowRef} className="flex gap-4 overflow-x-auto no-scrollbar pb-4 pt-1 snap-x scroll-smooth custom-scrollbar">
                         {items.map((item, i) => (
                             <div key={i} className="flex-shrink-0 w-36 sm:w-48 snap-start">
-                                <Card item={item} onClick={onPlay} isFavorite={favorites.some(f => (f.id||f.title) === (item.id||item.title))} onToggleFavorite={onToggleFavorite} />
+                                <Card item={item} key={i} onClick={onPlay} isFavorite={favorites.some(f => (f.id||f.title) === (item.id||item.title))} onToggleFavorite={onToggleFavorite} />
                             </div>
                         ))}
                     </div>
@@ -1266,18 +1266,51 @@
             );
         };
 
-        const IntroScreen = ({ onEnter }) => (
-            <div className="fixed inset-0 z-[100] bg-[#030712] flex items-center justify-center overflow-hidden font-sans p-4">
-                <div className="absolute inset-0"><img src="https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?q=80&w=1200&auto=format&fit=crop" className="w-full h-full object-cover opacity-15" /><div className="absolute inset-0 bg-gradient-to-b from-[#030712] via-[#030712]/90 to-[#030712]"></div></div>
-                <div className="relative z-10 text-center max-w-md w-full animate-slide-up bg-[#070b19]/80 backdrop-blur-xl border border-indigo-900/50 p-8 rounded-3xl shadow-[0_0_60px_rgba(99,102,241,0.25)]">
-                    <div className="mb-4 inline-block bg-indigo-600 px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase text-white shadow-[0_0_15px_rgba(99,102,241,0.5)]">HBO Max Experience</div>
-                    <h1 className="text-4xl sm:text-5xl font-black text-white mb-2 tracking-tighter">MAGIC <span className="text-indigo-400">TV 2.0</span></h1>
-                    <p className="text-sm text-gray-300 font-light mb-8 italic">"Streaming de alta calidad cinematográfica."</p>
-                    <button onClick={onEnter} className="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-4 rounded-full font-extrabold text-base shadow-[0_0_25px_rgba(99,102,241,0.6)] flex items-center justify-center gap-2.5 mb-8 active:scale-95 transition-all"><span>Comenzar Experiencia</span> <Icon fill="white" name="play" size={18}/></button>
-                    <div className="opacity-80 pt-4 border-t border-indigo-950/80"><p className="text-[9px] text-gray-400 uppercase tracking-widest mb-0.5">DISEÑADO Y PROGRAMADO POR</p><h3 className="text-base font-serif text-gold-gradient font-bold mb-1">JORGE ARTURO HERNÁNDEZ MÉNDEZ</h3><p className="text-[9px] text-gray-500">Magic TV 2.0 • Powered by Gemini AI</p></div>
+        const IntroScreen = ({ onEnter }) => {
+            const [isLoading, setIsLoading] = useState(false);
+            const [progress, setProgress] = useState(0);
+
+            const handleStart = () => {
+                setIsLoading(true);
+                let current = 0;
+                const interval = setInterval(() => {
+                    current += 2;
+                    if (current <= 100) {
+                        setProgress(current);
+                    } else {
+                        clearInterval(interval);
+                        onEnter();
+                    }
+                }, 30); // 30ms * 100 = 3000ms (exactly 3 seconds)
+            };
+
+            return (
+                <div className="fixed inset-0 z-[100] bg-[#030712] flex items-center justify-center overflow-hidden font-sans p-4">
+                    <div className="absolute inset-0"><img src="https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?q=80&w=1200&auto=format&fit=crop" className="w-full h-full object-cover opacity-15" /><div className="absolute inset-0 bg-gradient-to-b from-[#030712] via-[#030712]/90 to-[#030712]"></div></div>
+                    <div className="relative z-10 text-center max-w-md w-full animate-slide-up bg-[#070b19]/80 backdrop-blur-xl border border-indigo-900/50 p-8 rounded-3xl shadow-[0_0_60px_rgba(99,102,241,0.25)]">
+                        <div className="mb-4 inline-block bg-indigo-600 px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase text-white shadow-[0_0_15px_rgba(99,102,241,0.5)]">HBO Max Experience</div>
+                        <h1 className="text-4xl sm:text-5xl font-black text-white mb-2 tracking-tighter">MAGIC <span className="text-indigo-400">TV 2.0</span></h1>
+                        <p className="text-sm text-gray-300 font-light mb-8 italic">"Streaming de alta calidad cinematográfica."</p>
+                        
+                        {isLoading ? (
+                            <div className="space-y-3 mb-8">
+                                <div className="flex justify-between text-xs text-indigo-300 font-bold px-1">
+                                    <span>Cargando plataforma...</span>
+                                    <span>{progress}%</span>
+                                </div>
+                                <div className="w-full h-3 bg-black/60 rounded-full overflow-hidden border border-indigo-950 p-0.5">
+                                    <div className="h-full bg-gradient-to-r from-indigo-600 to-indigo-400 rounded-full transition-all duration-75 shadow-[0_0_15px_#6366f1]" style={{ width: `${progress}%` }}></div>
+                                </div>
+                            </div>
+                        ) : (
+                            <button onClick={handleStart} className="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-4 rounded-full font-extrabold text-base shadow-[0_0_25px_rgba(99,102,241,0.6)] flex items-center justify-center gap-2.5 mb-8 active:scale-95 transition-all"><span>Comenzar Experiencia</span> <Icon fill="white" name="play" size={18}/></button>
+                        )}
+
+                        <div className="opacity-80 pt-4 border-t border-indigo-950/80"><p className="text-[9px] text-gray-400 uppercase tracking-widest mb-0.5">DISEÑADO Y PROGRAMADO POR</p><h3 className="text-base font-serif text-gold-gradient font-bold mb-1">JORGE ARTURO HERNÁNDEZ MÉNDEZ</h3><p className="text-[9px] text-gray-500">Magic TV 2.0 • Powered by Gemini AI</p></div>
+                    </div>
                 </div>
-            </div>
-        );
+            );
+        };
 
         const HeroSection = ({ item, onPlay, isFavorite, onToggleFavorite }) => {
             if (!item) return null;
