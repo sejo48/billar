@@ -4,7 +4,1679 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Boxplaytv - Ultimate Streaming & Anime Hub</title>
+    <!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Boxplaytv - Ultimate Streaming & Hub</title>
     
+    <meta property="og:title" content="BOXPLAYTV">
+    <meta property="og:description" content="Streaming de alta calidad cinematográfica, radio y colección de discos clásicos">
+    <meta property="og:image" content="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjx4dt02lbSvoCJhKRtkyUa2NEhqRyvI8_G82p4jz_8iK5rfeJMVjKAcGXH9ukveI5c6kC_dlasscvR4CoUxCxbeDcEctr3zFJLJys7E76ZvAk6w4hOD1iwJTPj5g4Kfe-FLHhSO9HGLKtmapJZWXvRMMs23WdLnPqoj20RIrLjhFAHCqOsBk7NrmjoJlg/s320/07b01546-33f7-442e-b459-f3698b5a6120.png">
+    <meta property="og:url" content="https://sejo48.github.io/StreamTube-V20/">
+    <meta property="og:type" content="website">
+    
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='28' fill='%2306b6d4'/%3E%3Cpolygon points='40,30 70,50 40,70' fill='%23ffffff'/%3E%3C/svg%3E">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        if (typeof Babel !== 'undefined') {
+            Babel.registerPreset('react-classic', {
+                presets: [[Babel.availablePresets['react'], { runtime: 'classic' }]]
+            });
+        }
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        retro: {
+                            gold: '#d4af37',
+                            goldDark: '#aa771c',
+                            dark: '#08080a',
+                            panel: '#12141a'
+                        }
+                    }
+                }
+            }
+        };
+    </script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Share+Tech+Mono&family=Orbitron:wght@400;600;700;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-primary: #020617;
+            --bg-surface: #090d1f;
+            --bg-card: #0f172a;
+            --accent-cyan: #06b6d4;
+            --accent-teal: #14b8a6;
+            --accent-blue: #3b82f6;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-subtle: rgba(148, 163, 184, 0.12);
+        }
+
+        body { 
+            background-color: var(--bg-primary); 
+            color: var(--text-main); 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            overflow-x: hidden; 
+            -webkit-tap-highlight-color: transparent; 
+            width: 100%;
+            background-image: linear-gradient(to bottom, rgba(2, 6, 23, 0.90), rgba(2, 6, 23, 0.97)), url('https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjhzGl4XNn3xIt050NDnFHsLxCu3IAck1NHPEFt4CfGKyUIC_kHc5nYg9lKOCsWf2QgaLlD3ayD70uDdaMS9QtAHpgSSk6LX_PkL32dpCR1CLTcjmLahW6JS9FP597uXAA19WmLa6djHQti6HcDxjK5vWKeZDgVTYBxKru-5w0ArDuoJYpiqB8sbfjQF58/s320/Gemini_Generated_Image_mw4gatmw4gatmw4g.jpeg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: var(--bg-primary); }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 3px; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(6, 182, 212, 0.5); border-radius: 4px; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes scaleIn { from { transform: scale(0.96); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        @keyframes spinVinyl { 100% { transform: rotate(360deg); } }
+        @keyframes eqBounce {
+            0%, 100% { height: 4px; }
+            50% { height: 13px; }
+        }
+
+        .animate-fade-in { animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .animate-scale-in { animation: scaleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.82);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-subtle);
+        }
+
+        .glass-header {
+            background: rgba(2, 6, 23, 0.90);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .card-glow:hover {
+            box-shadow: 0 15px 30px -10px rgba(6, 182, 212, 0.35);
+            transform: translateY(-4px) scale(1.02);
+            border-color: rgba(6, 182, 212, 0.5);
+        }
+
+        .retro-museum-bg {
+            background: radial-gradient(circle at top center, rgba(212, 175, 55, 0.12), transparent 65%), #07080b;
+        }
+        .playfair { font-family: 'Playfair Display', Georgia, serif; }
+        .gold-text {
+            background: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .cover-reflection {
+            -webkit-box-reflect: below 2px linear-gradient(transparent, transparent 75%, rgba(255,255,255,0.12));
+        }
+        .album-card-hover {
+            transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .album-card-hover:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.9), 0 0 20px rgba(212, 175, 55, 0.25);
+        }
+        .playing-bar {
+            width: 3px;
+            background-color: #d4af37;
+            animation: eqBounce 1s infinite ease-in-out;
+        }
+
+        .orbitron { font-family: 'Orbitron', sans-serif; }
+        .cyber-mono { font-family: 'Share Tech Mono', monospace; }
+        .cyber-deck {
+            background: linear-gradient(135deg, rgba(13, 30, 38, 0.90) 0%, rgba(6, 14, 19, 0.95) 100%);
+            border: 2px solid #16525f;
+            box-shadow: inset 0 0 25px rgba(15, 120, 130, 0.2), 0 15px 40px rgba(0, 0, 0, 0.95);
+            border-radius: 20px;
+        }
+        .lcd-screen { background-color: #010507; border: 2px inset #0f363e; box-shadow: inset 0 0 15px rgba(0, 255, 150, 0.3); color: #22c55e; }
+        .cyber-btn { background: linear-gradient(to bottom, #12333d, #08171d); border: 1px solid #1f6472; color: #38bdf8; cursor: pointer; transition: all 0.2s; }
+        .cyber-btn:hover { background: linear-gradient(to bottom, #1a4554, #0b1f27); border-color: #38bdf8; box-shadow: 0 0 12px rgba(56, 189, 248, 0.6); color: #fff; }
+
+        .vinyl-spin { animation: spinVinyl 12s linear infinite; }
+        .vinyl-spin.paused { animation-play-state: paused; }
+
+        .video-container-fix iframe, .video-container-fix video {
+            width: 100% !important; height: 100% !important; object-fit: contain !important; border: none !important; position: absolute !important; top: 0 !important; left: 0 !important;
+        }
+        button:focus, input:focus, select:focus { outline: none; }
+
+        /* Estilo para el iframe de Archive.org */
+        .archive-embed-container iframe {
+            border-radius: 10px;
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.15);
+        }
+    </style>
+</head>
+<body>
+    <div id="root">
+        <div style="display:flex;height:100vh;width:100vw;align-items:center;justify-content:center;background:#020617;color:white;flex-direction:column;font-family:sans-serif;">
+            <div style="width:40px;height:40px;border:3px solid #06b6d4;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;margin-bottom:16px;"></div>
+            <h2 style="font-weight:700; font-size: 0.95rem; letter-spacing: 0.05em; color: #94a3b8;">Cargando Boxplaytv...</h2>
+            <style>@keyframes spin { 100% { transform: rotate(360deg); } }</style>
+        </div>
+    </div>
+
+    <script type="text/babel" data-presets="react-classic">
+        const { useState, useEffect, useRef, useMemo } = React;
+
+        const safeStorage = {
+            getItem: (key) => { try { return localStorage.getItem(key); } catch (e) { return null; } },
+            setItem: (key, value) => { try { localStorage.setItem(key, value); } catch (e) { } }
+        };
+
+        const URLS = {
+            TV: './listaoficial.m3u',
+            SERIES: './playlist.json',
+            MOVIES: './peliculas.json',
+            MOVIES2: 'https://raw.githubusercontent.com/sejo48/StreamTube-V20/refs/heads/main/peliculas2.json',
+            RADIOS: './radios.json',
+            TUDUM: './tudum.json',
+            ANIMATED: './animados.json',
+            VIDEOTECA: './videoteca.json'
+        };
+
+        const RAW_URLS = {
+            TV: 'https://raw.githubusercontent.com/sejo48/StreamTube-V20/main/listaoficial.m3u',
+            SERIES: 'https://raw.githubusercontent.com/sejo48/StreamTube-V20/main/playlist.json',
+            MOVIES: 'https://raw.githubusercontent.com/sejo48/StreamTube-V20/main/peliculas.json',
+            MOVIES2: 'https://raw.githubusercontent.com/sejo48/StreamTube-V20/main/peliculas2.json',
+            RADIOS: 'https://raw.githubusercontent.com/sejo48/StreamTube-V20/main/radios.json',
+            TUDUM: 'https://raw.githubusercontent.com/sejo48/StreamTube-V20/main/tudum.json',
+            ANIMATED: 'https://raw.githubusercontent.com/sejo48/StreamTube-V20/main/animados.json',
+            VIDEOTECA: 'https://raw.githubusercontent.com/sejo48/StreamTube-V20/main/videoteca.json'
+        };
+
+        const LOGO_IMAGE_URL = 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjx4dt02lbSvoCJhKRtkyUa2NEhqRyvI8_G82p4jz_8iK5rfeJMVjKAcGXH9ukveI5c6kC_dlasscvR4CoUxCxbeDcEctr3zFJLJys7E76ZvAk6w4hOD1iwJTPj5g4Kfe-FLHhSO9HGLKtmapJZWXvRMMs23WdLnPqoj20RIrLjhFAHCqOsBk7NrmjoJlg/s320/07b01546-33f7-442e-b459-f3698b5a6120.png';
+        const QR_IMAGE_URL = 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgsPiFVGiGuwJ3smwIQGJ-25kEkpEZpmR4PNZLdRF0_3LVfWAj2xhWSHiK7pY-C3jera3PD_XpmEtNy0kaCW1m8dayT9ebTV3YNBmbzMZeHF_oIf2XlniVGt6pj6BqtTyWEaUts1Ll_vYx2RuJvlrF9rqIwWcYcwMkTcdLCI-bShcR_KhhoILWEkdJ4Z4w/s1600/mi-qr-pro.png';
+
+        const FALLBACK_RADIOS = [
+            { id: 'cr-teletica', title: 'Teletica Radio 91.5 FM', group: 'Costa Rica', genre: 'Noticias / Deportes', image: 'https://placehold.co/150x150/0f172a/00f2fe?text=Teletica', url: 'https://icecasthd.teletica.com/teleticaradio' },
+            { id: 'cr-besame', title: 'Bésame Costa Rica', group: 'Costa Rica', genre: 'Romántica / Baladas', image: 'https://placehold.co/150x150/06b6d4/ffffff?text=Besame', url: 'https://icecasthd.teletica.com/besame' },
+            { id: 'cr-discofunk', title: 'B4B Disco Funk', group: 'Global', genre: 'Disco / Funk', image: 'https://placehold.co/150x150/0f172a/ffffff?text=Disco+Funk', url: 'https://stream.zeno.fm/0wr9tpz500hvv' },
+            { id: 'cr-rock', title: 'Classic Rock HD', group: 'Global', genre: 'Classic Rock', image: 'https://placehold.co/150x150/111827/d4af37?text=Rock+HD', url: 'https://stream.zeno.fm/f3wvbbqmdg8uv' }
+        ];
+
+        /* ============================================================
+           FALLBACK_ALBUMS con soporte de Archive.org
+           - type: 'archive' → se renderiza con iframe embed
+           - type: 'audio'   → se reproduce con <audio> (necesita MP3 directo)
+           ============================================================ */
+        const FALLBACK_ALBUMS = [
+            {
+                id: 'alb-1',
+                artist: 'Bob Marley & The Wailers',
+                album: 'Legend',
+                year: '1984',
+                genre: 'Reggae',
+                cover: 'https://m.media-amazon.com/images/I/71uV2qTz21L._UF1000,1000_QL80_.jpg',
+                description: 'El álbum de grandes éxitos más vendido de la historia del reggae. Una colección atemporal que trascendió fronteras y definió un movimiento cultural.',
+                tracks: [
+                    { 
+                        title: 'Greatest Hits Reggae Collection (Full)', 
+                        type: 'archive',
+                        archiveId: 'top-10-best-song-of-bob-marley-playlist-ever-greatest-hits-reggae-song-2024-collection-128k',
+                        duration: 'Álbum' 
+                    },
+                    { 
+                        title: 'Legend - Full Album', 
+                        type: 'archive',
+                        archiveId: 'bob-marley-the-wailers-legend',
+                        duration: 'Álbum' 
+                    }
+                ]
+            },
+            {
+                id: 'alb-2',
+                artist: 'The Beatles',
+                album: 'Abbey Road',
+                year: '1969',
+                genre: 'Rock',
+                cover: 'https://m.media-amazon.com/images/I/810P7maQhIL._UF1000,1000_QL80_.jpg',
+                description: 'El legendario undécimo álbum de estudio del cuarteto de Liverpool. Con su icónica portada y la suite orquestada en la cara B.',
+                tracks: [
+                    { 
+                        title: 'Abbey Road (Full Album)', 
+                        type: 'archive',
+                        archiveId: 'abbey-road_1969',
+                        duration: 'Álbum' 
+                    },
+                    { 
+                        title: 'The Beatles - Greatest Hits', 
+                        type: 'archive',
+                        archiveId: 'the-beatles-greatest-hits_202008',
+                        duration: 'Álbum' 
+                    }
+                ]
+            },
+            {
+                id: 'alb-3',
+                artist: 'Michael Jackson',
+                album: 'Thriller',
+                year: '1982',
+                genre: 'Pop',
+                cover: 'https://m.media-amazon.com/images/I/81cO8mB26aL._UF1000,1000_QL80_.jpg',
+                description: 'El disco cumbre del Rey del Pop y el más vendido de la historia mundial, producido magistralmente por Quincy Jones.',
+                tracks: [
+                    { 
+                        title: 'Thriller (Full Album)', 
+                        type: 'archive',
+                        archiveId: 'michael-jackson-thriller_202105',
+                        duration: 'Álbum' 
+                    }
+                ]
+            },
+            {
+                id: 'alb-4',
+                artist: 'Queen',
+                album: 'A Night at the Opera',
+                year: '1975',
+                genre: 'Rock',
+                cover: 'https://m.media-amazon.com/images/I/81uE4P5yGBL._UF1000,1000_QL80_.jpg',
+                description: 'Magnum opus que combina rock operístico, baladas y la inmortal Bohemian Rhapsody.',
+                tracks: [
+                    { 
+                        title: 'A Night at the Opera', 
+                        type: 'archive',
+                        archiveId: 'a-night-at-the-opera_197511',
+                        duration: 'Álbum' 
+                    },
+                    { 
+                        title: 'Queen Greatest Hits', 
+                        type: 'archive',
+                        archiveId: 'queen-greatest-hits',
+                        duration: 'Álbum' 
+                    }
+                ]
+            },
+            {
+                id: 'alb-5',
+                artist: 'José José',
+                album: 'Secretos',
+                year: '1983',
+                genre: 'Baladas',
+                cover: 'https://m.media-amazon.com/images/I/81M14IOfVzL._UF1000,1000_QL80_.jpg',
+                description: 'El álbum de habla hispana más emblemático de la balada romántica, compuesto por el maestro Manuel Alejandro.',
+                tracks: [
+                    { 
+                        title: 'José José - Grandes Éxitos', 
+                        type: 'archive',
+                        archiveId: 'jose-jose-grandes-exitos',
+                        duration: 'Álbum' 
+                    }
+                ]
+            },
+            {
+                id: 'alb-6',
+                artist: 'Bee Gees',
+                album: 'Saturday Night Fever',
+                year: '1977',
+                genre: 'Disco',
+                cover: 'https://m.media-amazon.com/images/I/81Hh8Xp7VBL._UF1000,1000_QL80_.jpg',
+                description: 'La banda sonora que definió para siempre la época dorada de la música disco.',
+                tracks: [
+                    { 
+                        title: 'Saturday Night Fever (Soundtrack)', 
+                        type: 'archive',
+                        archiveId: 'saturday-night-fever_202005',
+                        duration: 'Álbum' 
+                    }
+                ]
+            },
+            {
+                id: 'alb-7',
+                artist: 'Pink Floyd',
+                album: 'The Dark Side of the Moon',
+                year: '1973',
+                genre: 'Rock',
+                cover: 'https://m.media-amazon.com/images/I/71VJHT9F3+L._UF1000,1000_QL80_.jpg',
+                description: 'Una de las obras cumbre del rock progresivo, con su icónico prisma y experimentación sonora.',
+                tracks: [
+                    { 
+                        title: 'The Dark Side of the Moon (Full)', 
+                        type: 'archive',
+                        archiveId: 'pink-floyd-the-dark-side-of-the-moon_202104',
+                        duration: 'Álbum' 
+                    }
+                ]
+            },
+            {
+                id: 'alb-8',
+                artist: 'Miles Davis',
+                album: 'Kind of Blue',
+                year: '1959',
+                genre: 'Jazz',
+                cover: 'https://m.media-amazon.com/images/I/71R2yqY1lbL._UF1000,1000_QL80_.jpg',
+                description: 'El disco de jazz más vendido de todos los tiempos. Una obra maestra del cool jazz y la improvisación modal.',
+                tracks: [
+                    { 
+                        title: 'Kind of Blue (Full Album)', 
+                        type: 'archive',
+                        archiveId: 'kind-of-blue_195908',
+                        duration: 'Álbum' 
+                    }
+                ]
+            },
+            {
+                id: 'alb-9',
+                artist: 'Ludwig van Beethoven',
+                album: 'Symphony No. 9',
+                year: '1824',
+                genre: 'Clásica',
+                cover: 'https://m.media-amazon.com/images/I/81Lg9h2Xe-L._UF1000,1000_QL80_.jpg',
+                description: 'La Novena Sinfonía, con su inmortal "Oda a la Alegría". Un pilar de la música clásica universal.',
+                tracks: [
+                    { 
+                        title: 'Symphony No. 9 (Full)', 
+                        type: 'archive',
+                        archiveId: 'beethoven-symphony-no-9',
+                        duration: 'Sinfonía' 
+                    }
+                ]
+            },
+            {
+                id: 'alb-10',
+                artist: 'Antonio Vivaldi',
+                album: 'The Four Seasons',
+                year: '1725',
+                genre: 'Clásica',
+                cover: 'https://m.media-amazon.com/images/I/81sY0dKHQCL._UF1000,1000_QL80_.jpg',
+                description: 'Los conciertos para violín más famosos del barroco. Una obra maestra descriptiva de la naturaleza.',
+                tracks: [
+                    { 
+                        title: 'The Four Seasons (Full)', 
+                        type: 'archive',
+                        archiveId: 'vivaldi-the-four-seasons',
+                        duration: 'Concierto' 
+                    }
+                ]
+            }
+        ];
+
+        const convertUrl = (url) => {
+            if (!url) return '';
+            if (url.includes('ok.ru/video/search') || url.includes('ok.ru/search')) return url;
+            if (url.includes('ok.ru/video/')) return url.replace('ok.ru/video/', 'ok.ru/videoembed/');
+            if (url.includes('youtube.com') && !url.includes('/embed/')) {
+                let videoId = '';
+                if (url.includes('watch?v=')) videoId = url.split('watch?v=')[1]?.split('&')[0];
+                else if (url.includes('youtu.be/')) videoId = url.split('youtu.be/')[1]?.split('?')[0];
+                if (videoId) return `https://www.youtube.com/embed/${videoId}?enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`;
+            }
+            if (url.includes('drive.google.com')) {
+                let fileId = '';
+                if (url.includes('/file/d/')) fileId = url.split('/file/d/')[1]?.split('/')[0];
+                else if (url.includes('id=')) fileId = url.split('id=')[1]?.split('&')[0];
+                if (fileId) return `https://drive.google.com/file/d/${fileId}/preview`;
+            }
+            return url;
+        };
+
+        const fetchSmart = async (localUrl, rawUrl, isJson = true) => {
+            const cacheBust = `?t=${Date.now()}`;
+            try {
+                const res = await fetch(localUrl + cacheBust);
+                if (res.ok) {
+                    const text = await res.text();
+                    if (!text.trim().startsWith('<!DOCTYPE html') && !text.trim().startsWith('<html')) {
+                        return isJson ? JSON.parse(text) : text;
+                    }
+                }
+            } catch (e) {}
+            try {
+                const resRaw = await fetch(rawUrl + cacheBust);
+                if (resRaw.ok) return isJson ? await resRaw.json() : await resRaw.text();
+            } catch (e) {}
+            return null;
+        };
+
+        const parseM3U = (data) => {
+            if (!data) return [];
+            const lines = data.split('\n');
+            const channels = [];
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (line.startsWith('#EXTINF:')) {
+                    let title = 'Canal';
+                    const url = lines[i + 1] ? lines[i + 1].trim() : '';
+                    if (url && url.startsWith('http')) {
+                        const logoMatch = line.match(/tvg-logo="([^"]*)"/);
+                        const logo = logoMatch ? logoMatch[1] : '';
+                        const groupMatch = line.match(/group-title="([^"]*)"/);
+                        const group = groupMatch ? groupMatch[1] : 'General';
+                        const commaIndex = line.lastIndexOf(',');
+                        if (commaIndex !== -1) title = line.substring(commaIndex + 1).trim();
+                        channels.push({ id: `tv-${i}`, title, image: logo, group, url, type: 'tv' });
+                    }
+                }
+            }
+            return channels;
+        };
+
+        const Icon = ({ name, size = 18, fill = "none", className = "" }) => {
+            switch (name) {
+                case 'search': return <svg width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>;
+                case 'star': return <svg width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>;
+                case 'clapperboard': return <svg width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M4 11v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8H4z"/><path d="m4 11-.88-2.88a2 2 0 0 1 1.25-2.47L19.34 2.1a2 2 0 0 1 2.47 1.25L22.69 6"/><line x1="9" y1="2" x2="7" y2="11"/><line x1="15" y1="2" x2="13" y2="11"/><line x1="19" y1="2" x2="17" y2="11"/></svg>;
+                case 'film': return <svg width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg>;
+                case 'tv': return <svg width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg>;
+                case 'radio': return <svg width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"/></svg>;
+                case 'disc': return <svg width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>;
+                case 'heart': return <svg width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>;
+                case 'play': return <svg width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polygon points="5 3 19 12 5 21 5 3"/></svg>;
+                case 'pause': return <svg width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>;
+                case 'x': return <svg width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>;
+                case 'arrowLeft': return <svg width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>;
+                case 'arrowRight': return <svg width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>;
+                case 'chat': return <svg width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>;
+                case 'qr': return <svg width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>;
+                case 'up': return <svg width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="18 15 12 9 6 15"/></svg>;
+                case 'archive': return <svg width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect x="2" y="4" width="20" height="5" rx="1"/><path d="M4 9v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9"/><line x1="10" y1="14" x2="14" y2="14"/></svg>;
+                default: return <svg width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/></svg>;
+            }
+        };
+
+        /* ============================================================
+           Detecta si una URL es de Archive.org y devuelve el ID
+           ============================================================ */
+        const getArchiveIdFromUrl = (url) => {
+            if (!url) return null;
+            const match = url.match(/archive\.org\/(?:details|download|embed)\/([^\/\?]+)/);
+            return match ? match[1] : null;
+        };
+
+        /* ============================================================
+           Componente para renderizar el iframe de Archive.org
+           ============================================================ */
+        const ArchivePlayer = ({ archiveId, title, height = "60" }) => {
+            if (!archiveId) {
+                return (
+                    <div className="bg-red-500/10 border border-red-500/30 text-red-300 text-xs p-3 rounded-xl text-center">
+                        ⚠️ No se encontró el ID del item de Archive.org
+                    </div>
+                );
+            }
+            return (
+                <div className="archive-embed-container w-full">
+                    <iframe 
+                        src={`https://archive.org/embed/${archiveId}`}
+                        width="100%" 
+                        height={height}
+                        frameBorder="0" 
+                        webkitAllowFullScreen="true"
+                        mozAllowFullScreen="true"
+                        allowFullScreen
+                        title={title || "Archive.org Player"}
+                    ></iframe>
+                </div>
+            );
+        };
+
+        /* ============================================================
+           SECCIÓN COLECCIÓN MUSICAL (con soporte de Archive.org)
+           ============================================================ */
+        const ClassicMusicSection = ({ albumsData = FALLBACK_ALBUMS }) => {
+            const [selectedGenre, setSelectedGenre] = useState('TODOS');
+            const [activeAlbum, setActiveAlbum] = useState(albumsData[0]);
+            
+            const audioRef = useRef(null);
+            const [currentPlayback, setCurrentPlayback] = useState({ albumId: null, trackIndex: -1 });
+            const [isPlaying, setIsPlaying] = useState(false);
+            const [progress, setProgress] = useState(0);
+            const [currentTime, setCurrentTime] = useState(0);
+            const [duration, setDuration] = useState(0);
+            const [volume, setVolume] = useState(0.85);
+
+            const genres = ['TODOS', 'Rock', 'Pop', 'Baladas', 'Reggae', 'Disco', 'Jazz', 'Clásica'];
+
+            // Si cambia el álbum activo, actualizamos la lista de géneros visibles
+            // (por si en el futuro se carga dinámicamente)
+
+            useEffect(() => {
+                const audio = new Audio();
+                // ❌ SIN crossOrigin para evitar bloqueos de CORS
+                audioRef.current = audio;
+
+                const handleTimeUpdate = () => {
+                    setCurrentTime(audio.currentTime);
+                    if (audio.duration) {
+                        setProgress((audio.currentTime / audio.duration) * 100);
+                    }
+                };
+                const handleLoadedMetadata = () => { setDuration(audio.duration || 0); };
+                const handleEnded = () => { nextTrack(); };
+                const handleError = (e) => {
+                    console.warn("Error al cargar audio:", e);
+                    setIsPlaying(false);
+                };
+
+                audio.addEventListener('timeupdate', handleTimeUpdate);
+                audio.addEventListener('loadedmetadata', handleLoadedMetadata);
+                audio.addEventListener('ended', handleEnded);
+                audio.addEventListener('error', handleError);
+
+                return () => {
+                    audio.pause();
+                    audio.removeEventListener('timeupdate', handleTimeUpdate);
+                    audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
+                    audio.removeEventListener('ended', handleEnded);
+                    audio.removeEventListener('error', handleError);
+                };
+            }, [albumsData]);
+
+            const isArchiveTrack = (track) => {
+                return track?.type === 'archive' || 
+                       (track?.audio && track.audio.includes('archive.org'));
+            };
+
+            const playTrack = (album, index) => {
+                const track = (album.tracks && album.tracks.length > 0) ? album.tracks[index] : null;
+                if (!track) return;
+
+                // ✅ Si es un track de Archive.org, delegamos la reproducción al iframe
+                if (isArchiveTrack(track)) {
+                    // Pausar cualquier audio en reproducción
+                    if (audioRef.current) {
+                        audioRef.current.pause();
+                        audioRef.current.src = '';
+                    }
+                    setCurrentPlayback({ albumId: album.id, trackIndex: index });
+                    setIsPlaying(true);
+                    setProgress(0);
+                    setCurrentTime(0);
+                    setDuration(0);
+                    return;
+                }
+
+                // Reproducción normal con <audio>
+                const audioSource = track.audio || album.musicUrl || album.urlDrive || album.url || '';
+                if (!audioSource) return;
+                const audio = audioRef.current;
+                if (!audio) return;
+
+                if (currentPlayback.albumId === album.id && currentPlayback.trackIndex === index) {
+                    if (isPlaying) {
+                        audio.pause();
+                        setIsPlaying(false);
+                    } else {
+                        audio.play().then(() => setIsPlaying(true)).catch(e => console.warn(e));
+                    }
+                    return;
+                }
+
+                audio.src = audioSource;
+                audio.volume = volume;
+                audio.play().then(() => {
+                    setCurrentPlayback({ albumId: album.id, trackIndex: index });
+                    setIsPlaying(true);
+                }).catch(e => console.warn("Error al reproducir audio:", e));
+            };
+
+            const togglePlayPause = () => {
+                const currentAlbum = currentPlayback.albumId 
+                    ? albumsData.find(a => a.id === currentPlayback.albumId) 
+                    : activeAlbum;
+                const currentTrack = currentAlbum?.tracks?.[currentPlayback.trackIndex];
+
+                // Si el track es de Archive.org, no hay play/pause externo
+                if (isArchiveTrack(currentTrack)) {
+                    return;
+                }
+
+                if (!currentPlayback.albumId || !audioRef.current) {
+                    if (activeAlbum && activeAlbum.tracks.length > 0) {
+                        playTrack(activeAlbum, 0);
+                    }
+                    return;
+                }
+                if (isPlaying) {
+                    audioRef.current.pause();
+                    setIsPlaying(false);
+                } else {
+                    audioRef.current.play().then(() => setIsPlaying(true)).catch(e => console.warn(e));
+                }
+            };
+
+            const nextTrack = () => {
+                const album = currentPlayback.albumId 
+                    ? albumsData.find(a => a.id === currentPlayback.albumId) 
+                    : activeAlbum;
+                if (!album || !album.tracks || album.tracks.length === 0) return;
+                const nextIdx = (currentPlayback.trackIndex + 1) % album.tracks.length;
+                playTrack(album, nextIdx);
+            };
+
+            const prevTrack = () => {
+                const album = currentPlayback.albumId 
+                    ? albumsData.find(a => a.id === currentPlayback.albumId) 
+                    : activeAlbum;
+                if (!album || !album.tracks || album.tracks.length === 0) return;
+                const prevIdx = (currentPlayback.trackIndex - 1 + album.tracks.length) % album.tracks.length;
+                playTrack(album, prevIdx);
+            };
+
+            const formatTime = (secs) => {
+                if (isNaN(secs) || secs === 0) return "0:00";
+                const m = Math.floor(secs / 60);
+                const s = Math.floor(secs % 60);
+                return `${m}:${s < 10 ? '0' : ''}${s}`;
+            };
+
+            const filteredAlbums = albumsData.filter(album => {
+                const matchGenre = selectedGenre === 'TODOS' || (album.genre || '').toLowerCase() === selectedGenre.toLowerCase();
+                return matchGenre;
+            });
+
+            const currentPlayingAlbum = currentPlayback.albumId 
+                ? albumsData.find(a => a.id === currentPlayback.albumId) 
+                : activeAlbum;
+            const currentPlayingTrack = currentPlayingAlbum && currentPlayback.trackIndex !== -1 
+                ? currentPlayingAlbum.tracks[currentPlayback.trackIndex] 
+                : null;
+
+            const isCurrentArchive = isArchiveTrack(currentPlayingTrack);
+
+            return (
+                <div className="min-h-[85vh] bg-[#07090f] text-white flex flex-col pb-40 animate-fade-in select-none">
+                    <div className="flex-1 flex flex-col md:flex-row p-4 sm:p-6 gap-6 max-w-7xl mx-auto w-full">
+                        
+                        {/* Columna izquierda: Detalle del álbum + lista de pistas */}
+                        <div className="w-full md:w-7/12 flex flex-col space-y-6">
+                            {/* Banner del álbum */}
+                            <div className="relative rounded-3xl p-6 sm:p-8 overflow-hidden bg-gradient-to-b from-cyan-950/40 via-[#0d1222] to-[#0b0f19] border border-cyan-500/20 shadow-2xl flex flex-col sm:flex-row items-center sm:items-end gap-6">
+                                <div className="w-40 sm:w-48 aspect-square rounded-2xl shadow-2xl overflow-hidden border border-white/10 flex-shrink-0 relative group">
+                                    <img src={activeAlbum.cover} alt={activeAlbum.album} className="w-full h-full object-cover" />
+                                </div>
+                                <div className="flex flex-col text-center sm:text-left space-y-2 flex-1">
+                                    <span className="text-[10px] font-mono tracking-widest uppercase text-cyan-400 font-bold">Playlist Verificada • Colección Clásica</span>
+                                    <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight">{activeAlbum.album}</h1>
+                                    <p className="text-xs text-gray-300 font-medium">{activeAlbum.artist} • <span className="text-gray-400">{activeAlbum.year} • {activeAlbum.genre}</span></p>
+                                    <p className="text-[11px] text-gray-400 line-clamp-2 mt-1">{activeAlbum.description}</p>
+                                    <div className="pt-2 flex items-center justify-center sm:justify-start gap-4">
+                                        <button 
+                                            onClick={() => playTrack(activeAlbum, 0)}
+                                            className="w-12 h-12 rounded-full bg-cyan-500 hover:bg-cyan-400 text-black flex items-center justify-center shadow-lg hover:scale-105 transition-transform"
+                                        >
+                                            <Icon name="play" size={20} fill="currentColor" />
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Tabla de pistas */}
+                            <div className="bg-[#0b0f19]/80 backdrop-blur-md rounded-2xl border border-white/5 p-4 flex flex-col">
+                                <div className="flex items-center justify-between text-[11px] font-mono text-gray-400 border-b border-white/10 pb-3 px-3 uppercase tracking-wider">
+                                    <div className="flex items-center gap-4">
+                                        <span className="w-6 text-center">#</span>
+                                        <span>Título</span>
+                                    </div>
+                                    <span>Duración</span>
+                                </div>
+
+                                <div className="divide-y divide-white/5 mt-2 overflow-y-auto max-h-[320px] custom-scrollbar pr-1">
+                                    {activeAlbum.tracks.map((track, idx) => {
+                                        const isThisTrackPlaying = currentPlayback.albumId === activeAlbum.id 
+                                            && currentPlayback.trackIndex === idx 
+                                            && isPlaying;
+                                        const isArchive = isArchiveTrack(track);
+                                        return (
+                                            <div 
+                                                key={idx}
+                                                onClick={() => playTrack(activeAlbum, idx)}
+                                                className={`flex items-center justify-between py-3 px-3 rounded-xl cursor-pointer transition-all ${isThisTrackPlaying ? 'bg-cyan-500/15 border border-cyan-500/40 text-cyan-300' : 'hover:bg-white/5 text-gray-300'}`}
+                                            >
+                                                <div className="flex items-center gap-4 min-w-0">
+                                                    <span className="w-6 text-center text-xs font-mono text-cyan-400 font-bold">
+                                                        {isThisTrackPlaying ? '▶' : idx + 1}
+                                                    </span>
+                                                    <div className="min-w-0">
+                                                        <p className={`text-xs sm:text-sm font-semibold truncate flex items-center gap-2 ${isThisTrackPlaying ? 'text-cyan-400' : 'text-white'}`}>
+                                                            {track.title}
+                                                            {isArchive && (
+                                                                <span className="text-[8px] font-mono px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                                                                    ARCHIVE
+                                                                </span>
+                                                            )}
+                                                        </p>
+                                                        <p className="text-[10px] text-gray-400 truncate">{activeAlbum.artist}</p>
+                                                    </div>
+                                                </div>
+                                                <span className="text-xs font-mono text-gray-400">{track.duration || '—'}</span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Columna derecha: Catálogo de discos */}
+                        <div className="w-full md:w-5/12 flex flex-col space-y-4">
+                            <div className="flex items-center justify-between flex-wrap gap-2">
+                                <h2 className="text-sm font-black uppercase tracking-wider text-cyan-400">Explorar Discos</h2>
+                                <div className="flex gap-1 overflow-x-auto no-scrollbar">
+                                    {genres.map(g => (
+                                        <button 
+                                            key={g} 
+                                            onClick={() => setSelectedGenre(g)}
+                                            className={`px-3 py-1 rounded-full text-[10px] font-bold transition-all whitespace-nowrap ${selectedGenre === g ? 'bg-cyan-500 text-black shadow-md shadow-cyan-500/30' : 'bg-white/5 text-gray-400 hover:text-white border border-white/5'}`}
+                                        >
+                                            {g}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3 overflow-y-auto max-h-[500px] custom-scrollbar pr-1">
+                                {filteredAlbums.map(alb => {
+                                    const isSelected = activeAlbum.id === alb.id;
+                                    return (
+                                        <div 
+                                            key={alb.id} 
+                                            onClick={() => setActiveAlbum(alb)}
+                                            className={`p-3 rounded-2xl cursor-pointer transition-all border flex flex-col justify-between ${isSelected ? 'bg-cyan-950/40 border-cyan-500/50 shadow-[0_0_20px_rgba(6,182,212,0.2)]' : 'bg-[#0f172a]/60 border-white/5 hover:border-white/20'}`}
+                                        >
+                                            <div className="aspect-square w-full rounded-xl overflow-hidden mb-2 relative bg-black">
+                                                <img src={alb.cover} alt={alb.album} className="w-full h-full object-cover" />
+                                            </div>
+                                            <div>
+                                                <h4 className="text-xs font-bold text-white truncate">{alb.album}</h4>
+                                                <p className="text-[10px] text-cyan-400 truncate mt-0.5">{alb.artist}</p>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                                {filteredAlbums.length === 0 && (
+                                    <div className="col-span-2 text-center py-12 text-gray-500 text-xs font-mono">
+                                        No hay discos en este género.
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Barra inferior sticky - Reproductor */}
+                    <div className="fixed bottom-0 left-0 right-0 z-[120] bg-[#030712]/95 backdrop-blur-2xl border-t border-cyan-500/30 px-4 sm:px-8 py-3 shadow-2xl">
+                        <div className="max-w-7xl mx-auto">
+                            {currentPlayingTrack && isCurrentArchive ? (
+                                /* ===== REPRODUCTOR DE ARCHIVE.ORG ===== */
+                                <div className="flex flex-col sm:flex-row items-center gap-4">
+                                    <div className="flex items-center gap-3 min-w-0 w-full sm:w-1/3">
+                                        <div className="w-12 h-12 rounded-xl overflow-hidden bg-black flex-shrink-0 border border-white/10 shadow-lg">
+                                            <img src={currentPlayingAlbum.cover} alt="" className="w-full h-full object-cover" />
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <div className="text-xs font-bold text-white truncate">{currentPlayingTrack.title}</div>
+                                            <div className="text-[10px] text-amber-400 truncate flex items-center gap-1">
+                                                <Icon name="archive" size={10} /> Archive.org
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="w-full sm:flex-1">
+                                        <ArchivePlayer 
+                                            archiveId={currentPlayingTrack.archiveId || getArchiveIdFromUrl(currentPlayingTrack.audio)} 
+                                            title={currentPlayingTrack.title}
+                                            height="60"
+                                        />
+                                    </div>
+
+                                    <div className="hidden md:flex w-1/4 justify-end gap-2">
+                                        <button 
+                                            onClick={prevTrack}
+                                            className="text-gray-400 hover:text-white transition-colors p-2"
+                                            title="Anterior"
+                                        >
+                                            <i className="fas fa-backward-step"></i>
+                                        </button>
+                                        <button 
+                                            onClick={nextTrack}
+                                            className="text-gray-400 hover:text-white transition-colors p-2"
+                                            title="Siguiente"
+                                        >
+                                            <i className="fas fa-forward-step"></i>
+                                        </button>
+                                        <button 
+                                            onClick={() => {
+                                                if (audioRef.current) audioRef.current.pause();
+                                                setCurrentPlayback({ albumId: null, trackIndex: -1 });
+                                                setIsPlaying(false);
+                                            }}
+                                            className="text-gray-400 hover:text-red-400 transition-colors p-2"
+                                            title="Cerrar"
+                                        >
+                                            <Icon name="x" size={16} />
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : currentPlayingTrack ? (
+                                /* ===== REPRODUCTOR NORMAL <audio> ===== */
+                                <div className="flex items-center justify-between gap-4">
+                                    <div className="flex items-center gap-3 w-1/3 min-w-0">
+                                        <div className="w-12 h-12 rounded-xl overflow-hidden bg-black flex-shrink-0 border border-white/10 shadow-lg">
+                                            <img src={currentPlayingAlbum.cover} alt="" className="w-full h-full object-cover" />
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <div className="text-xs font-bold text-white truncate">{currentPlayingTrack.title}</div>
+                                            <div className="text-[10px] text-cyan-400 truncate">{currentPlayingAlbum.artist}</div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-col items-center justify-center flex-1 max-w-xl">
+                                        <div className="flex items-center gap-5 mb-1.5">
+                                            <button onClick={prevTrack} className="text-gray-400 hover:text-white transition-colors"><i className="fas fa-backward-step text-sm"></i></button>
+                                            <button onClick={togglePlayPause} className="w-9 h-9 rounded-full bg-cyan-500 hover:bg-cyan-400 text-black flex items-center justify-center shadow-lg transition-transform hover:scale-105">
+                                                <Icon name={isPlaying ? "pause" : "play"} size={16} fill="currentColor" />
+                                            </button>
+                                            <button onClick={nextTrack} className="text-gray-400 hover:text-white transition-colors"><i className="fas fa-forward-step text-sm"></i></button>
+                                        </div>
+                                        <div className="w-full flex items-center gap-2.5 text-[10px] font-mono text-gray-400">
+                                            <span>{formatTime(currentTime)}</span>
+                                            <input 
+                                                type="range" 
+                                                min="0" max="100" 
+                                                value={progress} 
+                                                onChange={(e) => {
+                                                    const val = parseFloat(e.target.value);
+                                                    setProgress(val);
+                                                    if (audioRef.current && audioRef.current.duration) {
+                                                        audioRef.current.currentTime = (val / 100) * audioRef.current.duration;
+                                                    }
+                                                }}
+                                                className="w-full h-1 bg-gray-800 rounded-full accent-cyan-400 cursor-pointer"
+                                            />
+                                            <span>{formatTime(duration)}</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="w-1/3 justify-end items-center gap-2.5 hidden md:flex">
+                                        <Icon name="radio" size={16} className="text-cyan-400" />
+                                        <input 
+                                            type="range" 
+                                            min="0" max="1" step="0.05"
+                                            value={volume}
+                                            onChange={(e) => {
+                                                const v = parseFloat(e.target.value);
+                                                setVolume(v);
+                                                if (audioRef.current) audioRef.current.volume = v;
+                                            }}
+                                            className="w-24 h-1 bg-gray-800 rounded-full accent-cyan-400 cursor-pointer"
+                                        />
+                                    </div>
+                                </div>
+                            ) : (
+                                /* ===== SIN REPRODUCCIÓN ===== */
+                                <div className="flex items-center justify-center gap-3 py-1.5">
+                                    <Icon name="disc" size={16} className="text-cyan-400" />
+                                    <p className="text-xs text-gray-400 font-mono">
+                                        {activeAlbum.album} — {activeAlbum.artist} · Selecciona una pista para reproducir
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        /* ============================================================
+           SECCIÓN RADIO CYBER
+           ============================================================ */
+        const CyberRadioSection = React.forwardRef(({ stations, currentStation, isPlaying, onPlayStation, volume, setVolume, streamError, isLoading, audioRef, clockTime, isMuted, setIsMuted, isPowerOn, setIsPowerOn, oscilloscopePoints, radioFilter, setRadioFilter, hlsRef, setIsRadioPlaying }, ref) => {
+            const [selectedCategory, setSelectedCategory] = useState('global');
+            const [favorites, setFavorites] = useState(() => {
+                try { return JSON.parse(localStorage.getItem('boxplay_radio_favs') || '[]'); } catch (e) { return []; }
+            });
+
+            const toggleFavorite = (title, e) => {
+                e.stopPropagation();
+                let updated = favorites.includes(title) ? favorites.filter(f => f !== title) : [...favorites, title];
+                setFavorites(updated);
+                localStorage.setItem('boxplay_radio_favs', JSON.stringify(updated));
+            };
+
+            const filteredStations = useMemo(() => {
+                const q = radioFilter.trim().toLowerCase();
+                return stations.filter(s => {
+                    const groupStr = (s.group || '').toLowerCase();
+                    const isGlobal = groupStr.includes('global') || groupStr.includes('internacional') || groupStr.includes('online');
+                    const matchesCategory = 
+                        (selectedCategory === 'global' && isGlobal) ||
+                        (selectedCategory === 'nacionales' && !isGlobal) ||
+                        (selectedCategory === 'favorites' && favorites.includes(s.title));
+                    const matchesQuery = !q || (s.title || '').toLowerCase().includes(q) || (s.genre && s.genre.toLowerCase().includes(q));
+                    return matchesCategory && matchesQuery;
+                });
+            }, [stations, radioFilter, selectedCategory, favorites]);
+
+            const currentIndex = stations.findIndex(s => s.id === currentStation?.id);
+
+            const handleNext = () => {
+                if (stations.length === 0) return;
+                const nextIdx = (currentIndex + 1) % stations.length;
+                onPlayStation(stations[nextIdx]);
+            };
+
+            const handlePrev = () => {
+                if (stations.length === 0) return;
+                const prevIdx = (currentIndex - 1 + stations.length) % stations.length;
+                onPlayStation(stations[prevIdx]);
+            };
+
+            const togglePlay = () => {
+                const audio = audioRef.current;
+                if (!audio) return;
+                if (isPlaying) {
+                    audio.pause();
+                    setIsRadioPlaying(false);
+                } else {
+                    audio.play().then(() => setIsRadioPlaying(true)).catch(() => setIsRadioPlaying(false));
+                }
+            };
+
+            return (
+                <div ref={ref} className="min-h-[85vh] flex flex-col justify-between p-3 sm:p-6 animate-fade-in w-full max-w-6xl mx-auto text-[#22c55e]">
+                    <header className="w-full flex flex-col sm:flex-row justify-between items-center mb-6 gap-3 glass-panel px-6 py-4 rounded-2xl">
+                        <div className="flex items-center space-x-3">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-purple-600 flex items-center justify-center shadow-lg shadow-cyan-500/30">
+                                <i className="fa-solid fa-tower-broadcast text-white text-lg"></i>
+                            </div>
+                            <div>
+                                <h1 className="orbitron font-extrabold text-sm sm:text-lg tracking-wider text-cyan-400">
+                                    BOX PLAY TV <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 ml-1">CYBER RADIO PRO ULTRA</span>
+                                </h1>
+                                <p className="text-[10px] text-gray-400 font-mono">Terminal de audio digital sincronizado // v6.5</p>
+                            </div>
+                        </div>
+                        <div className="flex items-center space-x-4">
+                            <div className="hidden md:flex flex-col items-end font-mono">
+                                <span className="text-sm font-bold text-cyan-400 tracking-widest">{clockTime}</span>
+                                <span className="text-[9px] text-gray-400 uppercase">UTC-6 COSTA RICA</span>
+                            </div>
+                            <div className="flex items-center space-x-2 bg-black/50 px-3 py-1.5 rounded-xl border border-white/5">
+                                <span className={`w-2 h-2 rounded-full ${isPlaying ? 'bg-green-400 animate-ping' : 'bg-amber-400'}`}></span>
+                                <span className="text-xs font-mono font-bold tracking-wide">{isPlaying ? 'EN VIVO' : 'STANDBY'}</span>
+                            </div>
+                        </div>
+                    </header>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                        <div className="lg:col-span-5 cyber-deck p-5 flex flex-col space-y-5">
+                            <div className="flex justify-between items-center border-b border-cyan-900/40 pb-2">
+                                <span className="orbitron text-xs font-bold text-cyan-400">MASTER CONTROL DECK</span>
+                                <span className="text-xs text-gray-400 font-mono">UNIT-01</span>
+                            </div>
+
+                            <div className="flex items-center space-x-4">
+                                <div className={`w-20 h-20 rounded-2xl overflow-hidden bg-black border-2 border-cyan-500/40 relative shadow-2xl flex-shrink-0 vinyl-spin ${isPlaying ? '' : 'paused'}`}>
+                                    <img src={currentStation?.image || currentStation?.logo} alt="" className="w-full h-full object-cover" onError={(e)=>{e.target.src='https://placehold.co/150x150/111827/00f2fe?text=FM';}} />
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <div className="w-5 h-5 rounded-full bg-cyan-950 border border-cyan-400"></div>
+                                    </div>
+                                </div>
+                                <div className="flex flex-col min-w-0 flex-1">
+                                    <span className="text-[10px] font-mono text-cyan-400 uppercase tracking-widest">{currentStation?.group || 'Live Stream'}</span>
+                                    <h2 className="orbitron text-sm sm:text-base font-bold text-white tracking-wide truncate mt-1">
+                                        {currentStation?.title || 'SELECCIONA EMISORA'}
+                                    </h2>
+                                    <p className="text-xs text-gray-400 font-mono mt-0.5">GÉNERO: {currentStation?.genre || 'Música & En Directo'}</p>
+                                </div>
+                            </div>
+
+                            {streamError && (
+                                <div className="bg-red-500/10 border border-red-500/30 text-red-300 text-xs p-2.5 rounded-xl">
+                                    ⚠️ No se pudo reproducir este stream. Reintentando...
+                                </div>
+                            )}
+
+                            <div className="lcd-screen p-3.5 rounded-xl relative overflow-hidden">
+                                <div className="flex justify-between items-center text-[9px] text-cyan-500 font-mono mb-1">
+                                    <span>OSCILLOSCOPE FEED</span>
+                                    <span>{isPlaying ? 'FEED ACTIVO' : 'EN ESPERA'}</span>
+                                </div>
+                                <div className="w-full h-14 bg-black rounded-lg border border-cyan-900/50 flex items-center justify-center px-2">
+                                    <svg viewBox="0 0 350 50" className="w-full h-full overflow-visible">
+                                        <polyline fill="none" stroke="#00f2fe" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" points={oscilloscopePoints} />
+                                    </svg>
+                                </div>
+                            </div>
+
+                            <div className="flex flex-col space-y-3 pt-1">
+                                <div className="flex items-center space-x-3 bg-black/40 p-3 rounded-xl border border-white/5">
+                                    <button onClick={() => setIsMuted(!isMuted)} className="text-cyan-400 hover:text-white transition-colors">
+                                        <i className={`fa-solid ${isMuted || volume === 0 ? 'fa-volume-xmark text-red-400' : 'fa-volume-high'}`}></i>
+                                    </button>
+                                    <div className="flex flex-col flex-grow">
+                                        <div className="flex justify-between items-center text-[10px] font-mono text-gray-400">
+                                            <span>VOLUMEN</span>
+                                            <span className="text-cyan-400 font-bold">{Math.round((isMuted ? 0 : volume) * 100)}%</span>
+                                        </div>
+                                        <input 
+                                            type="range" 
+                                            min="0" max="1" step="0.05" 
+                                            value={isMuted ? 0 : volume} 
+                                            onChange={(e) => { setVolume(parseFloat(e.target.value)); setIsMuted(false); }} 
+                                            className="w-full accent-cyan-400"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-3 gap-2">
+                                    <button onClick={handlePrev} className="cyber-btn py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1">
+                                        <i className="fa-solid fa-backward-step"></i> Ant
+                                    </button>
+                                    <button onClick={togglePlay} className="bg-gradient-to-r from-cyan-400 to-blue-500 text-black py-3 rounded-xl text-xs font-black flex items-center justify-center gap-1 shadow-lg hover:brightness-110 uppercase">
+                                        <i className={`fa-solid ${isPlaying ? 'fa-pause' : 'fa-play'}`}></i> {isPlaying ? 'Pausa' : 'Play'}
+                                    </button>
+                                    <button onClick={handleNext} className="cyber-btn py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1">
+                                        Sig <i className="fa-solid fa-forward-step"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="lg:col-span-7 cyber-deck p-5 flex flex-col min-h-[500px]">
+                            <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mb-4 pb-3 border-b border-cyan-900/40">
+                                <span className="orbitron text-xs font-bold text-cyan-400">EMISORAS ({filteredStations.length})</span>
+                                <input 
+                                    type="text" 
+                                    placeholder="Buscar por nombre o género..." 
+                                    value={radioFilter}
+                                    onChange={(e) => setRadioFilter(e.target.value)}
+                                    className="bg-black/60 border border-cyan-800 rounded-xl px-3 py-1.5 text-xs text-white outline-none focus:border-cyan-400 w-full sm:w-56"
+                                />
+                            </div>
+
+                            <div className="flex items-center gap-2 pb-3 mb-3 text-xs overflow-x-auto custom-scrollbar">
+                                <button onClick={() => setSelectedCategory('global')} className={`px-4 py-1.5 rounded-xl font-bold transition-all whitespace-nowrap ${selectedCategory === 'global' ? 'bg-cyan-500 text-black shadow-lg shadow-cyan-500/40' : 'bg-black/50 text-gray-400 hover:text-white border border-white/5'}`}>Global</button>
+                                <button onClick={() => setSelectedCategory('nacionales')} className={`px-4 py-1.5 rounded-xl font-bold transition-all whitespace-nowrap ${selectedCategory === 'nacionales' ? 'bg-cyan-500 text-black shadow-lg shadow-cyan-500/40' : 'bg-black/50 text-gray-400 hover:text-white border border-white/5'}`}>Costa Rica</button>
+                                <button onClick={() => setSelectedCategory('favorites')} className={`px-4 py-1.5 rounded-xl font-bold transition-all whitespace-nowrap ${selectedCategory === 'favorites' ? 'bg-cyan-500 text-black shadow-lg shadow-cyan-500/40' : 'bg-black/50 text-gray-400 hover:text-white border border-white/5'}`}>⭐ Favoritas</button>
+                            </div>
+
+                            <div className="flex-grow overflow-y-auto custom-scrollbar pr-1 max-h-[380px]">
+                                <table className="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr className="text-[10px] text-cyan-300 font-mono uppercase tracking-wider border-b border-cyan-900/60 sticky top-0 bg-[#0b0f19] z-10">
+                                            <th className="py-2.5 px-2 w-10">#</th>
+                                            <th className="py-2.5 px-2">Emisora</th>
+                                            <th className="py-2.5 px-2 w-28">Género</th>
+                                            <th className="py-2.5 px-2 w-12 text-center">Fav</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="text-xs">
+                                        {filteredStations.length === 0 ? (
+                                            <tr>
+                                                <td colSpan="4" className="text-center py-12 text-gray-500 font-mono">No se encontraron emisoras en esta categoría.</td>
+                                            </tr>
+                                        ) : (
+                                            filteredStations.map((station, index) => {
+                                                const isCurrent = currentStation?.id === station.id;
+                                                const isFav = favorites.includes(station.title);
+                                                return (
+                                                    <tr 
+                                                        key={station.id || index}
+                                                        onClick={() => onPlayStation(station)}
+                                                        className={`transition-all cursor-pointer border-b border-white/5 ${isCurrent && isPlaying ? 'bg-cyan-950/60 text-cyan-200 border-l-4 border-cyan-400' : 'hover:bg-white/5 text-gray-300'}`}
+                                                    >
+                                                        <td className="py-3 px-2 font-mono text-cyan-400 font-bold">#{String(index + 1).padStart(2, '0')}</td>
+                                                        <td className="py-3 px-2 font-semibold flex items-center gap-2.5">
+                                                            <div className="w-7 h-7 rounded-lg border border-white/10 overflow-hidden bg-black flex-shrink-0 p-0.5">
+                                                                <img src={station.image || station.logo} alt="" className="w-full h-full object-cover rounded" onError={(e)=>e.target.style.display='none'} />
+                                                            </div>
+                                                            <div className="min-w-0 flex-1">
+                                                                <p className="truncate font-bold text-white group-hover:text-cyan-300">{station.title}</p>
+                                                                <span className="text-[9px] text-gray-400 font-mono">{station.group || 'En Vivo'}</span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="py-3 px-2 font-mono text-cyan-400 text-[11px] truncate">{station.genre || 'Live'}</td>
+                                                        <td className="py-3 px-2 text-center" onClick={(e) => toggleFavorite(station.title, e)}>
+                                                            <button className="text-sm hover:scale-125 transition-transform">{isFav ? '⭐' : '☆'}</button>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        });
+
+        const Card = ({ item, onClick, isFavorite, onToggleFavorite }) => {
+            const imgUrl = item.imagen || item.image || item.poster;
+            const titleText = item.titulo || item.title || item.name;
+
+            return (
+                <div onClick={() => onClick(item)} className="flex-shrink-0 w-36 sm:w-44 md:w-52 glass-panel rounded-2xl p-2 sm:p-3 cursor-pointer group card-glow border border-slate-800 flex flex-col justify-between relative">
+                    <div className="absolute top-3 right-3 z-20">
+                        <button onClick={(e) => { e.stopPropagation(); onToggleFavorite(item); }} className="p-1.5 rounded-full bg-black/70 backdrop-blur-md text-white hover:scale-110 transition-transform border border-white/10">
+                            <Icon name="heart" size={12} fill={isFavorite ? "#06b6d4" : "none"} className={isFavorite ? "text-cyan-500" : "text-white"}/>
+                        </button>
+                    </div>
+                    <div className="aspect-[2/3] w-full rounded-xl overflow-hidden mb-2 bg-black/80 relative shadow-inner">
+                        <img src={imgUrl} alt={titleText} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onError={(e) => { e.target.src = 'https://placehold.co/300x450/0f172a/ffffff?text=Poster'; }} />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2.5">
+                            <span className="w-full py-1.5 bg-cyan-600/90 text-white rounded-lg text-[10px] font-bold text-center shadow-lg backdrop-blur-sm">Ver Ahora</span>
+                        </div>
+                    </div>
+                    <div className="px-0.5">
+                        <h4 className="text-xs sm:text-sm font-bold text-white truncate group-hover:text-cyan-400 transition-colors">{titleText}</h4>
+                        <span className="text-[9px] text-slate-400 capitalize block mt-0.5">{item.type || 'Película'}</span>
+                    </div>
+                </div>
+            );
+        };
+
+        const ContentRow = ({ title, items, onPlay, favorites, tvFavorites, onToggleFavorite }) => {
+            const rowRef = useRef(null);
+            const scroll = (dir) => {
+                if (rowRef.current) {
+                    const { scrollLeft, clientWidth } = rowRef.current;
+                    rowRef.current.scrollTo({ left: dir === 'left' ? scrollLeft - clientWidth * 0.75 : scrollLeft + clientWidth * 0.75, behavior: 'smooth' });
+                }
+            };
+            if (!items || items.length === 0) return null;
+
+            return (
+                <div className="max-w-7xl mx-auto px-4 sm:px-8 mb-8 w-full group">
+                    <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2 sm:gap-3">
+                            <div className="w-1.5 h-5 bg-cyan-500 rounded-full shadow-[0_0_15px_#06b6d4]"></div>
+                            <h2 className="text-xs sm:text-lg font-black uppercase tracking-wider text-white">{title}</h2>
+                        </div>
+                        <div className="hidden sm:flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onClick={() => scroll('left')} className="p-1.5 rounded-xl bg-black/60 hover:bg-cyan-600 text-white border border-slate-800"><Icon name="arrowLeft" size={14}/></button>
+                            <button onClick={() => scroll('right')} className="p-1.5 rounded-xl bg-black/60 hover:bg-cyan-600 text-white border border-slate-800"><Icon name="arrowRight" size={14}/></button>
+                        </div>
+                    </div>
+                    <div ref={rowRef} className="flex gap-3 overflow-x-auto pb-3 no-scrollbar scroll-smooth">
+                        {items.map((item, idx) => {
+                            const isFav = favorites.some(f => (f.id || f.title) === (item.id || item.title));
+                            return <Card item={item} key={item.id || item.title || idx} onClick={onPlay} isFavorite={isFav} onToggleFavorite={onToggleFavorite} />;
+                        })}
+                    </div>
+                </div>
+            );
+        };
+
+        const AiAssistantSection = ({ content, onSelectMovie }) => {
+            const [query, setQuery] = useState('');
+            const [messages, setMessages] = useState([
+                { role: 'assistant', text: '¡Hola! Soy tu asistente de Boxplaytv. Escribe un género, actor, o tema y encontraré lo mejor dentro de tu catálogo.' }
+            ]);
+            const [isThinking, setIsThinking] = useState(false);
+
+            const catalog = useMemo(() => [...content.movies2, ...content.movies, ...content.series, ...content.animated].filter(x => x && (x.title || x.name)), [content]);
+
+            const handleSend = async (e) => {
+                e.preventDefault();
+                if (!query.trim() || isThinking) return;
+                const q = query.trim();
+                setQuery('');
+                setMessages(prev => [...prev, { role: 'user', text: q }]);
+                setIsThinking(true);
+                const words = q.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+                const scored = catalog.map(item => {
+                    const hay = [item.title, item.name, item.genre, item.description, item.sinopsis].filter(Boolean).join(' ').toLowerCase();
+                    let score = 0;
+                    words.forEach(w => { if (hay.includes(w)) score += 1; });
+                    return { item, score };
+                }).filter(x => x.score > 0).sort((a,b) => b.score - a.score).slice(0, 4);
+
+                await new Promise(r => setTimeout(r, 300));
+                if (scored.length) {
+                    setMessages(prev => [...prev, { role: 'assistant', text: `Encontré estas opciones para "${q}":\n\n${scored.map((x,i) => `${i+1}. ${x.item.title}`).join('\n')}` }]);
+                } else {
+                    setMessages(prev => [...prev, { role: 'assistant', text: 'No encontré coincidencias directas. Intenta con otra palabra clave.' }]);
+                }
+                setIsThinking(false);
+            };
+
+            return (
+                <div className="max-w-3xl mx-auto p-4 sm:p-8 animate-fade-in w-full space-y-4">
+                    <div className="glass-panel rounded-3xl p-6 shadow-2xl border border-cyan-500/30 flex flex-col min-h-[60vh]">
+                        <div className="flex items-center gap-3 border-b border-slate-800 pb-3 mb-3">
+                            <div className="p-2.5 bg-gradient-to-tr from-cyan-600 to-teal-500 rounded-xl text-white"><Icon name="chat" size={20}/></div>
+                            <div><h1 className="text-base font-black text-white">Asistente IA de Boxplaytv</h1><p className="text-[11px] text-cyan-400">Recomendaciones dentro de tu catálogo</p></div>
+                        </div>
+                        <div className="flex-1 overflow-y-auto custom-scrollbar space-y-3 pr-2 mb-3">
+                            {messages.map((msg, idx) => (
+                                <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                    <div className={`max-w-[85%] p-3.5 rounded-2xl text-xs sm:text-sm leading-relaxed ${msg.role === 'user' ? 'bg-cyan-600 text-white' : 'bg-[#090d1f] border border-slate-800 text-slate-200'}`}>
+                                        <p className="whitespace-pre-wrap">{msg.text}</p>
+                                    </div>
+                                </div>
+                            ))}
+                            {isThinking && <div className="text-xs text-cyan-400 font-mono animate-pulse">Explorando biblioteca...</div>}
+                        </div>
+                        <form onSubmit={handleSend} className="flex gap-2 pt-2 border-t border-slate-800">
+                            <input type="text" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Ej. acción, clásicos, comedias..." className="flex-1 bg-[#020617] border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:border-cyan-500 outline-none" />
+                            <button type="submit" disabled={isThinking} className="bg-gradient-to-r from-cyan-600 to-teal-500 text-white px-4 py-2.5 rounded-xl font-bold text-xs">Enviar</button>
+                        </form>
+                    </div>
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [activeTab, setActiveTab] = useState('home');
+            const [content, setContent] = useState({ tv: [], series: [], movies: [], movies2: [], animated: [], tudum: [], albums: FALLBACK_ALBUMS });
+            const [radioStations, setRadioStations] = useState(FALLBACK_RADIOS);
+            const [search, setSearch] = useState('');
+            const [selectedItem, setSelectedItem] = useState(null);
+            const [selectedEpisode, setSelectedEpisode] = useState(null);
+            const [favorites, setFavorites] = useState([]);
+            const [tvFavorites, setTvFavorites] = useState([]);
+            const [loading, setLoading] = useState(true);
+
+            const [currentRadioStation, setCurrentRadioStation] = useState(null);
+            const [isRadioPlaying, setIsRadioPlaying] = useState(false);
+            const [radioVolume, setRadioVolume] = useState(0.85);
+            const [streamError, setStreamError] = useState(false);
+            const [isLoadingRadio, setIsLoadingRadio] = useState(false);
+            const [radioFilter, setRadioFilter] = useState('');
+            const [clockTime, setClockTime] = useState('12:00');
+            const [isMuted, setIsMuted] = useState(false);
+            const [isPowerOn, setIsPowerOn] = useState(true);
+            const [oscilloscopePoints, setOscilloscopePoints] = useState('0,25 35,22 70,28 105,15 140,25 175,18 210,32 245,20 280,25 315,12 350,25');
+
+            const audioRef = useRef(null);
+            const hlsRef = useRef(null);
+
+            const navTabs = [
+                { id: 'home', icon: 'search', label: 'Inicio' }, 
+                { id: 'movies2', icon: 'star', label: 'Estrenos 2026' },
+                { id: 'movies', icon: 'clapperboard', label: 'Películas' }, 
+                { id: 'series', icon: 'film', label: 'Series' },
+                { id: 'animated', icon: 'film', label: 'Animados' },
+                { id: 'tv', icon: 'tv', label: 'TV' }, 
+                { id: 'radio', icon: 'radio', label: 'Radio Pro' }, 
+                { id: 'coleccion', icon: 'disc', label: 'Colección Musical' },
+                { id: 'smartview', icon: 'tv', label: 'Smart TV' },
+                { id: 'favorites', icon: 'heart', label: 'Favs' }
+            ];
+
+            useEffect(() => {
+                const interval = setInterval(() => {
+                    const now = new Date();
+                    setClockTime(`${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`);
+                }, 1000);
+                return () => clearInterval(interval);
+            }, []);
+
+            useEffect(() => {
+                const initData = async () => {
+                    setLoading(true);
+                    try {
+                        const [dataTV, dataSeries, dataRadios, dataMovies, dataMovies2, dataAnimated, dataVideoteca] = await Promise.all([
+                            fetchSmart(URLS.TV, RAW_URLS.TV, false),
+                            fetchSmart(URLS.SERIES, RAW_URLS.SERIES, true),
+                            fetchSmart(URLS.RADIOS, RAW_URLS.RADIOS, true),
+                            fetchSmart(URLS.MOVIES, RAW_URLS.MOVIES, true),
+                            fetchSmart(URLS.MOVIES2, RAW_URLS.MOVIES2, true),
+                            fetchSmart(URLS.ANIMATED, RAW_URLS.ANIMATED, true),
+                            fetchSmart(URLS.VIDEOTECA, RAW_URLS.VIDEOTECA, true)
+                        ]);
+
+                        let tvChannels = [];
+                        if (dataTV) tvChannels = parseM3U(dataTV);
+
+                        let moviesList = [];
+                        if (dataMovies) {
+                            const raw = Array.isArray(dataMovies) ? dataMovies : (dataMovies.peliculas || []);
+                            moviesList = raw.map((m, idx) => ({ ...m, id: `mov-${idx}`, type: 'movies', title: m.titulo || m.title, image: m.imagen || m.image, url: convertUrl(m.urlDrive || m.url || m.urlOkRu) }));
+                        }
+
+                        let movies2List = [];
+                        if (dataMovies2) {
+                            const raw = Array.isArray(dataMovies2) ? dataMovies2 : (dataMovies2.peliculas || []);
+                            movies2List = raw.map((m, idx) => ({ ...m, id: `est-${idx}`, type: 'movies2', title: m.titulo || m.title, image: m.imagen || m.image, url: convertUrl(m.urlDrive || m.url || m.urlOkRu) }));
+                        }
+
+                        let seriesList = [];
+                        if (dataSeries) {
+                            const raw = Array.isArray(dataSeries) ? dataSeries : (dataSeries.series || []);
+                            seriesList = raw.map((s, idx) => ({
+                                ...s, id: `serie-${idx}`, type: 'series', title: s.tituloSerie || s.title, image: s.imagen || s.image,
+                                seasons: (s.temporadas || []).map((t, ti) => ({
+                                    seasonNumber: t.numeroTemporada || (ti + 1),
+                                    episodes: (t.episodios || []).map((ep, ei) => ({ id: `ep-${idx}-${ti}-${ei}`, title: ep.tituloEpisodio || `Episodio ${ei + 1}`, url: convertUrl(ep.urlDrive || ep.url) }))
+                                }))
+                            }));
+                        }
+
+                        let animatedList = [];
+                        if (dataAnimated) {
+                            const raw = Array.isArray(dataAnimated) ? dataAnimated : (dataAnimated.animados || []);
+                            animatedList = raw.map((a, idx) => ({ ...a, id: `anim-${idx}`, type: 'animated', title: a.titulo || a.title, image: a.imagen || a.image, url: convertUrl(a.urlDrive || a.url) }));
+                        }
+
+                        let loadedRadios = FALLBACK_RADIOS;
+                        if (dataRadios) {
+                            const list = Array.isArray(dataRadios) ? dataRadios : (dataRadios.radios || []);
+                            if (list.length > 0) {
+                                loadedRadios = list.map((r, idx) => ({
+                                    ...r,
+                                    id: r.id || `rad-${idx}`,
+                                    title: r.title || r.titulo || `Radio ${idx+1}`,
+                                    group: r.group || 'Costa Rica',
+                                    genre: r.genre || 'Música en vivo',
+                                    image: r.logo || r.image || r.imagen || 'https://placehold.co/150x150/0f172a/00f2fe?text=FM',
+                                    url: r.url || r.stream || ''
+                                }));
+                            }
+                        }
+
+                        // ============================================================
+                        // Carga de ÁLBUMES desde videoteca.json
+                        // Soporta tracks con { type: 'archive', archiveId: '...' }
+                        // y también tracks con { audio: '...mp3' }
+                        // ============================================================
+                        let loadedAlbums = FALLBACK_ALBUMS;
+                        if (dataVideoteca) {
+                            const vList = Array.isArray(dataVideoteca) ? dataVideoteca : (dataVideoteca.videoteca || dataVideoteca.albumes || []);
+                            if (vList.length > 0) {
+                                loadedAlbums = vList.map((alb, idx) => {
+                                    const rawTracks = alb.tracks || alb.pistas || alb.canciones || [];
+                                    const albumMusicUrl = convertUrl(alb.musicUrl || alb.urlDrive || alb.url || '');
+                                    
+                                    const finalTracks = rawTracks.length > 0 ? rawTracks.map((t, ti) => {
+                                        // Si ya viene con type: 'archive', respetarlo
+                                        if (t.type === 'archive' || t.archiveId) {
+                                            return {
+                                                title: t.title || t.titulo || `Pista ${ti + 1}`,
+                                                type: 'archive',
+                                                archiveId: t.archiveId || getArchiveIdFromUrl(t.audio || t.url || ''),
+                                                duration: t.duration || t.duracion || 'Álbum'
+                                            };
+                                        }
+                                        // Si la URL es de archive.org, convertir automáticamente
+                                        const audioUrl = convertUrl(t.audio || t.urlDrive || t.url || albumMusicUrl || '');
+                                        const archiveIdFromUrl = getArchiveIdFromUrl(audioUrl);
+                                        if (archiveIdFromUrl) {
+                                            return {
+                                                title: t.title || t.titulo || `Pista ${ti + 1}`,
+                                                type: 'archive',
+                                                archiveId: archiveIdFromUrl,
+                                                duration: t.duration || t.duracion || 'Álbum'
+                                            };
+                                        }
+                                        // Track normal
+                                        return {
+                                            title: t.title || t.titulo || `Pista ${ti + 1}`,
+                                            audio: audioUrl,
+                                            duration: t.duration || t.duracion || '3:30'
+                                        };
+                                    }) : (albumMusicUrl ? [{
+                                        title: alb.album || alb.titulo || 'Álbum Completo',
+                                        audio: albumMusicUrl,
+                                        type: getArchiveIdFromUrl(albumMusicUrl) ? 'archive' : 'audio',
+                                        archiveId: getArchiveIdFromUrl(albumMusicUrl) || undefined,
+                                        duration: 'Completo'
+                                    }] : []);
+
+                                    return {
+                                        id: alb.id || `alb-${idx}`,
+                                        artist: alb.artist || alb.artista || 'Artista Clásico',
+                                        album: alb.album || alb.titulo || alb.title || 'Álbum Clásico',
+                                        year: String(alb.year || alb.año || '1980'),
+                                        genre: alb.genre || alb.genero || 'Rock',
+                                        cover: alb.cover || alb.imagen || alb.image || 'https://placehold.co/300x300/111/d4af37?text=DISCO',
+                                        musicUrl: albumMusicUrl,
+                                        description: alb.description || alb.descripcion || 'Colección histórica musical.',
+                                        tracks: finalTracks
+                                    };
+                                });
+                            }
+                        }
+
+                        setContent({ tv: tvChannels, movies: moviesList, movies2: movies2List, series: seriesList, animated: animatedList, tudum: [], albums: loadedAlbums });
+                        setRadioStations(loadedRadios);
+                        setCurrentRadioStation(loadedRadios[0]);
+                    } catch (err) {
+                        console.error("Error inicializando datos:", err);
+                    } finally {
+                        setLoading(false);
+                    }
+                };
+
+                initData();
+            }, []);
+
+            useEffect(() => {
+                if (!audioRef.current) {
+                    audioRef.current = new Audio();
+                    // ❌ NO usar crossOrigin aquí tampoco
+                }
+            }, []);
+
+            const handlePlayRadio = (station) => {
+                setCurrentRadioStation(station);
+                setIsRadioPlaying(true);
+                setStreamError(false);
+
+                const audio = audioRef.current;
+                if (!audio) return;
+
+                if (hlsRef.current) {
+                    hlsRef.current.destroy();
+                    hlsRef.current = null;
+                }
+
+                const targetUrl = station.url || '';
+                if (targetUrl.includes('.m3u8') && Hls.isSupported()) {
+                    const hls = new Hls({ enableWorker: true });
+                    hlsRef.current = hls;
+                    hls.loadSource(targetUrl);
+                    hls.attachMedia(audio);
+                    hls.on(Hls.Events.MANIFEST_PARSED, () => { audio.play().catch(() => {}); });
+                    hls.on(Hls.Events.ERROR, () => { setStreamError(true); });
+                } else {
+                    audio.src = targetUrl;
+                    audio.play().catch(() => setStreamError(true));
+                }
+            };
+
+            const toggleFavorite = (item) => {
+                const itemId = item.id || item.title;
+                if (favorites.some(f => (f.id || f.title) === itemId)) {
+                    setFavorites(favorites.filter(f => (f.id || f.title) !== itemId));
+                } else {
+                    setFavorites([...favorites, item]);
+                }
+            };
+
+            const handlePlayMovie = (item) => {
+                setSelectedItem(item);
+                if (item.type === 'series') {
+                    setSelectedEpisode(item.seasons?.[0]?.episodes?.[0] || null);
+                } else {
+                    setSelectedEpisode(null);
+                }
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            };
+
+            return (
+                <div className="min-h-screen bg-[#020617] text-[#f8fafc] font-sans flex flex-col relative w-full">
+                    <header className="sticky top-0 z-50 glass-header px-4 sm:px-8 py-3.5 flex items-center justify-between shadow-2xl w-full">
+                        <div className="flex items-center gap-3 sm:gap-6">
+                            <div className="flex items-center gap-2 cursor-pointer group" onClick={() => { setActiveTab('home'); setSelectedItem(null); }}>
+                                <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-600 to-teal-500 flex items-center justify-center shadow-[0_0_20px_rgba(6,182,212,0.4)]">
+                                    <Icon name="play" fill="white" size={14}/>
+                                </div>
+                                <span className="font-black text-base sm:text-lg tracking-tight">BOXPLAY<span className="text-cyan-400">TV</span></span>
+                            </div>
+
+                            <nav className="hidden lg:flex items-center gap-1">
+                                {navTabs.map(tab => (
+                                    <button 
+                                        key={tab.id}
+                                        onClick={() => { setActiveTab(tab.id); setSelectedItem(null); }}
+                                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${activeTab === tab.id ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                                    >
+                                        <Icon name={tab.icon} size={13} />
+                                        <span>{tab.label}</span>
+                                    </button>
+                                ))}
+                            </nav>
+                        </div>
+
+                        <div className="flex items-center gap-2 sm:gap-3">
+                            <button onClick={() => { setActiveTab('aiassistant'); setSelectedItem(null); }} className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-cyan-600 to-teal-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-md">
+                                <Icon name="chat" size={14} />
+                                <span className="hidden sm:inline">Asistente IA</span>
+                            </button>
+                            <input 
+                                type="text"
+                                placeholder="Buscar..."
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                className="bg-[#090d1f] border border-slate-800 rounded-full px-3.5 py-1.5 text-xs text-white outline-none focus:border-cyan-500 w-28 sm:w-44"
+                            />
+                        </div>
+                    </header>
+
+                    <div className="lg:hidden fixed bottom-0 w-full glass-panel border-t border-slate-800 z-50 flex py-2 px-1 items-center justify-around shadow-2xl">
+                        {[
+                            { id: 'home', icon: 'search', label: 'Inicio' },
+                            { id: 'movies', icon: 'clapperboard', label: 'Películas' },
+                            { id: 'tv', icon: 'tv', label: 'TV' },
+                            { id: 'radio', icon: 'radio', label: 'Radio' },
+                            { id: 'coleccion', icon: 'disc', label: 'Colección' }
+                        ].map(tab => (
+                            <button 
+                                key={tab.id}
+                                onClick={() => { setActiveTab(tab.id); setSelectedItem(null); }}
+                                className={`flex flex-col items-center justify-center flex-1 py-1 gap-1 text-[9px] font-bold ${activeTab === tab.id ? 'text-cyan-400' : 'text-slate-400'}`}
+                            >
+                                <Icon name={tab.icon} size={16} />
+                                <span>{tab.label}</span>
+                            </button>
+                        ))}
+                    </div>
+
+                    <main className="flex-1 w-full pb-20 lg:pb-10">
+                        {activeTab === 'coleccion' ? (
+                            <ClassicMusicSection albumsData={content.albums} />
+                        ) : activeTab === 'radio' ? (
+                            <CyberRadioSection 
+                                stations={radioStations}
+                                currentStation={currentRadioStation}
+                                isPlaying={isRadioPlaying}
+                                onPlayStation={handlePlayRadio}
+                                volume={radioVolume}
+                                setVolume={setRadioVolume}
+                                streamError={streamError}
+                                isLoading={isLoadingRadio}
+                                audioRef={audioRef}
+                                clockTime={clockTime}
+                                isMuted={isMuted}
+                                setIsMuted={setIsMuted}
+                                isPowerOn={isPowerOn}
+                                setIsPowerOn={setIsPowerOn}
+                                oscilloscopePoints={oscilloscopePoints}
+                                radioFilter={radioFilter}
+                                setRadioFilter={setRadioFilter}
+                                hlsRef={hlsRef}
+                                setIsRadioPlaying={setIsRadioPlaying}
+                            />
+                        ) : activeTab === 'aiassistant' ? (
+                            <AiAssistantSection content={content} onSelectMovie={handlePlayMovie} />
+                        ) : activeTab === 'smartview' ? (
+                            <div className="max-w-3xl mx-auto p-6 text-center space-y-4 animate-fade-in">
+                                <div className="glass-panel p-8 rounded-3xl border border-cyan-500/30">
+                                    <h2 className="text-xl font-black text-white">Configuración de Boxplaytv en Smart TV</h2>
+                                    <p className="text-xs text-gray-300 mt-2">Instala la app <strong>Downloader</strong> e introduce el código oficial:</p>
+                                    <div className="bg-cyan-950/80 border border-cyan-500/50 p-4 rounded-2xl my-4 text-2xl font-black tracking-widest text-cyan-300">
+                                        8614069
+                                    </div>
+                                    <p className="text-[11px] text-gray-400">Guarda la web en favoritos para acceder siempre con un clic.</p>
+                                </div>
+                            </div>
+                        ) : selectedItem ? (
+                            <div className="w-full flex flex-col items-center animate-fade-in">
+                                <div className="w-full aspect-video max-h-[70vh] bg-black relative flex items-center justify-center video-container-fix">
+                                    <button onClick={() => setSelectedItem(null)} className="absolute top-4 left-4 z-30 bg-black/80 text-white px-4 py-1.5 rounded-full border border-cyan-500/40 text-xs font-bold flex items-center gap-2">
+                                        <Icon name="arrowLeft" size={12}/> Volver
+                                    </button>
+                                    <iframe 
+                                        src={convertUrl(selectedEpisode ? selectedEpisode.url : selectedItem.url)} 
+                                        className="w-full h-full border-0 absolute inset-0 object-contain" 
+                                        allow="autoplay; encrypted-media; fullscreen" 
+                                        allowFullScreen
+                                    ></iframe>
+                                </div>
+                                <div className="max-w-5xl w-full p-6 space-y-4">
+                                    <h1 className="text-xl sm:text-2xl font-black text-white">{selectedItem.title}</h1>
+                                    <p className="text-xs sm:text-sm text-gray-300 leading-relaxed">{selectedItem.descripcion || selectedItem.description || 'Sin descripción.'}</p>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="space-y-6 pt-6">
+                                {activeTab === 'home' && (
+                                    <>
+                                        <ContentRow title="✨ Estrenos 2026" items={content.movies2} onPlay={handlePlayMovie} favorites={favorites} tvFavorites={tvFavorites} onToggleFavorite={toggleFavorite} />
+                                        <ContentRow title="🎬 Películas Destacadas" items={content.movies} onPlay={handlePlayMovie} favorites={favorites} tvFavorites={tvFavorites} onToggleFavorite={toggleFavorite} />
+                                        <ContentRow title="📺 Series" items={content.series} onPlay={handlePlayMovie} favorites={favorites} tvFavorites={tvFavorites} onToggleFavorite={toggleFavorite} />
+                                        <ContentRow title="🎨 Animados" items={content.animated} onPlay={handlePlayMovie} favorites={favorites} tvFavorites={tvFavorites} onToggleFavorite={toggleFavorite} />
+                                    </>
+                                )}
+                                {activeTab === 'movies' && <ContentRow title="🎬 Catálogo de Películas" items={content.movies} onPlay={handlePlayMovie} favorites={favorites} tvFavorites={tvFavorites} onToggleFavorite={toggleFavorite} />}
+                                {activeTab === 'movies2' && <ContentRow title="✨ Estrenos 2026" items={content.movies2} onPlay={handlePlayMovie} favorites={favorites} tvFavorites={tvFavorites} onToggleFavorite={toggleFavorite} />}
+                                {activeTab === 'series' && <ContentRow title="📺 Series Completas" items={content.series} onPlay={handlePlayMovie} favorites={favorites} tvFavorites={tvFavorites} onToggleFavorite={toggleFavorite} />}
+                                {activeTab === 'animated' && <ContentRow title="🎨 Animados & Dibujos" items={content.animated} onPlay={handlePlayMovie} favorites={favorites} tvFavorites={tvFavorites} onToggleFavorite={toggleFavorite} />}
+                                {activeTab === 'favorites' && <ContentRow title="❤️ Mis Favoritos" items={favorites} onPlay={handlePlayMovie} favorites={favorites} tvFavorites={tvFavorites} onToggleFavorite={toggleFavorite} />}
+                                {activeTab === 'tv' && (
+                                    <div className="max-w-6xl mx-auto px-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                                        {content.tv.map((ch, idx) => (
+                                            <div key={idx} onClick={() => handlePlayMovie(ch)} className="glass-panel p-3 rounded-xl border border-slate-800 hover:border-cyan-500 cursor-pointer flex items-center gap-3">
+                                                <div className="w-9 h-9 rounded-full bg-black p-1 border border-cyan-500/40 shrink-0">
+                                                    <img src={ch.image} alt="" className="w-full h-full object-cover rounded-full" onError={(e)=>e.target.style.display='none'} />
+                                                </div>
+                                                <div className="min-w-0 flex-1">
+                                                    <h4 className="text-xs font-bold text-white truncate">{ch.title}</h4>
+                                                    <span className="text-[10px] text-gray-400 truncate block">{ch.group}</span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </main>
+                </div>
+            );
+        };
+
+        const container = document.getElementById('root');
+        const root = ReactDOM.createRoot(container);
+        root.render(<App />);
+    </script>
+</body>
+</html>
     <!-- OpenGraph & WhatsApp Sharing Meta Tags -->
     <meta property="og:title" content="BOXPLAYTV">
     <meta property="og:description" content="Streaming de alta calidad cinematográfica y canales en directo">
