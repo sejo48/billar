@@ -45,8 +45,8 @@ body{padding:0}
   display:flex;justify-content:center;margin:0 0 20px;
 }
 .reference img{
-  width:100%;max-width:420px;height:280px;object-fit:cover;
-  border-radius:8px;display:block;background:#000;box-shadow:0 8px 24px rgba(0,0,0,0.8);
+  width:100%;max-width:540px;height:360px;object-fit:cover;
+  border-radius:8px;display:block;background:#000;box-shadow:0 8px 24px rgba(0,0,0,0.9);
   border:1px solid #1e293b;
 }
 
@@ -74,10 +74,9 @@ body{padding:0}
 .seat.empty{color:transparent}
 .seat .seat-content{
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  line-height:1.05;max-width:100%;
+  line-height:1.2;max-width:100%;
 }
 .seat .seat-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
-.seat .seat-color{font-size:9px;opacity:.9;margin-top:2px}
 
 .controls-title{
   display:flex;align-items:center;justify-content:space-between;
@@ -121,7 +120,7 @@ select:focus,input:focus{border-color:#60a5fa}
 .hint{font-size:11px;color:#9ca3af;margin:10px 0 0;line-height:1.4}
 
 .modal-backdrop{
-  position:fixed;inset:0;background:rgba(0,0,0,.8);
+  position:fixed;inset:0;background:rgba(0,0,0,.85);
   display:none;align-items:center;justify-content:center;padding:16px;z-index:10;
 }
 .modal-backdrop.show{display:flex}
@@ -154,7 +153,7 @@ select:focus,input:focus{border-color:#60a5fa}
 .light .name-item{border-bottom-color:#e2e8f0}
 @media(max-width:430px){
   .app{padding:16px 12px}
-  .reference img{height:220px}
+  .reference img{height:280px}
   .board th{font-size:12px}
   .board td{height:46px}
 }
@@ -198,10 +197,10 @@ select:focus,input:focus{border-color:#60a5fa}
       <label for="colorSelect">Seleccionar color:</label>
       <select id="colorSelect">
         <option value="">Seleccionar color</option>
-        <option value="#3b82f6">Azul</option>
-        <option value="#ef4444">Rojo</option>
+        <option value="#2563eb">Azul</option>
+        <option value="#dc2626">Rojo</option>
         <option value="#facc15">Amarillo</option>
-        <option value="#22c55e">Verde</option>
+        <option value="#16a34a">Verde</option>
       </select>
     </div>
 
@@ -217,7 +216,7 @@ select:focus,input:focus{border-color:#60a5fa}
       <button class="secondary-action" id="clearSeatBtn">Liberar asiento</button>
       <button class="danger" id="clearBtn">Borrar todo</button>
     </div>
-    <p class="hint">Seleccione un nombre no asignado y un color, luego haga clic en el asiento. Los nombres ya asignados desaparecerán de la lista hasta liberar su asiento.</p>
+    <p class="hint">Seleccione un nombre disponible y un color, luego haga clic en el asiento. Los nombres ya asignados no aparecerán hasta liberar su asiento.</p>
   </section>
 </div>
 
@@ -234,9 +233,9 @@ select:focus,input:focus{border-color:#60a5fa}
 </div>
 
 <script>
-const NAME_KEY='salidas_nombres_v5';
-const SEAT_KEY='salidas_asientos_v5';
-const THEME_KEY='salidas_tema_v5';
+const NAME_KEY='salidas_nombres_v7';
+const SEAT_KEY='salidas_asientos_v7';
+const THEME_KEY='salidas_tema_v7';
 
 let names = JSON.parse(localStorage.getItem(NAME_KEY) || '[]');
 let seats = JSON.parse(localStorage.getItem(SEAT_KEY) || '[]');
@@ -263,7 +262,7 @@ function esc(s){
 function textColor(hex){
   const h=hex.replace('#','');
   const r=parseInt(h.slice(0,2),16),g=parseInt(h.slice(2,4),16),b=parseInt(h.slice(4,6),16);
-  return (r*299+g*587+b*114)>150000 ? '#111827' : '#fff';
+  return (r*299+g*587+b*114)>150000 ? '#111827' : '#ffffff';
 }
 
 function showCustomModal(title, message, onConfirm = null){
@@ -288,7 +287,6 @@ function closeModal(){
   modal.classList.remove('show');
 }
 
-// Obtener nombres que ya están asignados en algún asiento
 function getAssignedNames(){
   const assigned = new Set();
   seats.forEach(s => {
@@ -304,7 +302,6 @@ function renderNames(){
   nameSelect.innerHTML = '<option value="">Seleccionar nombre disponible</option>';
   
   names.forEach((n) => {
-    // Solo mostrar el nombre si NO ha sido asignado a ningún asiento
     if(!assignedNames.has(n)){
       const o = document.createElement('option');
       o.value = n; 
@@ -329,7 +326,7 @@ function renderBoard(){
       if(a){
         div.style.background=a.color;
         div.style.color=textColor(a.color);
-        div.innerHTML='<div class="seat-content"><div class="seat-name">'+esc(a.name)+'</div><div class="seat-color">'+esc(a.colorName)+'</div></div>';
+        div.innerHTML='<div class="seat-content"><div class="seat-name">'+esc(a.name)+'</div></div>';
       }
       td.appendChild(div);
       td.addEventListener('click',()=>handleSeatClick(i));
@@ -368,13 +365,13 @@ function handleSeatClick(index){
     return;
   }
   
-  // Si el asiento ya tenía alguien, su nombre anterior vuelve a quedar libre automáticamente
   const colorName = colorSelect.options[colorSelect.selectedIndex].text;
   seats[index] = { name: selectedName, color, colorName };
   
   save(); 
   renderBoard();
   renderNames();
+  nameSelect.value = "";
 }
 
 function addName(){
