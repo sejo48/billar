@@ -15,6 +15,7 @@
   --blue:#2563eb;
   --green:#16a34a;
   --red:#dc2626;
+  --yellow:#ca8a04;
   --seat:#0a101d;
 }
 *{box-sizing:border-box}
@@ -22,7 +23,7 @@ html,body{margin:0;min-height:100%;font-family:Arial,Helvetica,sans-serif;backgr
 body{padding:0}
 .app{
   width:100%;
-  max-width:680px;
+  max-width:640px;
   min-height:100vh;
   margin:0 auto;
   background:var(--bg);
@@ -42,12 +43,28 @@ body{padding:0}
 .theme:hover, .export-btn:hover{filter:brightness(1.15)}
 
 .reference{
-  display:flex;justify-content:center;margin:0 0 20px;
+  width:100%;
+  margin:0 0 20px;
+  border-radius:10px;
+  overflow:hidden;
+  border:1px solid #1e293b;
+  background:#000;
+  box-shadow:0 10px 30px rgba(0,0,0,0.95);
+  cursor:zoom-in;
+  position:relative;
 }
 .reference img{
-  width:100%;max-width:580px;height:380px;object-fit:cover;
-  border-radius:10px;display:block;background:#000;box-shadow:0 10px 30px rgba(0,0,0,0.95);
-  border:1px solid #1e293b;
+  width:100%;
+  height:auto;
+  display:block;
+  transition:transform .3s ease;
+}
+.reference:hover img{
+  transform:scale(1.02);
+}
+.zoom-hint{
+  position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,0.7);color:#fff;
+  padding:4px 8px;font-size:11px;border-radius:4px;pointer-events:none;opacity:0.8;
 }
 
 .board{
@@ -61,7 +78,7 @@ body{padding:0}
   font-size:14px;font-weight:700;border:0;
 }
 .board td{
-  height:52px;padding:0;border:1px solid var(--border);
+  height:54px;padding:0;border:1px solid var(--border);
   background:var(--seat);text-align:center;vertical-align:middle;
   cursor:pointer;transition:.12s;
   position:relative;
@@ -143,6 +160,16 @@ select:focus,input:focus{border-color:#60a5fa}
 .close{border:0;background:#334155;color:#fff;border-radius:6px;padding:9px 14px;cursor:pointer;font-size:13px}
 .modal-confirm{border:0;background:#2563eb;color:#fff;border-radius:6px;padding:9px 16px;cursor:pointer;font-size:13px}
 
+/* Image Zoom Lightbox Modal */
+.zoom-modal{
+  position:fixed;inset:0;background:rgba(0,0,0,0.92);
+  display:none;align-items:center;justify-content:center;padding:20px;z-index:100;cursor:zoom-out;
+}
+.zoom-modal.show{display:flex}
+.zoom-modal img{
+  max-width:100%;max-height:90vh;object-fit:contain;border-radius:8px;box-shadow:0 10px 40px rgba(0,0,0,0.8);
+}
+
 .light{--bg:#f0f2f5;--panel:#fff;--border:#cbd5e1;--text:#172033;--muted:#475569;--seat:#f8fafc}
 .light .title{color:#2563eb}
 .light .board td{background:#f8fafc}
@@ -154,7 +181,6 @@ select:focus,input:focus{border-color:#60a5fa}
 
 @media(max-width:480px){
   .app{padding:14px 10px}
-  .reference img{height:280px}
   .board th{font-size:13px}
   .board td{height:48px}
 }
@@ -170,8 +196,9 @@ select:focus,input:focus{border-color:#60a5fa}
     </div>
   </div>
 
-  <div class="reference">
-    <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjwVUHtc7K1nqnPnTqO6do4jkR6bm9WNT0YVy46dlpmKkkJGcH25eI_5EwacesPK_0wrt29OCymXhkVLw23QWNUzGPN4ufaPjYS8ZQqM0xmSGNxgCc-W6xn1hPN9x0xH3HuNfmOkH1dslLFFF0eys6V8IIvvIrCBAdCZs-5IBKF6yYaBNg8muix6KLp_o0/s320/WhatsApp%20Image%202026-09-30%20at%201.41.30%20PM.jpeg" alt="Asignación de asientos">
+  <div class="reference" id="refContainer" title="Hacer clic para ampliar imagen">
+    <img src="https://archive.org/download/gemini-generated-image-i-5v-0uni-5v-0uni-5v-0/Gemini_Generated_Image_i5v0uni5v0uni5v0.jpeg" alt="Asignación de asientos">
+    <div class="zoom-hint">🔍 Ampliar</div>
   </div>
 
   <table class="board" aria-label="Asignación de asientos">
@@ -200,7 +227,7 @@ select:focus,input:focus{border-color:#60a5fa}
         <option value="">Seleccionar color</option>
         <option value="#2563eb">Azul</option>
         <option value="#dc2626">Rojo</option>
-        <option value="#facc15">Amarillo</option>
+        <option value="#ca8a04">Amarillo</option>
         <option value="#16a34a">Verde</option>
       </select>
     </div>
@@ -217,7 +244,7 @@ select:focus,input:focus{border-color:#60a5fa}
       <button class="secondary-action" id="clearSeatBtn">Liberar asiento</button>
       <button class="danger" id="clearBtn">Borrar todo</button>
     </div>
-    <p class="hint">Seleccione un nombre disponible y un color, luego haga clic en el asiento. Todo se guarda localmente en su dispositivo (móvil o PC).</p>
+    <p class="hint">Seleccione un nombre disponible y un color, luego haga clic en el asiento. Si hace clic en un asiento ya ocupado, se liberará instantáneamente para poder reasignarlo.</p>
   </section>
 </div>
 
@@ -233,10 +260,14 @@ select:focus,input:focus{border-color:#60a5fa}
   </div>
 </div>
 
+<div class="zoom-modal" id="zoomModal">
+  <img src="https://archive.org/download/gemini-generated-image-i-5v-0uni-5v-0uni-5v-0/Gemini_Generated_Image_i5v0uni5v0uni5v0.jpeg" alt="Asignación de asientos ampliada">
+</div>
+
 <script>
-const NAME_KEY='salidas_nombres_v9';
-const SEAT_KEY='salidas_asientos_v9';
-const THEME_KEY='salidas_tema_v9';
+const NAME_KEY='salidas_nombres_v12';
+const SEAT_KEY='salidas_asientos_v12';
+const THEME_KEY='salidas_tema_v12';
 
 let names = JSON.parse(localStorage.getItem(NAME_KEY) || '[]');
 let seats = JSON.parse(localStorage.getItem(SEAT_KEY) || '[]');
@@ -250,6 +281,8 @@ const modalTitle = document.getElementById('modalTitle');
 const modalBody = document.getElementById('modalBody');
 const modalActions = document.getElementById('modalActions');
 const app = document.getElementById('app');
+const refContainer = document.getElementById('refContainer');
+const zoomModal = document.getElementById('zoomModal');
 
 function save(){
   try {
@@ -345,17 +378,17 @@ function handleSeatClick(index){
   const selectedName = nameSelect.value;
   const color = colorSelect.value;
   
+  // Si el asiento ya está ocupado, al hacer clic se libera automáticamente de inmediato
+  if(seats[index]){
+    seats[index] = null;
+    save();
+    renderBoard();
+    renderNames();
+    return;
+  }
+  
   if(!selectedName && !color){
-    if(seats[index]){
-      showCustomModal('Liberar Asiento', `¿Desea desasignar el asiento #${index + 1} (${seats[index].name})? El nombre volverá a estar disponible.`, () => {
-        seats[index] = null;
-        save();
-        renderBoard();
-        renderNames();
-      });
-    } else {
-      showCustomModal('Aviso', 'Seleccione primero un nombre disponible y un color en los controles inferiores antes de asignar un asiento.');
-    }
+    showCustomModal('Aviso', 'Seleccione un nombre disponible y un color en los controles inferiores antes de asignar un asiento. (Si hace clic en un asiento ocupado, se liberará instantáneamente).');
     return;
   }
 
@@ -439,12 +472,20 @@ document.getElementById('clearBtn').addEventListener('click',()=>{
 });
 
 document.getElementById('clearSeatBtn').addEventListener('click',()=>{
-  showCustomModal('Liberar Asiento', 'Haga clic directamente sobre el asiento en el tablero que desea dejar libre.');
+  showCustomModal('Liberar Asiento', 'Haga clic directamente sobre cualquier asiento ocupado en el tablero para liberarlo instantáneamente.');
 });
 
 document.getElementById('manageBtn').addEventListener('click', renderNameManagementList);
 
 modal.addEventListener('click',e=>{if(e.target===modal)closeModal()});
+
+// Image Zoom Lightbox events
+refContainer.addEventListener('click', () => {
+  zoomModal.classList.add('show');
+});
+zoomModal.addEventListener('click', () => {
+  zoomModal.classList.remove('show');
+});
 
 document.getElementById('exportBtn').addEventListener('click', () => {
   let summary = "📋 Resumen de Asignación de Asientos (Salidas):\n\n";
